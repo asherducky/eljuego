@@ -10,6 +10,11 @@ create table if not exists public.saves (
   updated_at timestamptz not null default now()
 );
 
+-- Signed-in players may use the table at all (rows are still filtered by the policies below).
+-- Needed if "Automatically expose new tables" was turned off; harmless if it was on.
+grant select, insert, update, delete on public.saves to authenticated;
+revoke all on public.saves from anon;
+
 -- Row level security: a signed-in player can only see and change their own save.
 alter table public.saves enable row level security;
 
