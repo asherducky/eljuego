@@ -1,0 +1,4 @@
+# Netlify deploys straight from GitHub: the built game is already in site/index.html.
+[build]
+  publish = "site"
+  command = "node build.js"
