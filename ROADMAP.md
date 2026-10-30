@@ -274,3 +274,28 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
 - [x] **Quests:** four townsfolk with 3-step chains (hunt, hand over materials, clear / elite / Spire floor). They pay gold, essence, stars and gems.
 - [x] **Daily contracts:** three a day at the Inn, replacing the bounty board. Finishing all three gives a bonus gem.
 - [x] **Forging:** the strike marker no longer speeds up after each strike.
+
+## Round 9 — Playtest rework (done)
+- [x] **Stats:**
+  - Each point is about 1%: STR physical damage, DEX crit damage and chance, INT spell damage and MP, VIT HP and defense, SPD speed, LUK gold and better drops.
+  - Gear and stars no longer give stat points. Stat stars give % bonuses, and stat-named gear bonuses turn into % bonuses.
+- [x] **Weapon scaling:**
+  - One stat per weapon, and the grade climbs with tempering: D→S, C→SS (Obsidian/Hollow), B→SSS (Legendary), A start for Mythic.
+  - Each grade adds attack per stat point. Tempering a weapon only raises its grade.
+- [x] **Forge rework:**
+  - Pick weapons or armor, then what to make, then a catalyst metal (sets the tier), an optional alloy reagent, up to 2 supplements and an optional rarity crystal.
+  - Crystals: shards from bosses, elites and salvaging Epic+; crystals from bosses and Spire milestones; crystals combine in Supplies.
+  - New Mythic rarity.
+- [x] **Loot and rewards:**
+  - Rarer drops, and Legendaries much rarer.
+  - Spire: loot tier by floor, half XP, 60% gold, fewer drops.
+  - Salvaging also gives metal and shards. Contracts pay ~3× plus materials and shards.
+- [x] **Inventory:**
+  - Select by rarity or tier, lock/unlock the selection, right-click to lock.
+  - Drag to arrange (Custom sort). The salvage junk button is gone.
+- [x] **Visuals:**
+  - Trousers match the armor, with boot shafts.
+  - Hollow weapons get a quiet gold halo, and Hollow staves add motes.
+  - Each Legendary gets its own effect (haze, gleam, dust, flames, drips).
+- [x] **Removed:** elite tracking and titles.
+- [x] **Cloud:** loading a cloud save is limited to once every 10 minutes.
