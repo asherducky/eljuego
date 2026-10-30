@@ -1361,7 +1361,7 @@ function fresh(){
 }
 function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(const sl of SLOTS)if(!(sl in s.gear))s.gear[sl]=null;
   for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.uq&&!UNIQ[it.uq]){it.uq=null;it.rar=3;it.name=itemName(it);}
-  if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
+  if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&(s.combat.ctx==='duel'||s.combat.ctx==='pvp'))s.combat=null;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
   if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);return s;}
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();pvpPost();}}
@@ -1424,7 +1424,40 @@ async function chatSend(){const sb=await net();const el=document.getElementById(
   const {data,error}=await sb.from('chat').insert({user_id:NET.user.id,name:pname().slice(0,16),body}).select().single();
   if(error){toast(/row-level|policy/.test(error.message||'')?'Slow down a little':'Message failed to send');return;}
   NET.draft='';const el2=document.getElementById('chatin');if(el2)el2.value='';if(data&&NET.chat&&!NET.chat.some(x=>x.id===data.id)){NET.chat.push(data);chatPaint();}}
+/* duels: one player makes a code, the other joins it; each client runs its own turns and sends the damage it dealt.
+   The defender rolls dodge, shields and damage reduction on their side and reports their HP back. Nothing is stored. */
+function duelSnap(){const d=derive();return {name:pname().slice(0,16),lvl:S.lvl,hp:d.maxHp,atk:d.atk,def:d.def,spd:d.spd,el:d.el,parts:heroParts(),rating:(NET.pvpMe||{}).rating||1000};}
+function duelSend(p){const D=NET.duel;if(D&&D.ch)D.ch.send({type:'broadcast',event:'m',payload:p});}
+function duelClose(){const D=NET.duel;if(D&&D.ch&&NET.sb){try{NET.sb.removeChannel(D.ch);}catch(e){}}NET.duel=null;}
+async function duelOpen(code,host){const sb=await net();if(!sb||!NET.user||!/^[A-Z0-9]{4}$/.test(code))return;duelClose();if(!NET.pvpMe)pvpMe();
+  const ch=sb.channel('duel-'+code,{config:{broadcast:{self:false}}});NET.duel={code,host,ch,opp:null,started:false};
+  ch.on('broadcast',{event:'m'},({payload})=>duelMsg(payload)).subscribe(st=>{if(st==='SUBSCRIBED')duelSend({t:'hello',snap:duelSnap()});});render(true);}
+function duelFoe(o){return {id:'pvp',n:o.name,L:o.lvl,hp:o.hp,max:o.hp,atk:o.atk,def:o.def,spd:o.spd,xp:0,gold:[0,0],drops:[],ab:[['atk',100]],boss:false,weak:null,res:null,st:{},pvp:true,parts:o.parts,intent:'atk'};}
+function duelBegin(first){const D=NET.duel;fullRest();S.tab='explore';NET.pvpLast=D.opp.rating||1000;startCombat([duelFoe(D.opp)],'duel');const c=C();c.myTurn=first;
+  log(first?'You move first.':`${D.opp.name} moves first.`,'sys');if(first)startTurn();render(true);}
+function duelMsg(p){const D=NET.duel;if(!D||!p)return;
+  if(p.t==='hello'){if(!D.opp){D.opp=p.snap;duelSend({t:'hello',snap:duelSnap()});}
+    if(D.host&&!D.started&&D.opp){D.started=true;const first=duelSnap().spd>=D.opp.spd;duelSend({t:'start',first:first?'host':'guest'});duelBegin(first);}render(true);return;}
+  if(p.t==='start'){if(!D.started&&D.opp){D.started=true;duelBegin(p.first==='guest');}return;}
+  const c=C();if(!c||c.ctx!=='duel'||c.over)return;const e=c.enemies[0];fxAt=0;
+  if(p.t==='act'){e.hp=Math.max(0,Math.min(e.max,p.hp));const d=derive();let dmg=Math.max(0,Math.round(p.dmg||0));log(`${e.n} uses ${p.name||'Attack'}.`,'hurt');fx('lunge',{t:0});fxAt+=220;
+    if(dmg>0&&chance(d.dodge+(c.ps.veil?40:0))){dmg=0;log(`You dodge ${e.n}.`,'buff');fx('num',{t:'p',txt:'Dodge',cls:'miss'});}
+    if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-d.dr/100)));if(c.ps.shield){const a=Math.min(c.ps.shield,dmg);c.ps.shield-=a;dmg-=a;if(!c.ps.shield)delete c.ps.shield;if(a)log(`Your shield absorbs ${a}.`,'buff');}
+      if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);fx('impact',{t:'p',el:'phys',st:'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:dmg,cls:'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});log(`${e.n} hits you for ${dmg}.`,'hurt');}
+    if(c.ps.veil)c.ps.veil--;duelSend({t:'hp',hp:S.hp});
+    if(S.hp<=0){lose();}else{c.myTurn=true;startTurn();}fx('sync');runFx();render(true);return;}
+  if(p.t==='hp'){e.hp=Math.max(0,p.hp);fx('hp',{t:0,hp:e.hp,max:e.max});if(e.hp<=0){fx('die',{t:0});win();}fx('sync');runFx();render(true);return;}
+  if(p.t==='end'){log(`${e.n} forfeits.`,'sys');e.hp=0;win();fx('sync');runFx();render(true);}}
 function vArena(){if(!SUPA.url||!SUPA.key)return '';
+  if(!NET.user)return '<div class="sub"><h3>Duel a friend</h3><p class="dim">Sign in under Settings to duel other players.</p></div>';
+  if(NET.sb&&!NET.pvpMe&&!NET.pvpAsk){NET.pvpAsk=true;pvpMe();}
+  const me=NET.pvpMe,D=NET.duel;
+  const body=D&&!D.started?`<div class="row"><span class="tag gold" style="font-size:1.1rem">Code: ${D.code}</span><span class="dim small">${D.host?'Send this code to your friend. Waiting for them to join…':'Joining…'}</span><button class="btn sm" data-a="duelcancel">Cancel</button></div>`
+    :`<div class="row"><button class="btn primary" data-a="duelnew" ${S.combat?'disabled':''}>Create a duel</button><span class="dim small">or</span>
+      <input class="inp" id="dcode" maxlength="4" placeholder="CODE" autocomplete="off" style="width:110px;text-transform:uppercase;text-align:center"><button class="btn" data-a="duelgo" ${S.combat?'disabled':''}>Join</button></div>`;
+  return `<div class="sub"><div class="row" style="justify-content:space-between"><h3>Duel a friend</h3>${me?`<span class="tag gold">Rating ${me.rating} · ${me.wins}W ${me.losses}L${NET.pvpDelta?` (${NET.pvpDelta>0?'+':''}${NET.pvpDelta})`:''}</span>`:''}</div>
+    <p class="dim small">Live, turn by turn: you both play your own character. One of you creates a duel and shares the 4-letter code; the other types it in. You both heal to full first, and nobody loses gold.</p>${body}</div>`;}
+function vArenaAI(){if(!SUPA.url||!SUPA.key)return '';
   if(!NET.user)return '<div class="sub"><h3>PvP arena</h3><p class="dim">Sign in under Settings to duel other players\' builds.</p></div>';
   if(NET.sb&&!NET.pvpMe&&!NET.pvpAsk){NET.pvpAsk=true;pvpMe();}
   const me=NET.pvpMe,o=NET.pvpOpp;
@@ -1713,6 +1746,7 @@ function enemyPhase(){const c=C();fxAt+=380;
   for(const k of ['veil','riposte','emberward'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];}
 function quickChance(){const d=derive();return Math.max(0,Math.min(40,(d.spd-maxESpd())*3+(hasP('swift')?10:0)));}
 function afterPlayer(){const c=C();
+  if(c.ctx==='duel'){const e=c.enemies[0];const dealt=Math.max(0,(c.duelPre||0)-e.hp);c.myTurn=false;duelSend({t:'act',dmg:dealt,name:c.lastAct||'Attack',hp:S.hp});c.lastAct=null;return;}
   for(let guard=0;guard<4;guard++){if(!alive().length)return win();
     if(c.ps.haste){c.ps.haste--;c.quick=true;}else c.quick=!c.lastQuick&&chance(quickChance());
     if(c.quick){c.lastQuick=true;log('Quick turn! You act again.','buff');fx('num',{t:'p',txt:'Quick!',cls:'crit'});startTurn();break;}
@@ -1753,10 +1787,10 @@ function win(){
     const mods=D.mods||[];if(mods.length){const e=5*mods.length;S.mats.essence=(S.mats.essence||0)+e;loot.mats.essence=(loot.mats.essence||0)+e;
       if(mods.length===3){S.flags.chal3=true;if(!S.chal.includes(D.area)){S.chal.push(D.area);S.sp++;loot.frag=true;}}}
     S.dungeon=null;}}
-  if(c.ctx==='pvp'){loot.gold=40+S.lvl*12;S.gold+=loot.gold;loot.mats.essence=(loot.mats.essence||0)+3;S.mats.essence=(S.mats.essence||0)+3;loot.pvp=true;pvpResult(true);}
+  if(c.ctx==='pvp'||c.ctx==='duel'){loot.gold=40+S.lvl*12;S.gold+=loot.gold;loot.mats.essence=(loot.mats.essence||0)+3;S.mats.essence=(S.mats.essence||0)+3;loot.pvp=true;pvpResult(true);}
   c.over={win:true,loot};fxAt+=200;fx('win',{big:!!loot.cleared,n:loot.cleared});
 }
-function lose(){const c=C();if(c.ctx==='pvp')pvpResult(false);const lost=c.ctx==='tower'||c.ctx==='pvp'?0:Math.round(S.gold*.1);S.gold-=lost;if(c.ctx==='tower'&&S.tower){c.towerEnd=S.tower.floor;S.tower=null;}if(c.lastHit==='bat')S.flags.bat=true;c.over={win:false,lost,dungeon:!!S.dungeon,hc:!!S.hc};S.dungeon=null;fx('shake',{p:10});fxAt+=300;fx('lose');}
+function lose(){const c=C();if(c.ctx==='pvp'||c.ctx==='duel')pvpResult(false);const lost=c.ctx==='tower'||c.ctx==='pvp'||c.ctx==='duel'?0:Math.round(S.gold*.1);S.gold-=lost;if(c.ctx==='tower'&&S.tower){c.towerEnd=S.tower.floor;S.tower=null;}if(c.lastHit==='bat')S.flags.bat=true;c.over={win:false,lost,dungeon:!!S.dungeon,hc:!!S.hc};S.dungeon=null;fx('shake',{p:10});fxAt+=300;fx('lose');}
 function gainXp(x){if(S.lvl>=MAXLV)return;S.xp+=x;while(S.lvl<MAXLV&&S.xp>=xpNeed(S.lvl)){S.xp-=xpNeed(S.lvl);S.lvl++;S.pts+=3;S.sp+=1;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;toast(`Level ${S.lvl}! +3 stat points, +1 star`);FXQ.push({type:'levelup',at:fxAt+1100,lvl:S.lvl});}}
 function spawnStage(){const D=S.dungeon;const A=AREAS[D.area];const DG=A.dungeon;let list;
   if(D.stage<DG.floors.length)list=Array.from({length:(D.mods||[]).includes('more')?3:2},()=>mkEnemy(pick(DG.floors[D.stage]),A.lv[1]+D.stage));else list=[mkEnemy(DG.boss,A.boss)];
@@ -1845,15 +1879,15 @@ const ACT={
     if(c.over.hc){const old=S.name;S=migrate(fresh());S.name=old;toast(`${old} has fallen for good`);return;}
     if(!c.over.win)S.note=c.over.lost?`You wake at camp. Lost ${c.over.lost} gold.`:'You wake at camp.';
     else if(c.over.loot.cleared)S.note=`${c.over.loot.cleared} is cleared.${c.over.loot.unlock?` ${c.over.loot.unlock} is open.`:''}`;
-    else S.note='The way is clear.';S.combat=null;fullRest();},
+    else S.note='The way is clear.';if(c.ctx==='duel')duelClose();S.combat=null;fullRest();},
   target:v=>{if(C().enemies[+v].hp>0)C().target=+v;},
   menu:v=>{C().menu=v;},
   togglelog:()=>{S.showLog=!S.showLog;},
   analyze:()=>{if(!S.flags.analyze)return;turn(()=>{const e=tgt();if(!e)return;const i=C().enemies.indexOf(e);S.known[e.id]=true;
     log(`Analyze: ${e.n} — weak to ${e.weak?EL[e.weak].n:'nothing'}, resists ${e.res?EL[e.res].n:'nothing'}. Next move: ${INTN[e.intent]}.`,'buff');
     fx('scan',{t:i});fxAt+=520;fx('num',{t:i,txt:e.weak?'Weak: '+EL[e.weak].n:'No weakness',cls:'crit'});fxAt+=200;});},
-  attack:()=>{turn(()=>{const e=tgt();perform(basicFx(),e,()=>hit(e,1));});},
-  skill:v=>{const s=SK[v];const c0=C();if(!s||S.mp<s.mp||(c0&&c0.cd&&c0.cd[v]>0))return;turn(()=>{if(CD[v])C().cd[v]=CD[v]+1;const d=derive();S.mp-=s.mp;const e=tgt();skM=skMult(v);log(`You use ${s.n}${skM<1?' (0.5×, wrong weapon type)':''}.`,'you');perform(SKFX[v]||{},e,()=>s.use(e,d));skM=1;});},
+  attack:()=>{turn(()=>{const e=tgt();C().lastAct='Attack';perform(basicFx(),e,()=>hit(e,1));});},
+  skill:v=>{const s=SK[v];const c0=C();if(!s||S.mp<s.mp||(c0&&c0.cd&&c0.cd[v]>0))return;turn(()=>{if(CD[v])C().cd[v]=CD[v]+1;const d=derive();S.mp-=s.mp;const e=tgt();skM=skMult(v);log(`You use ${s.n}${skM<1?' (0.5×, wrong weapon type)':''}.`,'you');C().lastAct=s.n;perform(SKFX[v]||{},e,()=>s.use(e,d));skM=1;});},
   use:v=>{if(!S.cons[v])return;if(v==='orb'){S.cons.orb--;respecAll();toast('Stats and stars refunded');return;}const inCombat=C()&&!C().over;
     if(C()&&v==='potion'&&dmods().includes('nopot')){toast('Potions are sealed in this dungeon');return;}if(inCombat)C().pots=(C().pots||0)+1;
     const run=()=>{S.cons[v]--;const d=derive();
@@ -1862,7 +1896,7 @@ const ACT={
       if(v==='ether'){const m=Math.round(d.maxMp*.4);S.mp=Math.min(d.maxMp,S.mp+m);log(`You drink an ether: +${m} MP.`,'buff');fx('num',{t:'p',txt:`+${m} MP`,cls:'miss'});}
       if(v==='salve'){if(C()){delete C().ps.burn;delete C().ps.poison;delete C().ps.bleed;}S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.15));log('The salve cleanses you.','buff');fx('num',{t:'p',txt:'Cleansed',cls:'heal'});}};
     if(inCombat)turn(run);else run();},
-  flee:()=>{const c=C();if(c.enemies.some(e=>e.boss&&e.hp>0))return;
+  flee:()=>{const c=C();if(c.ctx==='duel'){if(c.over)return;duelSend({t:'end'});fxAt=0;lose();runFx();return;}if(c.enemies.some(e=>e.boss&&e.hp>0))return;
     if(chance(40+(derive().spd-maxESpd())*4)){S.combat=null;fullRest();if(S.dungeon){S.dungeon=null;S.note='You flee the dungeon.';}else if(S.tower){S.note=`You flee the Spire from floor ${S.tower.floor}.`;S.tower=null;}else S.note='You slip away.';}
     else turn(()=>{log('You fail to escape!','hurt');fx('num',{t:'p',txt:'Blocked',cls:'miss'});});},
   stat:v=>{if(S.pts>0){S.stats[v]++;S.pts--;}},
@@ -1938,6 +1972,9 @@ const ACT={
   admin:()=>{admTry();return 'async';},
   adm:v=>{const i=v.indexOf(':');const k=i<0?v:v.slice(0,i),a=i<0?undefined:v.slice(i+1);if(!UI.admOk||!ADM[k])return;ADM[k](a);clampVitals();},
   pvpfind:()=>{pvpFind();return 'async';},
+  duelnew:()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=a[Math.floor(Math.random()*a.length)];duelOpen(c,true);return 'async';},
+  duelgo:()=>{const el=document.getElementById('dcode');const c=(el?el.value:'').trim().toUpperCase();if(!/^[A-Z0-9]{4}$/.test(c)){toast('Codes are 4 letters or numbers');return;}duelOpen(c,false);return 'async';},
+  duelcancel:()=>{duelClose();},
   pvpfight:()=>{const o=NET.pvpOpp;if(!o||S.combat||!o.snap)return;NET.pvpLast=o.rating||1000;fullRest();S.tab='explore';startCombat([mkPvp(o)],'pvp');},
   lbmode:v=>{NET.lbMode=v;NET.lb=null;NET.lbT=0;},
   chatsend:()=>{chatSend();return 'async';},
@@ -1963,7 +2000,7 @@ const ACT={
   resetYes:()=>{if(NET.user&&NET.sb){NET.sb.from('saves').delete().eq('user_id',NET.user.id).then(()=>{NET.cloud=null;});}S=migrate(fresh());UI.set=false;PRE=null;toast('Save wiped');},
 };
 const tgt=()=>{const c=C();let e=c.enemies[c.target];if(!e||e.hp<=0){c.target=c.enemies.findIndex(x=>x.hp>0);e=c.enemies[c.target];}return e;};
-function turn(fn){const c=C();if(!c||c.over)return;PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
+function turn(fn){const c=C();if(!c||c.over)return;if(c.ctx==='duel'&&!c.myTurn)return;if(c.ctx==='duel')c.duelPre=c.enemies[0].hp;PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
 const SKFX={
   crush:{m:'leap',imp:'smash'},cleave:{m:'center',imp:'sweep'},sunder:{m:'leap',imp:'smash'},earthsplit:{m:'leap',imp:'quake',big:1,center:1},
   rend:{m:'dash',imp:'claw'},iaido:{m:'iaido',imp:'iaido'},whirl:{m:'center',imp:'sweep'},bladestorm:{m:'center',imp:'stab',big:1},
@@ -2310,7 +2347,7 @@ function vExplore(){
 }
 function vBattle(){
   const c=C();const d=derive();const D=S.dungeon;const narrow=innerWidth<800;const ps=narrow?2:PS()+Math.ceil(PS()/2);
-  let where=c.ctx==='pvp'?'Arena duel':c.ctx==='tower'?`Endless Spire · Floor ${S.tower?S.tower.floor-(c.over&&c.over.win?1:0):c.towerEnd||'?'}${S.tower&&S.tower.mod&&!(c.over&&c.over.win)?' · '+TMODS[S.tower.mod][0]:''}`:c.ctx==='dungeon'&&D?`${AREAS[D.area].dungeon.name} · ${D.stage<AREAS[D.area].dungeon.floors.length?`Floor ${D.stage+1}`:'Boss'}`:AREAS[S.area].name;
+  let where=c.ctx==='duel'?`Duel · ${c.myTurn?'your turn':'their turn'}`:c.ctx==='pvp'?'Arena duel':c.ctx==='tower'?`Endless Spire · Floor ${S.tower?S.tower.floor-(c.over&&c.over.win?1:0):c.towerEnd||'?'}${S.tower&&S.tower.mod&&!(c.over&&c.over.win)?' · '+TMODS[S.tower.mod][0]:''}`:c.ctx==='dungeon'&&D?`${AREAS[D.area].dungeon.name} · ${D.stage<AREAS[D.area].dungeon.floors.length?`Floor ${D.stage+1}`:'Boss'}`:AREAS[S.area].name;
   if(c.over&&c.over.win&&c.over.loot.cleared)where=c.over.loot.cleared;
   const scene=c.ctx==='dungeon'||c.ctx==='tower'?'dun':'wild'+S.area;
   const wait=!!PRE;const hpOf=i=>PRE&&PRE.e[i]!==undefined?PRE.e[i]:c.enemies[i].hp;const over=c.over&&!wait;
@@ -2344,7 +2381,7 @@ function vBattle(){
     } else lower=o.hc?`<div class="px panel result lose"><h2>${esc(S.name)} has fallen</h2><p>Hardcore: this character is gone.</p><div class="row"><button class="btn danger" data-a="done">Start over</button></div></div>`
       :`<div class="px panel result lose"><h2>Defeated</h2><p>${c.towerEnd?`The Spire throws you out on floor ${c.towerEnd}. Best: ${S.towerBest||0}.`:`Lost ${o.lost} gold${o.dungeon?' and your dungeon progress':''}.`}</p><div class="row"><button class="btn primary" data-a="done">Return to camp</button></div></div>`;
   } else {
-    const bossUp=c.enemies.some(e=>e.boss&&e.hp>0);let menu;
+    const bossUp=c.enemies.some(e=>e.boss&&e.hp>0);let menu;const dw=c.ctx==='duel'&&!c.myTurn;
     const off=(why)=>why?`class="mi off" aria-disabled="true" data-tip="txt:${why}"`:'class="mi"';const mpNow=wait?PRE.pm:S.mp;
     if(c.menu==='skills')menu=S.equip.map(id=>{const s=SK[id];const cdl=c.cd&&c.cd[id]>0?c.cd[id]:0;const short=mpNow<s.mp||cdl;return `<button ${short?off(cdl?`Ready in ${cdl} turn${cdl>1?'s':''}`:`Needs ${s.mp} MP (you have ${mpNow})`):`class="mi" data-tip="skill:${id}"`} style="color:${short?'':SUBS[SKFAM[id]].col}" data-a="skill" data-v="${id}">${s.n}<small class="num">${(c.cd&&c.cd[id]>0)?`CD ${c.cd[id]} · `:''}${skMult(id)<1?'0.5× · ':''}${s.mp} MP</small></button>`;}).join('')+`<button class="mi" data-a="menu" data-v="main">◂ Back</button>`;
     else if(c.menu==='items')menu=[['potion','Potion','40% HP'],['ether','Ether','40% MP'],['salve','Salve','Cleanse']].map(([k,n,dd])=>{const why=k==='potion'&&dmods().includes('nopot')?'Potions are sealed in this dungeon':!S.cons[k]?'None left':'';return `<button ${off(why)} data-a="use" data-v="${k}">${n} ×${S.cons[k]||0}<small>${dd}</small></button>`;}).join('')+`<button class="mi" data-a="menu" data-v="main">◂ Back</button>`;
@@ -2353,6 +2390,7 @@ function vBattle(){
       <button class="mi" data-a="menu" data-v="items">Items<small>▸</small></button>
       ${S.flags.analyze?'<button class="mi" data-a="analyze" data-tip="skill:analyze">Analyze<small>turn</small></button>':''}
       <button ${bossUp?off("You can't flee from a boss"):'class="mi"'} data-a="flee">Flee<small class="num">${bossUp?'—':Math.max(5,Math.min(100,40+(d.spd-maxESpd())*4))+'%'}</small></button>`;
+    if(dw)menu=`<div class="mi off">Waiting for ${esc(c.enemies[0].n)}…</div><button class="mi" data-a="flee">Forfeit<small>leave</small></button>`;
     lower=`<div class="cmdgrid ${wait||c.over?'wait':''}">
       <div class="px panel msg">${lastLines}<div style="margin-top:auto"><button class="btn sm" data-a="togglelog">${S.showLog?'Hide':'Full'} log</button></div></div>
       <div class="px panel party"><div class="row" style="justify-content:space-between"><b>${esc(S.name)}</b><span class="dim small">SPD <span class="num">${d.spd}</span> · Quick <span class="num">${quickChance()}%</span></span></div>${bar('hp big',wait?PRE.p:S.hp,d.maxHp,'HP','p')}${bar('mp',mpNow,d.maxMp,'MP')}<div class="sts" style="justify-content:flex-start">${stIcons(c.ps)}</div></div>
@@ -2911,7 +2949,7 @@ function render(quiet){hideTip();
   const ci=document.getElementById('chatin');if(ci&&NET.chatFocus){ci.focus();const n=ci.value.length;try{ci.setSelectionRange(n,n);}catch(e){}}
   save();if(!quiet)runFx();
 }
-const FREE=['pvpfind','szoom','admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
+const FREE=['duelnew','duelgo','duelcancel','pvpfind','szoom','admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
@@ -2922,7 +2960,7 @@ document.addEventListener('input',ev=>{if(ev.target&&ev.target.id==='nm')S.name=
 document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='impf'&&t.files&&t.files[0])importFile(t.files[0]);if(t&&t.id==='vol')sfx('coin');});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&UI.set){UI.set=false;IMP=null;render(true);}});
 document.addEventListener('focusin',ev=>{if(ev.target&&ev.target.id==='chatin')NET.chatFocus=true;});document.addEventListener('focusout',ev=>{if(ev.target&&ev.target.id==='chatin')NET.chatFocus=false;});
-document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if(t&&t.id==='chatin'&&ev.key==='Enter'){ev.preventDefault();chatSend();return;}if(t&&t.id==='pw'&&ev.key==='Enter'){ev.preventDefault();signInPw();return;}if(t&&t.id==='admc'&&ev.key==='Enter'){ev.preventDefault();admTry();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if(t&&t.id==='chatin'&&ev.key==='Enter'){ev.preventDefault();chatSend();return;}if(t&&t.id==='pw'&&ev.key==='Enter'){ev.preventDefault();signInPw();return;}if(t&&t.id==='admc'&&ev.key==='Enter'){ev.preventDefault();admTry();return;}if(t&&t.id==='dcode'&&ev.key==='Enter'){ev.preventDefault();ACT.duelgo();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
 /* star chart: drag to pan, tap to select, double-tap to light */
 const starPan=()=>{UI.pan=UI.pan||{};const T=S&&S.starTab||'melee';return UI.pan[T]||(UI.pan[T]={x:0,y:70});};
 let SDRAG=null,STAP={id:null,t:0};
