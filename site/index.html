@@ -112,6 +112,7 @@ canvas.scene{display:block;width:100%;height:auto}
 .foe.boss .fname{color:#ff8a7a}
 .foe.elite .fname{color:var(--gold)}.foe.elite .body,.mob.elite img{filter:drop-shadow(2px 0 0 #f2c14e) drop-shadow(-2px 0 0 #f2c14e) drop-shadow(0 2px 0 #f2c14e) drop-shadow(0 -2px 0 #f2c14e)}
 .ttl{color:var(--gold);font-size:.8em}.spire{display:flex;flex-direction:column;gap:6px}.quests{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}.quest{display:flex;flex-direction:column;gap:6px}
+.lb{width:100%;border-collapse:collapse}.lb td{padding:4px 8px;border-bottom:2px solid var(--edge)}.lb td:first-child{width:2.5em;color:var(--mute)}.lb td:last-child{text-align:right;color:var(--gold)}.lb tr.me td{background:rgba(242,193,78,.12)}
 .foe .bar{width:100%;min-width:80px}
 .foe.dead{cursor:default}
 .foe.dead img.spr{opacity:.18;filter:grayscale(1) brightness(.6)}
@@ -1339,7 +1340,7 @@ const NET={sb:null,user:null,busy:false,msg:'',cloud:null,last:0,auto:true,ask:f
 async function net(){if(NET.sb)return NET.sb;if(!SUPA.url||!SUPA.key||NET.tried)return null;NET.tried=true;
   try{const m=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/+esm');NET.sb=m.createClient(SUPA.url,SUPA.key);
     const {data}=await NET.sb.auth.getSession();NET.user=data.session?data.session.user:null;
-    NET.sb.auth.onAuthStateChange((ev,s)=>{NET.user=s?s.user:null;if(ev==='SIGNED_IN')cloudPeek();render(true);});if(NET.user)cloudPeek();}
+    NET.sb.auth.onAuthStateChange((ev,s)=>{NET.user=s?s.user:null;if(ev==='SIGNED_IN'){cloudPeek();spirePost();}render(true);});if(NET.user)cloudPeek();}
   catch(e){NET.msg='Could not reach the server.';}render(true);return NET.sb;}
 async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('level,name,updated_at').eq('user_id',NET.user.id).maybeSingle();
   if(error)NET.msg='Could not read your cloud save: '+error.message;else NET.cloud=data||null;render(true);}
@@ -1350,6 +1351,11 @@ async function cloudDown(){const sb=await net();if(!sb||!NET.user)return;const {
   S=migrate(s);PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}NET.ask=false;toast('Cloud save loaded');render(true);}
 async function signIn(email){const sb=await net();if(!sb)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){NET.msg='Enter a valid email.';render(true);return;}
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});NET.msg=error?error.message:'Check your email for a sign-in link.';render(true);}
+async function spirePost(){const sb=await net();if(!sb||!NET.user||!(S.towerBest>0))return;
+  const {error}=await sb.from('spire').upsert({user_id:NET.user.id,name:(S.name||'Wanderer').slice(0,16),best:S.towerBest,level:S.lvl,updated_at:new Date().toISOString()});if(!error)NET.lbT=0;}
+async function spireLoad(){const sb=await net();if(!sb||NET.lbBusy)return;NET.lbBusy=true;NET.lbT=Date.now();
+  const {data,error}=await sb.from('spire').select('user_id,name,best,level').order('best',{ascending:false}).order('updated_at',{ascending:true}).limit(20);
+  NET.lbBusy=false;NET.lb=error?null:data;NET.lbErr=error?(error.code==='PGRST205'?'The leaderboard is not set up on the server yet.':error.message):'';render(true);}
 async function signOut(){const sb=await net();if(sb)await sb.auth.signOut();NET.user=null;NET.cloud=null;NET.msg='';render(true);}
 function load(){try{const t=localStorage.getItem(SAVE);if(t){const s=JSON.parse(t);if(s&&s.v===3)return s;}}catch(e){}return null;}
 
@@ -1608,7 +1614,7 @@ function win(){
   if(tw){const T=S.tower,f=T.floor;T.cd={...(c.cd||{})};if(T.mod==='gild')loot.gold=Math.round(loot.gold*1.6);loot.mats.essence=(loot.mats.essence||0)+Math.ceil(f/3);
     if(f%5===0){loot.items.push(genItem(tier,Math.min(RCAP[tier],2),undefined,RCAP[tier]));if(chance(40))loot.items.push(mkGem(pick(Object.keys(GEMS)),Math.min(4,Math.floor(f/10))));}
     if(T.mod==='bless'){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.25));S.mp=Math.min(d.maxMp,S.mp+Math.round(d.maxMp*.25));}
-    if(f>(S.towerBest||0)){S.towerBest=f;if(f%10===0)grantStar(loot);}loot.tower=f;T.floor++;ctrHook('tower',f);}
+    if(f>(S.towerBest||0)){S.towerBest=f;if(f%10===0)grantStar(loot);spirePost();}loot.tower=f;T.floor++;ctrHook('tower',f);}
   else if(c.ctx==='wild')ctrHook('wins',S.area);
   if(S.rested>0){loot.xp=Math.round(loot.xp*1.1);S.rested--;loot.rested=true;S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.08));}
   S.gold+=loot.gold;for(const m in loot.mats)S.mats[m]=(S.mats[m]||0)+loot.mats[m];addToBag(loot.items);if(S.stock)S.stock.fights++;S.wins=(S.wins||0)+1;
@@ -2404,8 +2410,13 @@ function vAccount(){
     ${NET.ask?`<div class="row"><span class="tag bad">Replace this device's save with the cloud save?</span><button class="btn danger sm" data-a="cdown">Yes, load it</button><button class="btn sm" data-a="cno">No</button></div>`
     :`<div class="row"><button class="btn primary" data-a="cup" ${NET.busy?'disabled':''}>Upload this save</button><button class="btn" data-a="cask" ${c?'':'disabled'}>Load cloud save</button>
       <button class="btn sm ${NET.auto?'tab on':''}" data-a="cauto" data-tip="txt:Uploads your save every 30 seconds or so while you play">Auto-sync ${NET.auto?'on':'off'}</button><button class="btn sm" data-a="netout">Sign out</button></div>`}${m}`;}
+function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date.now()-(NET.lbT||0)>30000)spireLoad();
+  const rows=(NET.lb||[]).map((r,i)=>`<tr class="${NET.user&&r.user_id===NET.user.id?'me':''}"><td class="num">${i+1}</td><td>${esc(r.name)}</td><td class="num">Lv ${r.level}</td><td class="num"><b>${r.best}</b></td></tr>`).join('');
+  return `<div class="sub"><div class="row" style="justify-content:space-between"><h3>Endless Spire · best floors</h3><span class="tag">Your best: <b class="num">${S.towerBest||0}</b></span></div>
+    ${NET.lbErr?`<p class="dim">${esc(NET.lbErr)}</p>`:!NET.lb?'<p class="dim">Loading…</p>':rows?`<table class="lb"><tbody>${rows}</tbody></table>`:'<p class="dim">No climbs yet. Be the first.</p>'}
+    ${NET.user?'':'<p class="small dim">Sign in to put your best floor on the board.</p>'}</div>`;}
 function vOnline(){const f=[['Trading post','Player listings and direct trades in the Market.'],['Clans','Shared bank, clan perks, a clan hall on a town plot.'],['PvP arena','Async duels against other players\' builds.'],['Boss raids','Party bosses with shared HP and turn order.']];
-  return `<section class="px panel"><h2>Online</h2><div class="sub"><h3>Account</h3>${vAccount()}</div><div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
+  return `<section class="px panel"><h2>Online</h2><div class="sub"><h3>Account</h3>${vAccount()}</div>${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
 
 /* forge minigame marker */
 let mgT=0;function mgLoop(t){const dt=Math.min(50,t-(mgT||t));mgT=t;if(MG.active){MG.pos+=MG.dir*MG.speed*dt*.12;if(MG.pos>=100){MG.pos=100;MG.dir=-1;}if(MG.pos<=0){MG.pos=0;MG.dir=1;}const m=document.getElementById('mgmark');if(m)m.style.left=MG.pos+'%';}requestAnimationFrame(mgLoop);}
