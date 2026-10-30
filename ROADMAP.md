@@ -299,3 +299,16 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   - Each Legendary gets its own effect (haze, gleam, dust, flames, drips).
 - [x] **Removed:** elite tracking and titles.
 - [x] **Cloud:** loading a cloud save is limited to once every 10 minutes.
+
+## Round 10 — The Shattered Sky (done)
+- [x] **Region 5, The Shattered Sky:** levels 22–32. Monsters: Rift Stalker, Astral Sentinel and Void Siren. Dungeon: the Rift Cradle, with The Unmaker (Lv 35) at the end.
+- [x] **Astral tier (tier 5):** new metal, new materials (Void Silk, Star Shard, Rift Core), 3 new alloys and 2 new Uniques (Starbreaker, Riftsong Wand), plus the Star Seer quest.
+- [x] **Level cap 50.** Past level 20, enemies grow at a third of the old rate per level.
+- [x] **Bosses:**
+  - The Queen of Shards and the Hollow King are redrawn at twice the size.
+  - Every boss has 2–3 named moves with their own visuals, and the intent label shows the move.
+- [x] **Combat clarity:**
+  - Damage shows as one number with its multiplier, e.g. "29 (×1.5)".
+  - Numbers on the same target spread apart.
+  - Statuses are bordered chips that show ×stacks and turns.
+- [x] **Stat text:** "+79% spell damage, +79% MP"; "Your weapon scales with this" is on its own line.
