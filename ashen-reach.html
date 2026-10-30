@@ -1,4 +1,4 @@
-<title>Ashen Reach</title>
+<title>El Juego</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1120,7 +1120,7 @@ function buildChart(){STARS={};LINKS=[];
   for(const [tree,T] of Object.entries(TREES)){const p=tree==='melee'?'m':'g';
     STARS[p+'O']={x:0,y:0,k:'start',lv:1,c:'o',tree,n:`${T.n} Origin`,d:'Three paths branch from here.'};
     T.fams.forEach((f,fi)=>{const sb=SUBS[f];const id=k=>p+fi+k;
-      for(const [k,dx,y,kind,slot,lv] of BR){const A=[-90,150,30][fi]*Math.PI/180,ux=Math.cos(A),uy=Math.sin(A),dist=(184-y)*1.05,lat=dx*1.2;
+      for(const [k,dx,y,kind,slot,lv] of BR){const A=[-150,-90,-30][fi]*Math.PI/180,ux=Math.cos(A),uy=Math.sin(A),dist=(184-y)*.98,lat=dx*.8;
         const n={x:Math.round(ux*dist-uy*lat),y:Math.round(uy*dist+ux*lat),k:kind,lv,c:f,tree,fam:f};
         if(kind==='skill'){const s=sb.skills[+slot.slice(2)];Object.assign(n,{n:SK[s].n,d:SK[s].d,skill:s});}
         else if(kind==='passive'||kind==='key'){const q=sb[slot];Object.assign(n,{n:q[1],d:q[2],pid:q[0]});}
@@ -1128,7 +1128,7 @@ function buildChart(){STARS={};LINKS=[];
         STARS[id(k)]=n;}
       LINKS.push([p+'O',id('e')]);for(const [a,b] of BRL)LINKS.push([id(a),id(b)]);});
     for(const [hb,x,y,st,lv,a,b] of [['hA',87,128,'vit',2,'0k2','1s1'],['hB',169,128,'spd',2,'1k2','2s1'],['hC',87,76,'hp',6,'0k4','1st'],['hD',169,76,tree==='melee'?'crit':'mp',6,'1k4','2st']]){
-      const P1=STARS[p+a],P2=STARS[p+b];const n={x:Math.round((P1.x+P2.x)*.55),y:Math.round((P1.y+P2.y)*.55),k:'stat',lv,c:'o',tree};statNode(n,st);STARS[p+hb]=n;LINKS.push([p+hb,p+a],[p+hb,p+b]);}}}
+      const P1=STARS[p+a],P2=STARS[p+b];const n={x:Math.round((P1.x+P2.x)*.4),y:Math.round((P1.y+P2.y)*.4),k:'stat',lv,c:'o',tree};statNode(n,st);STARS[p+hb]=n;LINKS.push([p+hb,p+a],[p+hb,p+b]);}}}
 const has=id=>!!(S&&S.stars&&S.stars.includes(id));
 const hasP=pid=>!!(S&&S.stars&&S.stars.some(id=>STARS[id]&&STARS[id].pid===pid));
 const nbrs=id=>LINKS.filter(l=>l.includes(id)).map(l=>l[0]===id?l[1]:l[0]);
@@ -1331,7 +1331,26 @@ function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(
   if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
   if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);return s;}
-function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}}
+function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&NET.auto&&!NET.busy&&!S.combat&&Date.now()-NET.last>30000)cloudUp(true);}
+/* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
+// The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
+const SUPA={url:'',key:''};
+const NET={sb:null,user:null,busy:false,msg:'',cloud:null,last:0,auto:true,ask:false,tried:false};
+async function net(){if(NET.sb)return NET.sb;if(!SUPA.url||!SUPA.key||NET.tried)return null;NET.tried=true;
+  try{const m=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm');NET.sb=m.createClient(SUPA.url,SUPA.key);
+    const {data}=await NET.sb.auth.getSession();NET.user=data.session?data.session.user:null;
+    NET.sb.auth.onAuthStateChange((ev,s)=>{NET.user=s?s.user:null;if(ev==='SIGNED_IN')cloudPeek();render(true);});if(NET.user)cloudPeek();}
+  catch(e){NET.msg='Could not reach the server.';}render(true);return NET.sb;}
+async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('level,name,updated_at').eq('user_id',NET.user.id).maybeSingle();
+  if(error)NET.msg='Could not read your cloud save: '+error.message;else NET.cloud=data||null;render(true);}
+async function cloudUp(quiet){const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.last=Date.now();const row={user_id:NET.user.id,data:S,name:S.name,level:S.lvl,updated_at:new Date().toISOString()};
+  const {error}=await sb.from('saves').upsert(row);NET.busy=false;if(error)NET.msg='Upload failed: '+error.message;else{NET.cloud={level:S.lvl,name:S.name,updated_at:row.updated_at};NET.msg='';if(!quiet)toast('Saved to the cloud');}render(true);}
+async function cloudDown(){const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('data').eq('user_id',NET.user.id).maybeSingle();
+  if(error||!data){toast('No cloud save found');return;}const s=data.data;if(!s||s.v!==3||!s.stats){toast('That cloud save cannot be read');return;}
+  S=migrate(s);PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}NET.ask=false;toast('Cloud save loaded');render(true);}
+async function signIn(email){const sb=await net();if(!sb)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){NET.msg='Enter a valid email.';render(true);return;}
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});NET.msg=error?error.message:'Check your email for a sign-in link.';render(true);}
+async function signOut(){const sb=await net();if(sb)await sb.auth.signOut();NET.user=null;NET.cloud=null;NET.msg='';render(true);}
 function load(){try{const t=localStorage.getItem(SAVE);if(t){const s=JSON.parse(t);if(s&&s.v===3)return s;}}catch(e){}return null;}
 
 /* ============ options & sound ============ */
@@ -1778,6 +1797,12 @@ const ACT={
     const n=enchSlots(it),out=[];for(let i=0;i<n&&pool.length;i++){const k=pool.splice(Math.floor(Math.random()*pool.length),1)[0];out.push({id:k,g:chance(10)});}it.ench=out;clampVitals();
     const g=out.some(e=>e.g);fx('rune',{ok:true,g,msg:`${it.name}: ${out.map(e=>(e.g?'Greater ':'')+ENCH[e.id].n).join(', ')}`});busyUntil=Date.now()+2200;},
   set:()=>{UI.set=true;IMP=null;},
+  netin:()=>{const el=document.getElementById('em');signIn(el?el.value.trim():'');return 'async';},
+  netout:()=>{signOut();return 'async';},
+  cup:()=>{cloudUp(false);return 'async';},
+  cask:()=>{NET.ask=true;},cno:()=>{NET.ask=false;},
+  cdown:()=>{cloudDown();return 'async';},
+  cauto:()=>{NET.auto=!NET.auto;},
   admt:()=>{UI.adm=!UI.adm;},
   adm:v=>{const i=v.indexOf(':');const k=i<0?v:v.slice(0,i),a=i<0?undefined:v.slice(i+1);if(!ADM[k])return;ADM[k](a);clampVitals();},
   setclose:()=>{UI.set=false;IMP=null;},
@@ -2026,7 +2051,7 @@ const STDESC={burn:'Flame stacks: damage every turn per stack, losing 1 stack ea
 function bar(cls,v,m,label,hb){const p=Math.max(0,Math.min(100,v/m*100));return `<div class="bar ${cls}" ${hb?`data-hb="${hb}" data-l="${label}"`:''}><i style="width:${p}%"></i><span>${label} ${Math.round(v)}/${m}</span></div>`;}
 function estHit(e,ab){const d=derive();const raw=Math.max(.5,e.atk*(ab==='heavy'?1.6:1));return Math.max(1,Math.round(raw*raw/(raw+Math.max(0,d.def))*(1-d.dr/100)));}
 function vTop(){const d=derive();
-  return `<div class="brand">${sprImg('i_sword',3)}<h1>Ashen Reach</h1></div>
+  return `<div class="brand">${sprImg('i_sword',3)}<h1>El Juego</h1></div>
   <div class="hud"><div class="who" data-tip="hero">${esc(S.name)}${S.title?` <span class="ttl">${esc(S.title)}</span>`:''} <span class="dim">Lv ${S.lvl}</span></div>
   <div class="bars">${bar('hp',PRE?PRE.p:S.hp,d.maxHp,'HP','p')}${bar('mp',PRE?PRE.pm:S.mp,d.maxMp,'MP')}${bar('xp',S.xp,xpNeed(S.lvl),'XP')}</div>
   ${S.rested?`<span class="tag rest">Rested ×${S.rested}</span>`:''}${S.key?`<span class="tag arc">${sprImg('key',2)}</span>`:''}
@@ -2034,7 +2059,7 @@ function vTop(){const d=derive();
 function vIntro(){
   const picks=STARTS.map(t=>{const f=famOf(t),sb=SUBS[f];return `<button class="sub clsbtn ${S.pendingWep===t?'on':''}" data-a="pickwep" data-v="${t}">${heroImg(4,t,'leather')}<b style="color:${sb.col}">${WT[t].n}</b></button>`;}).join('');
   return `<section class="px panel" style="max-width:820px;margin:16px auto;width:100%;align-items:center;text-align:center">${sceneHTML('wild0')}
-  <h1 style="font-size:2.6rem">Ashen Reach</h1>
+  <h1 style="font-size:2.6rem">El Juego</h1>
   <label class="dim" for="nm">Name your wanderer</label><input class="inp" id="nm" maxlength="16" value="${esc(S.name)}" autocomplete="off" spellcheck="false">
   <h3>Starting weapon</h3><div class="row" style="justify-content:center;align-items:stretch">${picks}</div>
   <div class="row" style="justify-content:center"><button class="btn sm ${S.pendingHC?'danger':''}" data-a="togglehc" aria-pressed="${!!S.pendingHC}">Hardcore: ${S.pendingHC?'On':'Off'}</button></div>
@@ -2324,10 +2349,10 @@ function vAdmin(){const b=(k,n,on)=>`<button class="btn sm ${on?'tab on':''}" da
   <div class="optrow">${RAR.slice(0,4).map((r,i)=>b('item:'+i,r.n)).join('')}${b('gem','Gem (tier = grade)')}${b('uniq','All Legendaries')}</div>`;}let IMP=null;
 async function exportSave(){const data=JSON.stringify({game:'ashen-reach',at:new Date().toISOString(),S});
   if(window.claude&&window.claude.use){const dl=await window.claude.use('downloads');if(!dl){toast('Saving files is not available here');return;}
-    try{await dl.save({filename:'ashen-reach-save.json',data});toast('Save exported');}catch(e){if(e&&e.code!=='declined')toast('Export failed');}return;}
-  try{const blob=new Blob([JSON.stringify({game:'ashen-reach',at:new Date().toISOString(),S})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ashen-reach-save.json';
+    try{await dl.save({filename:'el-juego-save.json',data});toast('Save exported');}catch(e){if(e&&e.code!=='declined')toast('Export failed');}return;}
+  try{const blob=new Blob([JSON.stringify({game:'ashen-reach',at:new Date().toISOString(),S})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='el-juego-save.json';
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);toast('Save exported');}catch(e){toast('Export failed in this browser');}}
-function importFile(f){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);const s=o&&o.S?o.S:o;if(!s||s.v!==3||!s.stats)throw 0;IMP=s;}catch(e){IMP=null;toast('That file is not an Ashen Reach save');}render(true);};r.readAsText(f);}
+function importFile(f){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);const s=o&&o.S?o.S:o;if(!s||s.v!==3||!s.stats)throw 0;IMP=s;}catch(e){IMP=null;toast('That file is not an El Juego save');}render(true);};r.readAsText(f);}
 function vSkills(){
   const T=S.starTab||'melee';const sel=S.selStar&&STARS[S.selStar]&&STARS[S.selStar].tree===T?S.selStar:null;const ps=PS();
   const hs=Object.entries(STARS).filter(([,s])=>s.tree===T).map(([id,s])=>`<button class="hot star ${id===sel?'sel':''}" data-a="selstar" data-v="${id}" data-tip="star:${id}" style="left:${(s.x-6)/256*100}%;top:${(s.y-6)/190*100}%;width:${12/256*100}%;height:${12/190*100}%" aria-label="${esc(s.n)}"></button>`).join('');
@@ -2367,8 +2392,20 @@ function vInv(){
     <div class="sub" style="min-width:0">${det}</div></div>
   <h3>Consumables</h3><div class="mats">${['potion','ether','salve','orb'].map(k=>`<div data-tip="cons:${k}">${matImg(k==='orb'?'essence':k,2)}<span>${CONSN[k]}</span><b class="num">${S.cons[k]||0}</b>${k==='orb'&&S.cons.orb?'<button class="btn sm arcane" data-a="use" data-v="orb">Use</button>':''}</div>`).join('')}</div>
   <h3>Materials</h3><div class="mats">${mats||'<p class="empty-s">None yet.</p>'}</div></section>`;}
+function vAccount(){
+  if(!SUPA.url||!SUPA.key)return '<p class="dim">Online play is not switched on yet.</p>';
+  if(!NET.sb){net();return `<p class="dim">${NET.msg?esc(NET.msg):'Connecting…'}</p>`;}
+  const m=NET.msg?`<p class="small">${esc(NET.msg)}</p>`:'';
+  if(!NET.user)return `<p class="dim">Sign in to keep your character in the cloud and play it on any device. No password: we email you a link.</p>
+    <div class="row"><input class="inp" id="em" type="email" placeholder="you@example.com" autocomplete="email" style="text-align:left"><button class="btn primary" data-a="netin">Send sign-in link</button></div>${m}`;
+  const c=NET.cloud;
+  return `<p>Signed in as <b>${esc(NET.user.email||'player')}</b></p>
+    <div class="row"><span class="tag">This device: ${esc(S.name)} · Lv ${S.lvl}</span><span class="tag ${c?'gold':''}">Cloud: ${c?`${esc(c.name||'?')} · Lv ${c.level} · ${esc(new Date(c.updated_at).toLocaleString())}`:'empty'}</span></div>
+    ${NET.ask?`<div class="row"><span class="tag bad">Replace this device's save with the cloud save?</span><button class="btn danger sm" data-a="cdown">Yes, load it</button><button class="btn sm" data-a="cno">No</button></div>`
+    :`<div class="row"><button class="btn primary" data-a="cup" ${NET.busy?'disabled':''}>Upload this save</button><button class="btn" data-a="cask" ${c?'':'disabled'}>Load cloud save</button>
+      <button class="btn sm ${NET.auto?'tab on':''}" data-a="cauto" data-tip="txt:Uploads your save every 30 seconds or so while you play">Auto-sync ${NET.auto?'on':'off'}</button><button class="btn sm" data-a="netout">Sign out</button></div>`}${m}`;}
 function vOnline(){const f=[['Trading post','Player listings and direct trades in the Market.'],['Clans','Shared bank, clan perks, a clan hall on a town plot.'],['PvP arena','Async duels against other players\' builds.'],['Boss raids','Party bosses with shared HP and turn order.']];
-  return `<section class="px panel"><h2>Online</h2><div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
+  return `<section class="px panel"><h2>Online</h2><div class="sub"><h3>Account</h3>${vAccount()}</div><div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
 
 /* forge minigame marker */
 let mgT=0;function mgLoop(t){const dt=Math.min(50,t-(mgT||t));mgT=t;if(MG.active){MG.pos+=MG.dir*MG.speed*dt*.12;if(MG.pos>=100){MG.pos=100;MG.dir=-1;}if(MG.pos<=0){MG.pos=0;MG.dir=1;}const m=document.getElementById('mgmark');if(m)m.style.left=MG.pos+'%';}requestAnimationFrame(mgLoop);}
@@ -2620,7 +2657,7 @@ document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='impf'&&t
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&UI.set){UI.set=false;IMP=null;render(true);}});
 document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
 /* star chart: drag to pan, tap to select, double-tap to light */
-const starPan=()=>{UI.pan=UI.pan||{};const T=S&&S.starTab||'melee';return UI.pan[T]||(UI.pan[T]={x:0,y:45});};
+const starPan=()=>{UI.pan=UI.pan||{};const T=S&&S.starTab||'melee';return UI.pan[T]||(UI.pan[T]={x:0,y:78});};
 let SDRAG=null,STAP={id:null,t:0};
 const starAt=(cv,ev)=>{const r=cv.getBoundingClientRect(),k=256/r.width,pn=starPan(),x=(ev.clientX-r.left)*k-128-pn.x,y=(ev.clientY-r.top)*k-95-pn.y;let best=null,bd=64;
   for(const [id,s] of Object.entries(STARS)){if(s.tree!==(S.starTab||'melee'))continue;const d=(s.x-x)**2+(s.y-y)**2;if(d<bd){bd=d;best=id;}}return best;};
@@ -2636,7 +2673,7 @@ const setHover=ev=>{const t=ev.target&&ev.target.closest?ev.target.closest('.hot
 document.addEventListener('pointerover',setHover);document.addEventListener('focusin',setHover);
 document.addEventListener('pointermove',ev=>{const cv=document.querySelector('canvas[data-scene="sanctum"]');if(!cv){SCN.mouse=null;return;}const r=cv.getBoundingClientRect();SCN.mouse={x:(ev.clientX-r.left)/r.width*256,y:(ev.clientY-r.top)/r.height*120};});
 
-function start(data){S=(data&&data.S)||load();if(!S)S=fresh();S=migrate(S);buildChart();render();
+function start(data){S=(data&&data.S)||load();if(!S)S=fresh();S=migrate(S);buildChart();render();if(SUPA.url&&SUPA.key)net();
   requestAnimationFrame(loop);requestAnimationFrame(sceneLoop);}
 window.claude?.hot?.snapshot?.(()=>({S}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});

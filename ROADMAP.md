@@ -1,4 +1,4 @@
-# Ashen Reach — Roadmap
+# El Juego (formerly Ashen Reach) — Roadmap
 
 Turn-based browser RPG. Wander regions, beat each region's dungeon to open the next. Builds come from your weapons, two star-chart skill trees (Melee and Magic), gear and stats, with crafting, enchanting and a town hub. It's built so multiplayer can come later.
 
