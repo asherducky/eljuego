@@ -1329,7 +1329,7 @@ function fresh(){
     rested:0,key:false,sanctum:false,bounty:null,stock:null,loc:null,showLog:false,fg:{tab:'craft',tpl:null,mats:[]},disc:[],starTab:'melee'};
 }
 function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(const sl of SLOTS)if(!(sl in s.gear))s.gear[sl]=null;
-  if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
+  if(s.flags)delete s.flags.god;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
   if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);return s;}
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&NET.auto&&!NET.busy&&!S.combat&&Date.now()-NET.last>30000)cloudUp(true);}
@@ -1802,15 +1802,13 @@ const ACT={
   enchant:()=>{const it=findItem(S.ench);if(!it)return;const c=enchCost(it),pool=enchPool(it);if((S.mats.essence||0)<c||!pool.length)return;S.mats.essence-=c;
     const n=enchSlots(it),out=[];for(let i=0;i<n&&pool.length;i++){const k=pool.splice(Math.floor(Math.random()*pool.length),1)[0];out.push({id:k,g:chance(10)});}it.ench=out;clampVitals();
     const g=out.some(e=>e.g);fx('rune',{ok:true,g,msg:`${it.name}: ${out.map(e=>(e.g?'Greater ':'')+ENCH[e.id].n).join(', ')}`});busyUntil=Date.now()+2200;},
-  set:()=>{UI.set=true;IMP=null;},
+  set:()=>{S.tab='settings';IMP=null;},
   netin:()=>{const el=document.getElementById('em');signIn(el?el.value.trim():'');return 'async';},
   netout:()=>{signOut();return 'async';},
   cup:()=>{cloudUp(false);return 'async';},
   cask:()=>{NET.ask=true;},cno:()=>{NET.ask=false;},
   cdown:()=>{cloudDown();return 'async';},
   cauto:()=>{NET.auto=!NET.auto;},
-  admt:()=>{UI.adm=!UI.adm;},
-  adm:v=>{const i=v.indexOf(':');const k=i<0?v:v.slice(0,i),a=i<0?undefined:v.slice(i+1);if(!ADM[k])return;ADM[k](a);clampVitals();},
   setclose:()=>{UI.set=false;IMP=null;},
   spd:v=>{OPT.speed=+v;saveOpt();},
   mute:()=>{OPT.mute=!OPT.mute;saveOpt();if(AU.g)AU.g.gain.value=OPT.mute?0:OPT.vol*.5;},
@@ -2048,7 +2046,7 @@ let lastScene=0;
 function sceneLoop(t){if(t-lastScene>33){lastScene=t;document.querySelectorAll('canvas.scene').forEach(cv=>{try{drawScene(cv,t);}catch(e){}});}requestAnimationFrame(sceneLoop);}
 
 /* ============ views: shared ============ */
-const TABS=[['explore','Explore'],['town','Town'],['char','Character'],['skills','Stars'],['inv','Inventory'],['online','Online']];
+const TABS=[['explore','Explore'],['town','Town'],['char','Character'],['skills','Stars'],['inv','Inventory'],['online','Online'],['settings','Settings']];
 const LAB={def:'Defense',hp:'Max HP',mp:'Max MP',crit:'Crit',dodge:'Dodge',spd:'SPD',str:'STR',dex:'DEX',int:'INT',vit:'VIT',luk:'LUK',atk:'Attack',ls:'Lifesteal',gold:'Gold find'};
 const PCT=['crit','dodge','ls','gold'];
 const STDESC={burn:'Flame stacks: damage every turn per stack, losing 1 stack each turn',poison:'Poison: damage every turn per stack',bleed:'Bleed: damage every turn',stun:'Stunned or frozen: skips its next turn',
@@ -2061,7 +2059,7 @@ function vTop(){const d=derive();
   <div class="hud"><div class="who" data-tip="hero">${esc(S.name)}${S.title?` <span class="ttl">${esc(S.title)}</span>`:''} <span class="dim">Lv ${S.lvl}</span></div>
   <div class="bars">${bar('hp',PRE?PRE.p:S.hp,d.maxHp,'HP','p')}${bar('mp',PRE?PRE.pm:S.mp,d.maxMp,'MP')}${bar('xp',S.xp,xpNeed(S.lvl),'XP')}</div>
   ${S.rested?`<span class="tag rest">Rested ×${S.rested}</span>`:''}${S.key?`<span class="tag arc">${sprImg('key',2)}</span>`:''}
-  <div class="goldc num" id="goldc">${coinImg(3)}${S.gold}</div><button class="gear" data-a="set" aria-label="Settings" data-tip="txt:Settings">${sprImg('gear',3)}</button></div>`;}
+  <div class="goldc num" id="goldc">${coinImg(3)}${S.gold}</div></div>`;}
 function vIntro(){
   const picks=STARTS.map(t=>{const f=famOf(t),sb=SUBS[f];return `<button class="sub clsbtn ${S.pendingWep===t?'on':''}" data-a="pickwep" data-v="${t}">${heroImg(4,t,'leather')}<b style="color:${sb.col}">${WT[t].n}</b></button>`;}).join('');
   return `<section class="px panel" style="max-width:820px;margin:16px auto;width:100%;align-items:center;text-align:center">${sceneHTML('wild0')}
@@ -2071,8 +2069,9 @@ function vIntro(){
   <div class="row" style="justify-content:center"><button class="btn sm ${S.pendingHC?'danger':''}" data-a="togglehc" aria-pressed="${!!S.pendingHC}">Hardcore: ${S.pendingHC?'On':'Off'}</button></div>
   ${S.pendingHC?'<span class="dim small">Death deletes this character</span>':''}
   <div class="row" style="justify-content:center"><button class="btn primary" data-a="begin" ${S.pendingWep?'':'disabled'}>Begin ▸</button></div></section>`;}
-function vTabs(){const busy=!!S.combat;const nNew=S.bag.filter(it=>it.isNew).length;const list=TABS.filter(([k])=>S.unl[k]);if(list.length<2)return '';return list.map(([k,n])=>{const dot=S.newf.includes(k)?'New':k==='inv'&&nNew?nNew:k==='char'&&S.pts?S.pts:k==='skills'&&S.sp?S.sp:k==='town'&&S.key?'!':0;
-  return `<button class="btn sm tab ${S.tab===k&&!busy?'on':''}" data-a="tab" data-v="${k}" ${busy?'disabled':''}>${n}${dot?`<span class="dot">${dot}</span>`:''}</button>`;}).join('');}
+function vTabs(){const busy=!!S.combat;const nNew=S.bag.filter(it=>it.isNew).length;const list=TABS.filter(([k])=>S.unl[k]||k==='settings');return list.map(([k,n])=>{const dot=S.newf.includes(k)?'New':k==='inv'&&nNew?nNew:k==='char'&&S.pts?S.pts:k==='skills'&&S.sp?S.sp:k==='town'&&S.key?'!':0;
+  const off=busy&&k!=='settings'&&k!=='explore',on=busy?(k==='settings'?S.tab==='settings':k==='explore'&&S.tab!=='settings'):S.tab===k;
+  return `<button class="btn sm tab ${on?'on':''}" data-a="tab" data-v="${k}" ${off?'disabled':''}>${busy&&k==='explore'?'Battle':n}${dot?`<span class="dot">${dot}</span>`:''}</button>`;}).join('');}
 
 /* item display */
 function effAtk(it){if(!canEquip(it))return itemBase(it).atk;return deriveWith({...S.gear,weapon:it}).atk;}
@@ -2321,38 +2320,18 @@ function vChar(){const d=derive();
 function vSettings(){
   const achs=ACH.map(([id,n,dd,,rw,sec])=>{const got=S.ach.includes(id);const hide=sec&&!got;
     return `<div class="ach ${got?'got':''}">${sprImg('trophy',3)}<div><b>${hide?'???':n}</b><span>${hide?'Secret':dd}</span></div></div>`;}).join('');
-  return `<div class="modal"><section class="px panel" role="dialog" aria-label="Settings">
-  <div class="row" style="justify-content:space-between"><h2>Settings</h2><button class="btn sm" data-a="setclose">Close</button></div>
+  return `<section class="px panel" aria-label="Settings"><h2>Settings</h2>
+  ${S.combat?'<div class="row"><button class="btn primary" data-a="tab" data-v="explore">◂ Back to the fight</button></div>':''}
+  <div class="sub"><h3>Account</h3>${vAccount()}</div>
   <div class="sub"><h3>Combat</h3><div class="optrow"><b>Animation speed</b>${[1,1.5,2,3].map(v=>`<button class="btn sm ${OPT.speed===v?'tab on':''}" data-a="spd" data-v="${v}">${v}×</button>`).join('')}</div></div>
   <div class="sub"><h3>Sound</h3><div class="optrow"><b>Sound effects</b><button class="btn sm ${OPT.mute?'':'tab on'}" data-a="mute" aria-pressed="${!OPT.mute}">${OPT.mute?'Off':'On'}</button>
     <input type="range" id="vol" min="0" max="1" step="0.05" value="${OPT.vol}" aria-label="Volume" ${OPT.mute?'disabled':''}></div></div>
   <div class="sub"><h3>Save</h3><div class="optrow">${S.hc?'<span class="tag bad">Hardcore</span>':''}<button class="btn sm" data-a="exp">Export save</button><button class="btn sm" data-a="imp">Import save</button><input type="file" id="impf" accept=".json,application/json" hidden></div>
     ${IMP?`<div class="optrow"><span>Replace this character with <b>${esc(IMP.name)}</b> (Lv ${IMP.lvl})?</span><button class="btn sm danger" data-a="impyes">Load</button><button class="btn sm" data-a="impno">Cancel</button></div>`:''}
     <div class="optrow">${S._confirm?`<span>Erase this character?</span><button class="btn sm danger" data-a="resetYes">Erase</button><button class="btn sm" data-a="resetNo">Keep</button>`:`<button class="btn sm danger" data-a="reset">New character</button>`}</div></div>
-  <div class="sub"><div class="row" style="justify-content:space-between"><h3>Admin</h3><button class="btn sm" data-a="admt">${UI.adm?'Hide':'Show'}</button></div>${UI.adm?vAdmin():''}</div>
-  <div class="sub"><h3>Achievements · ${S.ach.length}/${ACH.length}</h3><div class="achs">${achs}</div></div></section></div>`;}
-const UI={set:false,adm:false,at:0,ms:null};
-const ADM={
-  gold:()=>{S.gold+=1000;},
-  mats:()=>{for(const m in MATS)S.mats[m]=(S.mats[m]||0)+10;},
-  lvl:()=>{if(S.lvl<MAXLV)gainXp(xpNeed(S.lvl)-S.xp);},
-  max:()=>{while(S.lvl<MAXLV)gainXp(xpNeed(S.lvl)-S.xp);},
-  sp:()=>{S.sp+=5;},
-  unlock:()=>{S.unlocked=AREAS.length;S.wins=Math.max(S.wins,3);S.flags.analyze=true;for(const k of ['inv','char','skills','town','online'])S.unl[k]=true;S.sanctum=true;S.key=false;},
-  heal:()=>{const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;for(const k of ['potion','ether','salve'])S.cons[k]=(S.cons[k]||0)+5;},
-  god:()=>{S.flags.god=!S.flags.god;},
-  win:()=>{const c=C();if(!c||c.over)return;c.enemies.forEach(e=>e.hp=0);PRE=null;fxAt=0;win();UI.set=false;},
-  tier:v=>{UI.at=+v;},
-  item:v=>{addToBag([genItem(UI.at,+v,undefined,+v)]);},
-  gem:()=>{addToBag([mkGem(pick(Object.keys(GEMS)),UI.at)]);},
-  uniq:()=>{addToBag(Object.keys(UNIQ).map(mkUnique));},
-  disc:()=>{S.disc=Object.keys(ALLOYS);},
-};
-function vAdmin(){const b=(k,n,on)=>`<button class="btn sm ${on?'tab on':''}" data-a="adm" data-v="${k}">${n}</button>`;
-  return `<div class="optrow">${b('gold','+1000 gold')}${b('mats','+10 every material')}${b('heal','Heal + 5 of each potion')}${b('sp','+5 star points')}</div>
-  <div class="optrow">${b('lvl','+1 level')}${b('max','Max level')}${b('unlock','Unlock everything')}${b('disc','Discover all alloys')}${b('god',`God mode: ${S.flags.god?'On':'Off'}`,S.flags.god)}${C()&&!C().over?b('win','Win this fight'):''}</div>
-  <div class="optrow"><b>Give item</b>${TIERN.map((t,i)=>b('tier:'+i,t,UI.at===i)).join('')}</div>
-  <div class="optrow">${RAR.slice(0,4).map((r,i)=>b('item:'+i,r.n)).join('')}${b('gem','Gem (tier = grade)')}${b('uniq','All Legendaries')}</div>`;}let IMP=null;
+  <div class="sub"><h3>Achievements · ${S.ach.length}/${ACH.length}</h3><div class="achs">${achs}</div></div></section>`;}
+const UI={set:false,ms:null};
+let IMP=null;
 async function exportSave(){const data=JSON.stringify({game:'ashen-reach',at:new Date().toISOString(),S});
   if(window.claude&&window.claude.use){const dl=await window.claude.use('downloads');if(!dl){toast('Saving files is not available here');return;}
     try{await dl.save({filename:'el-juego-save.json',data});toast('Save exported');}catch(e){if(e&&e.code!=='declined')toast('Export failed');}return;}
@@ -2414,9 +2393,9 @@ function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date
   const rows=(NET.lb||[]).map((r,i)=>`<tr class="${NET.user&&r.user_id===NET.user.id?'me':''}"><td class="num">${i+1}</td><td>${esc(r.name)}</td><td class="num">Lv ${r.level}</td><td class="num"><b>${r.best}</b></td></tr>`).join('');
   return `<div class="sub"><div class="row" style="justify-content:space-between"><h3>Endless Spire · best floors</h3><span class="tag">Your best: <b class="num">${S.towerBest||0}</b></span></div>
     ${NET.lbErr?`<p class="dim">${esc(NET.lbErr)}</p>`:!NET.lb?'<p class="dim">Loading…</p>':rows?`<table class="lb"><tbody>${rows}</tbody></table>`:'<p class="dim">No climbs yet. Be the first.</p>'}
-    ${NET.user?'':'<p class="small dim">Sign in to put your best floor on the board.</p>'}</div>`;}
+    ${NET.user?'':'<p class="small dim">Sign in under Settings to put your best floor on the board.</p>'}</div>`;}
 function vOnline(){const f=[['Trading post','Player listings and direct trades in the Market.'],['Clans','Shared bank, clan perks, a clan hall on a town plot.'],['PvP arena','Async duels against other players\' builds.'],['Boss raids','Party bosses with shared HP and turn order.']];
-  return `<section class="px panel"><h2>Online</h2><div class="sub"><h3>Account</h3>${vAccount()}</div>${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
+  return `<section class="px panel"><h2>Online</h2>${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
 
 /* forge minigame marker */
 let mgT=0;function mgLoop(t){const dt=Math.min(50,t-(mgT||t));mgT=t;if(MG.active){MG.pos+=MG.dir*MG.speed*dt*.12;if(MG.pos>=100){MG.pos=100;MG.dir=-1;}if(MG.pos<=0){MG.pos=0;MG.dir=1;}const m=document.getElementById('mgmark');if(m)m.style.left=MG.pos+'%';}requestAnimationFrame(mgLoop);}
@@ -2648,15 +2627,16 @@ function render(quiet){hideTip();
     document.querySelectorAll('canvas.scene').forEach(cv=>{try{drawScene(cv,performance.now());}catch(e){}});setAmb('0');const nm=document.getElementById('nm');if(nm&&!quiet)nm.focus();return;}
   checkUnlocks();if(!S.combat||S.combat.over)checkAch();
   document.getElementById('top').innerHTML=vTop();document.getElementById('tabs').innerHTML=vTabs();
-  const v=S.combat?vBattle():({explore:vExplore,town:vTown,char:vChar,skills:vSkills,inv:vInv,online:vOnline}[S.tab]||vExplore)();
+  if(S.combat&&S.tab!=='settings'&&S.tab!=='explore')S.tab='explore';
+  const v=S.tab==='settings'?vSettings():S.combat?vBattle():({explore:vExplore,town:vTown,char:vChar,skills:vSkills,inv:vInv,online:vOnline}[S.tab]||vExplore)();
   document.getElementById('main').innerHTML=v;
   document.querySelectorAll('canvas.scene').forEach(cv=>{try{drawScene(cv,performance.now());}catch(e){}});
   const lg=document.getElementById('log');if(lg)lg.scrollTop=lg.scrollHeight;
   setAmb(mode());const d=derive();document.getElementById('vig').style.opacity=S.combat&&!S.combat.over&&S.hp<d.maxHp*.3?1:0;
-  document.getElementById('ovl').innerHTML=UI.set?vSettings():'';
+  document.getElementById('ovl').innerHTML='';
   save();if(!quiet)runFx();
 }
-const FREE=['tab','set','setclose','spd','mute','exp','imp','impno','admt','adm'];
+const FREE=['tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cask','cno','cauto'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
