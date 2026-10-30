@@ -1734,13 +1734,16 @@ function tickDots(st,name,apply,t,target){
   if(st.shock&&--st.shock.s<=0)delete st.shock;if(st.brk&&--st.brk.t<=0)delete st.brk;}
 const BOSSSIG={warden:{heavy:'Root Grasp',poison:'Spore Burst'},queen:{heavy:'Shard Storm',bleed:'Crystal Lances',shield:'Mirror Prison'},tyrant:{heavy:'Eruption',burn:'Firestorm',stun:'Magma Slam'},
   hking:{heavy:'Royal Decree',drain:'Soul Harvest',stun:'Kneel!'},unmaker:{heavy:'Collapse',drain:'Void Gaze',stun:'Starfall'}};
+// boss moves that throw several things land as several smaller hits: [delay before the first, number of hits, gap between hits]
+const BOSSMULTI={'queen:heavy':[350,4,95],'queen:bleed':[260,3,120],'warden:poison':[300,3,150],'tyrant:burn':[300,4,130],'unmaker:stun':[360,5,90]};
 function enemyAct(c,e){
   const i=c.enemies.indexOf(e);const d=derive();
   if(e.boss&&!e.enraged&&e.hp<e.max/2){e.enraged=true;e.atk=Math.round(e.atk*1.3*10)/10;log(`${e.n} is enraged!`,'boss');fx('enrage',{t:i});fxAt+=300;}
   if(e.id==='hking'&&!e.summoned&&e.hp<e.max/2){e.summoned=true;for(let k=0;k<1;k++){const n=mkEnemy('knight',Math.max(1,e.L-5));n.called=true;c.enemies.push(n);}log('The Hollow King calls a knight to his side!','boss');fx('enrage',{t:i});fxAt+=300;}
   const ab0=e.intent||'atk';e.intent=rollIntent(e);const ab=ab0==='atk'?null:ab0;
   const sig=e.boss&&ab&&BOSSSIG[e.id]&&BOSSSIG[e.id][ab];
-  if(sig){log(`${e.n} uses ${sig}!`,'boss');fx('bsig',{t:i,id:e.id,ab});fxAt+=700;}
+  const multi=sig&&BOSSMULTI[e.id+':'+ab];
+  if(sig){log(`${e.n} uses ${sig}!`,'boss');fx('bsig',{t:i,id:e.id,ab});fxAt+=multi?multi[0]:700;}
   else{const melee=!['heal','shield'].includes(ab);if(melee){fx('lunge',{t:i,heavy:ab==='heavy'});fxAt+=ab==='heavy'?260:180;}else{fx('ecast',{t:i});fxAt+=160;}}
   if(ab==='heal'){const h=Math.round(e.max*.1);e.hp=Math.min(e.max,e.hp+h);log(`${e.n} regenerates ${h} HP.`,'hurt');fx('num',{t:i,txt:'+'+h,cls:'heal'});fx('hp',{t:i,hp:e.hp,max:e.max});return;}
   if(ab==='shield'){e.st.ward=(e.st.ward||0)+Math.round(e.max*.12);log(`${e.n} raises a ward.`,'hurt');fx('burst',{t:i,col:['#c4ecff','#f4efe4'],n:22});return;}
@@ -1748,10 +1751,13 @@ function enemyAct(c,e){
   if(chance(d.dodge+(c.ps.veil?40:0))){log(`You dodge ${e.n}.`,'buff');fx('num',{t:'p',txt:'Dodge',cls:'miss'});return;}
   const chillRed=e.st.chill&&hasP('bite')?1-.1*e.st.chill.s:1;
   let dmg=calc(e.atk*(ab==='heavy'?1.6:1)*chillRed,d.def)*(1-d.dr/100);dmg=Math.max(1,Math.round(dmg));
-  if(c.ps.shield){const a=Math.min(c.ps.shield,dmg);c.ps.shield-=a;dmg-=a;if(!c.ps.shield)delete c.ps.shield;if(a)log(`Your shield absorbs ${a}.`,'buff');}
-  if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);c.lastHit=e.id;fx('impact',{t:'p',el:{burn:'fire',poison:'venom'}[ab]||'phys',st:ab==='heavy'?'smash':'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:dmg,cls:'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});if(ab==='heavy'||dmg>d.maxHp*.15)fx('shake',{p:7});
+  const n=multi?multi[1]:1,el={burn:'fire',poison:'venom'}[ab]||'phys';let total=0,absorbed=0;
+  for(let k=0;k<n;k++){let part=Math.max(1,Math.round(dmg/n));if(k)fxAt+=multi[2];
+    if(c.ps.shield){const a=Math.min(c.ps.shield,part);c.ps.shield-=a;part-=a;absorbed+=a;if(!c.ps.shield)delete c.ps.shield;}
+    if(S.flags.god)part=0;S.hp=Math.max(0,S.hp-part);total+=part;fx('impact',{t:'p',el,st:ab==='heavy'&&n===1?'smash':'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:part,cls:'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});if(S.hp<=0)break;}
+  dmg=total;c.lastHit=e.id;if(absorbed)log(`Your shield absorbs ${absorbed}.`,'buff');if(ab==='heavy'||dmg>d.maxHp*.15)fx('shake',{p:7});
   const verb={heavy:'smashes',drain:'drains',poison:'stings',bleed:'slashes',burn:'scorches',stun:'slams'}[ab]||'hits';
-  log(`${e.n} ${verb} you for ${dmg}.`,'hurt');
+  log(n>1?`${e.n} hits you ${n} times for ${dmg} total.`:`${e.n} ${verb} you for ${dmg}.`,'hurt');
   const resist=()=>{if(chance(d.resist)){log('You resist the effect.','buff');fx('num',{t:'p',txt:'Resist',cls:'miss'});return true;}return false;};
   if(ab==='drain'){const h=Math.round(dmg*.6);e.hp=Math.min(e.max,e.hp+h);fx('num',{t:i,txt:'+'+h,cls:'heal'});fx('hp',{t:i,hp:e.hp,max:e.max});}
   if(ab==='poison'&&!resist()){const cur=c.ps.poison;c.ps.poison={t:3,p:Math.max(1,Math.round(e.atk*.2)),s:Math.min(5,(cur?cur.s:0)+1)};log('You are poisoned.','hurt');}
