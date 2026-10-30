@@ -112,6 +112,8 @@ canvas.scene{display:block;width:100%;height:auto}
 .foe.boss .fname{color:#ff8a7a}
 .foe.elite .fname{color:var(--gold)}.foe.elite .body,.mob.elite img{filter:drop-shadow(2px 0 0 #f2c14e) drop-shadow(-2px 0 0 #f2c14e) drop-shadow(0 2px 0 #f2c14e) drop-shadow(0 -2px 0 #f2c14e)}
 .ttl{color:var(--gold);font-size:.8em}.spire{display:flex;flex-direction:column;gap:6px}.quests{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}.quest{display:flex;flex-direction:column;gap:6px}
+.chatlog{height:220px;overflow-y:auto;background:#0e0b16;padding:8px 10px;box-shadow:inset 0 0 0 2px var(--edge);display:flex;flex-direction:column;gap:3px;word-break:break-word}
+.cm{font-size:.9rem}.cm b{color:var(--gold);margin-right:4px}.cm.me b{color:#9cd2f2}.ct{color:var(--mute);font-size:.75rem;margin-right:6px}
 .lb{width:100%;border-collapse:collapse}.lb td{padding:4px 8px;border-bottom:2px solid var(--edge)}.lb td:first-child{width:2.5em;color:var(--mute)}.lb td:last-child{text-align:right;color:var(--gold)}.lb tr.me td{background:rgba(242,193,78,.12)}
 .foe .bar{width:100%;min-width:80px}
 .foe.dead{cursor:default}
@@ -1345,18 +1347,39 @@ async function net(){if(NET.sb)return NET.sb;if(!SUPA.url||!SUPA.key||NET.tried)
 async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('level,name,updated_at').eq('user_id',NET.user.id).maybeSingle();
   if(error)NET.msg='Could not read your cloud save: '+error.message;else NET.cloud=data||null;render(true);}
 async function cloudUp(quiet){const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.last=Date.now();const row={user_id:NET.user.id,data:S,name:S.name,level:S.lvl,updated_at:new Date().toISOString()};
-  const {error}=await sb.from('saves').upsert(row);NET.busy=false;if(error)NET.msg='Upload failed: '+error.message;else{NET.cloud={level:S.lvl,name:S.name,updated_at:row.updated_at};NET.msg='';if(!quiet)toast('Saved to the cloud');}render(true);}
+  const {error}=await sb.from('saves').upsert(row);NET.busy=false;spirePost();if(error)NET.msg='Upload failed: '+error.message;else{NET.cloud={level:S.lvl,name:S.name,updated_at:row.updated_at};NET.msg='';if(!quiet)toast('Saved to the cloud');}render(true);}
 async function cloudDown(){const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('data').eq('user_id',NET.user.id).maybeSingle();
   if(error||!data){toast('No cloud save found');return;}const s=data.data;if(!s||s.v!==3||!s.stats){toast('That cloud save cannot be read');return;}
   S=migrate(s);PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}NET.ask=false;toast('Cloud save loaded');render(true);}
 async function signIn(email){const sb=await net();if(!sb)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){NET.msg='Enter a valid email.';render(true);return;}
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});NET.msg=error?error.message:'Check your email for a sign-in link.';render(true);}
-async function spirePost(){const sb=await net();if(!sb||!NET.user||!(S.towerBest>0))return;
-  const {error}=await sb.from('spire').upsert({user_id:NET.user.id,name:(S.name||'Wanderer').slice(0,16),best:S.towerBest,level:S.lvl,updated_at:new Date().toISOString()});if(!error)NET.lbT=0;}
+async function spirePost(){const sb=await net();if(!sb||!NET.user||!S||!S.named)return;
+  const row={user_id:NET.user.id,name:(S.name||'Wanderer').slice(0,16),best:S.towerBest||0,level:S.lvl,gold:Math.max(0,Math.floor(S.gold||0)),updated_at:new Date().toISOString()};
+  let {error}=await sb.from('spire').upsert(row);if(error&&/gold/.test(error.message||'')){delete row.gold;({error}=await sb.from('spire').upsert(row));}if(!error)NET.lbT=0;}
 async function spireLoad(){const sb=await net();if(!sb||NET.lbBusy)return;NET.lbBusy=true;NET.lbT=Date.now();
-  const {data,error}=await sb.from('spire').select('user_id,name,best,level').order('best',{ascending:false}).order('updated_at',{ascending:true}).limit(20);
-  NET.lbBusy=false;NET.lb=error?null:data;NET.lbErr=error?(error.code==='PGRST205'?'The leaderboard is not set up on the server yet.':error.message):'';render(true);}
-async function signOut(){const sb=await net();if(sb)await sb.auth.signOut();NET.user=null;NET.cloud=null;NET.msg='';render(true);}
+  const col=NET.lbMode==='gold'?'gold':'best';
+  const {data,error}=await sb.from('spire').select('user_id,name,best,level,'+col).gt(col,0).order(col,{ascending:false}).order('updated_at',{ascending:true}).limit(20);
+  NET.lbBusy=false;NET.lb=error?null:data;NET.lbErr=error?(error.code==='PGRST205'?'The leaderboard is not set up on the server yet.':/gold/.test(error.message||'')?'The gold leaderboard is not set up on the server yet.':error.message):'';render(true);}
+/* global chat: last 50 messages, then live inserts over Supabase Realtime */
+async function chatOpen(){const sb=await net();if(!sb||!NET.user||NET.chatSub)return;NET.chatSub=true;
+  const {data,error}=await sb.from('chat').select('id,user_id,name,body,created_at').order('id',{ascending:false}).limit(50);
+  if(error){NET.chatErr=error.code==='PGRST205'?'Chat is not set up on the server yet.':error.message;render(true);return;}
+  NET.chat=(data||[]).reverse();NET.chatErr='';
+  NET.chatCh=sb.channel('chat').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat'},p=>{const m=p.new;if(!NET.chat||NET.chat.some(x=>x.id===m.id))return;NET.chat.push(m);if(NET.chat.length>80)NET.chat.shift();chatPaint();}).subscribe();
+  render(true);}
+function chatHTML(){return (NET.chat||[]).map(m=>`<div class="cm${NET.user&&m.user_id===NET.user.id?' me':''}"><span class="ct">${esc(new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}))}</span><b>${esc(m.name)}</b> ${esc(m.body)}</div>`).join('')||'<p class="dim">No messages yet. Say hi.</p>';}
+function chatPaint(){const el=document.getElementById('chatlog');if(!el)return;const end=el.scrollTop+el.clientHeight>=el.scrollHeight-24;el.innerHTML=chatHTML();if(end)el.scrollTop=el.scrollHeight;}
+async function chatSend(){const sb=await net();const el=document.getElementById('chatin');const body=(el?el.value:NET.draft||'').trim().slice(0,200);if(!sb||!NET.user||!body)return;
+  if(Date.now()-(NET.chatLast||0)<2500){toast('Slow down a little');return;}NET.chatLast=Date.now();
+  const {data,error}=await sb.from('chat').insert({user_id:NET.user.id,name:(S.name||'Wanderer').slice(0,16),body}).select().single();
+  if(error){toast(/row-level|policy/.test(error.message||'')?'Slow down a little':'Message failed to send');return;}
+  NET.draft='';const el2=document.getElementById('chatin');if(el2)el2.value='';if(data&&NET.chat&&!NET.chat.some(x=>x.id===data.id)){NET.chat.push(data);chatPaint();}}
+function vChat(){if(!SUPA.url||!SUPA.key)return '';
+  if(!NET.user)return '<div class="sub"><h3>Global chat</h3><p class="dim">Sign in under Settings to chat with other players.</p></div>';
+  if(!NET.chatSub)chatOpen();
+  return `<div class="sub"><h3>Global chat</h3>${NET.chatErr?`<p class="dim">${esc(NET.chatErr)}</p>`:`<div class="chatlog" id="chatlog">${NET.chat?chatHTML():'<p class="dim">Connecting…</p>'}</div>
+    <div class="row"><input class="inp" id="chatin" maxlength="200" placeholder="Say something…" value="${esc(NET.draft||'')}" autocomplete="off" style="text-align:left;flex:1;width:auto"><button class="btn primary" data-a="chatsend">Send</button></div>`}</div>`;}
+async function signOut(){if(NET.sb&&NET.chatCh){try{NET.sb.removeChannel(NET.chatCh);}catch(e){}}NET.chatCh=null;NET.chatSub=false;NET.chat=null;NET.chatErr='';const sb=await net();if(sb)await sb.auth.signOut();NET.user=null;NET.cloud=null;NET.msg='';render(true);}
 function load(){try{const t=localStorage.getItem(SAVE);if(t){const s=JSON.parse(t);if(s&&s.v===3)return s;}}catch(e){}return null;}
 
 /* ============ options & sound ============ */
@@ -1803,6 +1826,8 @@ const ACT={
     const n=enchSlots(it),out=[];for(let i=0;i<n&&pool.length;i++){const k=pool.splice(Math.floor(Math.random()*pool.length),1)[0];out.push({id:k,g:chance(10)});}it.ench=out;clampVitals();
     const g=out.some(e=>e.g);fx('rune',{ok:true,g,msg:`${it.name}: ${out.map(e=>(e.g?'Greater ':'')+ENCH[e.id].n).join(', ')}`});busyUntil=Date.now()+2200;},
   set:()=>{S.tab='settings';IMP=null;},
+  lbmode:v=>{NET.lbMode=v;NET.lb=null;NET.lbT=0;},
+  chatsend:()=>{chatSend();return 'async';},
   netin:()=>{const el=document.getElementById('em');signIn(el?el.value.trim():'');return 'async';},
   netout:()=>{signOut();return 'async';},
   cup:()=>{cloudUp(false);return 'async';},
@@ -2321,7 +2346,6 @@ function vSettings(){
   const achs=ACH.map(([id,n,dd,,rw,sec])=>{const got=S.ach.includes(id);const hide=sec&&!got;
     return `<div class="ach ${got?'got':''}">${sprImg('trophy',3)}<div><b>${hide?'???':n}</b><span>${hide?'Secret':dd}</span></div></div>`;}).join('');
   return `<section class="px panel" aria-label="Settings"><h2>Settings</h2>
-  ${S.combat?'<div class="row"><button class="btn primary" data-a="tab" data-v="explore">◂ Back to the fight</button></div>':''}
   <div class="sub"><h3>Account</h3>${vAccount()}</div>
   <div class="sub"><h3>Combat</h3><div class="optrow"><b>Animation speed</b>${[1,1.5,2,3].map(v=>`<button class="btn sm ${OPT.speed===v?'tab on':''}" data-a="spd" data-v="${v}">${v}×</button>`).join('')}</div></div>
   <div class="sub"><h3>Sound</h3><div class="optrow"><b>Sound effects</b><button class="btn sm ${OPT.mute?'':'tab on'}" data-a="mute" aria-pressed="${!OPT.mute}">${OPT.mute?'Off':'On'}</button>
@@ -2390,12 +2414,14 @@ function vAccount(){
     :`<div class="row"><button class="btn primary" data-a="cup" ${NET.busy?'disabled':''}>Upload this save</button><button class="btn" data-a="cask" ${c?'':'disabled'}>Load cloud save</button>
       <button class="btn sm ${NET.auto?'tab on':''}" data-a="cauto" data-tip="txt:Uploads your save every 30 seconds or so while you play">Auto-sync ${NET.auto?'on':'off'}</button><button class="btn sm" data-a="netout">Sign out</button></div>`}${m}`;}
 function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date.now()-(NET.lbT||0)>30000)spireLoad();
-  const rows=(NET.lb||[]).map((r,i)=>`<tr class="${NET.user&&r.user_id===NET.user.id?'me':''}"><td class="num">${i+1}</td><td>${esc(r.name)}</td><td class="num">Lv ${r.level}</td><td class="num"><b>${r.best}</b></td></tr>`).join('');
-  return `<div class="sub"><div class="row" style="justify-content:space-between"><h3>Endless Spire · best floors</h3><span class="tag">Your best: <b class="num">${S.towerBest||0}</b></span></div>
-    ${NET.lbErr?`<p class="dim">${esc(NET.lbErr)}</p>`:!NET.lb?'<p class="dim">Loading…</p>':rows?`<table class="lb"><tbody>${rows}</tbody></table>`:'<p class="dim">No climbs yet. Be the first.</p>'}
+  const g=NET.lbMode==='gold';
+  const rows=(NET.lb||[]).map((r,i)=>`<tr class="${NET.user&&r.user_id===NET.user.id?'me':''}"><td class="num">${i+1}</td><td>${esc(r.name)}</td><td class="num">Lv ${r.level}</td><td class="num"><b>${g?(r.gold||0).toLocaleString():'Floor '+r.best}</b></td></tr>`).join('');
+  const lt=(m,n)=>`<button class="btn sm ${(NET.lbMode||'best')===m?'tab on':''}" data-a="lbmode" data-v="${m}">${n}</button>`;
+  return `<div class="sub"><div class="row" style="justify-content:space-between"><div class="row"><h3>Leaderboards</h3>${lt('best','Spire floors')}${lt('gold','Richest')}</div><span class="tag">You: <b class="num">${g?S.gold.toLocaleString()+' gold':'Floor '+(S.towerBest||0)}</b></span></div>
+    ${NET.lbErr?`<p class="dim">${esc(NET.lbErr)}</p>`:!NET.lb?'<p class="dim">Loading…</p>':rows?`<table class="lb"><tbody>${rows}</tbody></table>`:`<p class="dim">${g?'Nobody is on the board yet.':'No climbs yet. Be the first.'}</p>`}
     ${NET.user?'':'<p class="small dim">Sign in under Settings to put your best floor on the board.</p>'}</div>`;}
 function vOnline(){const f=[['Trading post','Player listings and direct trades in the Market.'],['Clans','Shared bank, clan perks, a clan hall on a town plot.'],['PvP arena','Async duels against other players\' builds.'],['Boss raids','Party bosses with shared HP and turn order.']];
-  return `<section class="px panel"><h2>Online</h2>${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
+  return `<section class="px panel"><h2>Online</h2>${vChat()}${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
 
 /* forge minigame marker */
 let mgT=0;function mgLoop(t){const dt=Math.min(50,t-(mgT||t));mgT=t;if(MG.active){MG.pos+=MG.dir*MG.speed*dt*.12;if(MG.pos>=100){MG.pos=100;MG.dir=-1;}if(MG.pos<=0){MG.pos=0;MG.dir=1;}const m=document.getElementById('mgmark');if(m)m.style.left=MG.pos+'%';}requestAnimationFrame(mgLoop);}
@@ -2634,19 +2660,22 @@ function render(quiet){hideTip();
   const lg=document.getElementById('log');if(lg)lg.scrollTop=lg.scrollHeight;
   setAmb(mode());const d=derive();document.getElementById('vig').style.opacity=S.combat&&!S.combat.over&&S.hp<d.maxHp*.3?1:0;
   document.getElementById('ovl').innerHTML='';
+  const cl=document.getElementById('chatlog');if(cl)cl.scrollTop=cl.scrollHeight;
+  const ci=document.getElementById('chatin');if(ci&&NET.chatFocus){ci.focus();const n=ci.value.length;try{ci.setSelectionRange(n,n);}catch(e){}}
   save();if(!quiet)runFx();
 }
-const FREE=['tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cask','cno','cauto'];
+const FREE=['chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cask','cno','cauto'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
   if(Date.now()<busyUntil&&!FREE.includes(b.dataset.a))return;if(!QUIET.includes(b.dataset.a))sfx('ui');lastRect=b.getBoundingClientRect();fxAt=0;
   if(b.dataset.a!=='reset'&&b.dataset.a!=='resetNo')S._confirm=false;if(f(b.dataset.v,b)!=='async')render();});
-document.addEventListener('input',ev=>{if(ev.target&&ev.target.id==='nm')S.name=ev.target.value;
+document.addEventListener('input',ev=>{if(ev.target&&ev.target.id==='nm')S.name=ev.target.value;if(ev.target&&ev.target.id==='chatin')NET.draft=ev.target.value;
   if(ev.target&&ev.target.id==='vol'){OPT.vol=+ev.target.value;saveOpt();if(AU.g)AU.g.gain.value=OPT.vol*.5;}});
 document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='impf'&&t.files&&t.files[0])importFile(t.files[0]);if(t&&t.id==='vol')sfx('coin');});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&UI.set){UI.set=false;IMP=null;render(true);}});
-document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+document.addEventListener('focusin',ev=>{if(ev.target&&ev.target.id==='chatin')NET.chatFocus=true;});document.addEventListener('focusout',ev=>{if(ev.target&&ev.target.id==='chatin')NET.chatFocus=false;});
+document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if(t&&t.id==='chatin'&&ev.key==='Enter'){ev.preventDefault();chatSend();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
 /* star chart: drag to pan, tap to select, double-tap to light */
 const starPan=()=>{UI.pan=UI.pan||{};const T=S&&S.starTab||'melee';return UI.pan[T]||(UI.pan[T]={x:0,y:78});};
 let SDRAG=null,STAP={id:null,t:0};

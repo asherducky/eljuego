@@ -1,7 +1,7 @@
 # Supabase setup for El Juego
 
 1. Create a project at https://supabase.com (the free tier is fine).
-2. **SQL Editor → New query**: paste `schema.sql`, then Run (cloud saves). Do the same with `spire.sql` (Spire leaderboard).
+2. **SQL Editor → New query**: paste `schema.sql`, then Run (cloud saves). Do the same with `spire.sql` (Spire leaderboard), then `social.sql` (gold leaderboard + global chat).
 3. **Authentication → URL Configuration**:
    - Site URL: `https://rpgjuego.pages.dev`
    - Redirect URLs: add `https://rpgjuego.pages.dev/**` and `http://localhost:5173/**`
