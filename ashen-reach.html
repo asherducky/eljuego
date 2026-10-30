@@ -940,7 +940,7 @@ function mixC(a,b,t){const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);c
 function auraFlame(px,B,ph,i){const big=B.pts.length<60?1.6:1;for(const p of B.pts){if(!p.up)continue;const h=Math.round((1+(Math.sin(ph*2+p.x*.9+p.y*.5)+1)*1.4)*big);
     for(let j=1;j<=h;j++)px(p.x,p.y-j,j===h?'#c43c3c':j>h*.5?'#e2782a':'#f2c14e');}
   for(let k=0;k<3;k++){const s=(i/NF+k/3)%1,q=B.pts[Math.floor(hsh(k+1)*B.pts.length)];if(q&&s<.85)px(q.x+Math.round(Math.sin(ph+k)),q.y-4-s*9,s<.4?'#fff1a8':'#e2782a');}}
-function auraFrost(px,B,ph,i){B.pts.forEach((p,n)=>{if((p.up||p.rt)&&hsh(n)<.18){const tw=(i+Math.floor(hsh(n+7)*NF))%NF<2;px(p.x+(p.rt?1:0),p.y-(p.up?1:0),tw?'#ffffff':'#c4ecff');}});
+function auraFrost(px,B,ph,i){B.pts.forEach((p,n)=>{if((p.up||p.rt)&&hsh(n)<.18){const tw=(i+Math.floor(hsh(n+7)*NF))%NF<2;px(p.x+(p.rt?2:0),p.y-(p.up?2:0),tw?'#ffffff':'#c4ecff');}});
   for(let k=0;k<4;k++){const s=(i/NF+k/4)%1,q=B.pts[Math.floor(hsh(k+3)*B.pts.length)];if(q&&s<.8)px(q.x+s,q.y+1+s*4,s<.4?'#c4ecff':'#6fb7e8');}}
 function auraSpark(px,B,ph,i){if(i%3===2||!B.pts.length)return;const n=B.pts.length,a=B.pts[Math.floor(hsh(i*3+1)*n)],b=B.pts[Math.floor(hsh(i*3+2)*n)];let x=a.x,y=a.y-2;
   for(let s=1;s<=6;s++){const nx=a.x+(b.x-a.x)*s/6+(hsh(i*9+s)-.5)*6,ny=a.y+(b.y-a.y)*s/6-2+(hsh(i*7+s)-.5)*6,d=Math.max(1,Math.round(Math.max(Math.abs(nx-x),Math.abs(ny-y))));
@@ -958,11 +958,11 @@ function auraGlow(px,B,col,ph){const free=(x,y)=>((B.g[y]||"")[x]||".")===".",se
     const w=(Math.sin(ph-(X-Y)*.18)+1)/2;if(w<.25)continue;px(X,Y,mixC(col,"#0e0b14",.75-w*.45));}}
 function auraMotes(px,B,col,ph){const T=B.tip;for(let k=0;k<3;k++){const a=ph+k*2.094;px(T.x-2+Math.cos(a)*6,T.y+3+Math.sin(a)*4,k?col:'#ffffff');}}
 function auraHaze(px,B,col,i){const dk=mixC(col,'#0e0b14',.45);for(let k=0;k<5;k++){const s=(i/NF+k/5)%1,q=B.pts[Math.floor(hsh(k+11)*B.pts.length)];if(!q||s>.85)continue;px(q.x-s*3+Math.sin(k+s*5),q.y-2-s*8,s<.45?col:dk);}}
-function auraGleam(px,B,col,i){const L=B.ord.length,k=Math.floor((i/NF)*L*1.6);if(k>=L)return;px(B.ord[k].x,B.ord[k].y,'#ffffff');for(const d of [-1,1]){const q=B.ord[k+d];if(q)px(q.x,q.y,col);}}
+function auraGleam(px,B,col,i){const L=B.ord.length,k=Math.floor((i/NF)*L*1.6);for(const d of [-2,-1,0,1,2]){const q=B.ord[k+d];if(!q)continue;const c=d?col:'#ffffff';if(q.up)px(q.x,q.y-2,c);if(q.dn)px(q.x,q.y+2,c);if(q.rt)px(q.x+2,q.y,c);if(q.lf)px(q.x-2,q.y,c);}}
 function auraDust(px,B,col,i){const dn=B.pts.filter(p=>p.dn);for(let k=0;k<4;k++){const s=(i/NF+k/4)%1,q=dn[Math.floor(hsh(k+21)*dn.length)];if(q&&s<.8)px(q.x+Math.sin(k+s*6),q.y+2+s*7,col);}}
 function wepFrame(ts,P,aura,i){const n2=x2(ts),key='wf:'+pkey(n2,P)+aura.join(',')+':'+i;if(SC[key])return SC[key];
   const src=sprCanvas(n2,P),c=document.createElement('canvas');c.width=src.width+AM*2;c.height=src.height+AM*2;const x=c.getContext&&c.getContext('2d');
-  if(x){const B=bladePts(n2),ph=i/NF*6.283,px=(X,Y,col)=>{x.fillStyle=col;x.fillRect(Math.round(X)+AM,Math.round(Y)+AM,1,1);};
+  if(x){const B=bladePts(n2),ph=i/NF*6.283,G=SPR[n2],px=(X,Y,col)=>{X=Math.round(X);Y=Math.round(Y);if(((G[Y]||"")[X]||".")!==".")return;x.fillStyle=col;x.fillRect(X+AM,Y+AM,1,1);};
     for(const a of aura){if(a.startsWith('swirl'))auraSwirl(px,B,a.slice(6),ph,false);else if(a.startsWith('glow:'))auraGlow(px,B,a.slice(5),ph);}
     x.drawImage(src,AM,AM);
     for(const a of aura){const [an,ac]=a.split(':');if(an==='glow')continue;else if(an==='motes')auraMotes(px,B,ac,ph);else if(an==='haze')auraHaze(px,B,ac,i);else if(an==='gleam')auraGleam(px,B,ac,i);else if(an==='dust')auraDust(px,B,ac,i);
