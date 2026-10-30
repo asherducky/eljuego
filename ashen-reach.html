@@ -122,7 +122,7 @@ canvas.scene{display:block;width:100%;height:auto}
 .cursor{position:absolute;top:-46px;left:50%;transform:translateX(-50%);animation:cur .6s steps(2) infinite}
 @keyframes cur{50%{transform:translate(-50%,-4px)}}
 .idle{animation:idle 1.2s steps(2) infinite}
-@keyframes idle{50%{transform:translateY(-3px)}}
+@keyframes idle{50%{transform:translateY(calc(-1 * var(--bob,3px)))}}
 .foe.rage img.spr{filter:drop-shadow(3px 0 0 #c43c3c) drop-shadow(-3px 0 0 #c43c3c)}
 .sts{display:flex;gap:3px;min-height:16px;flex-wrap:wrap;justify-content:center}
 .st{display:inline-flex;align-items:center;gap:1px;font-size:.7rem;text-shadow:1px 1px 0 #000}
@@ -710,7 +710,11 @@ function canvasURL(key,c){if(SURL[key]!==undefined)return SURL[key];let u='';try
 const sprSize=n=>{const r=SPR[n]||[];return [Math.max(1,...r.map(x=>x.length)),r.length];};
 function sprImg(name,scale,cls='',pal){const [w,h]=sprSize(name);const n2=/@2|^h[bhc]_/.test(name)?name:x2(name);
   const fr=ANIM[name]&&!RM?` data-fr="${frameKey(pkey(name,pal),Array.from({length:NF},(_,i)=>{const k=x2f(name,i);return canvasURL(pkey(k,pal),sprCanvas(k,pal));}))}"`:'';
-  return `<img class="spr ${cls}"${fr} src="${canvasURL(pkey(n2,pal),sprCanvas(n2,pal))}" width="${w*scale}" height="${h*scale}" alt="">`;}
+  const mv=/(^| )(body|idle)( |$)/.test(cls),u=mv?artPx(scale):scale/2;
+  return `<img class="spr ${cls}"${fr} src="${canvasURL(pkey(n2,pal),sprCanvas(n2,pal))}" width="${2*w*u}" height="${2*h*u}"${mv?` style="--bob:${u}px"`:""} alt="">`;}
+// moving sprites use a whole number of screen pixels per art pixel (counting the display scale), and bob by exactly one art pixel,
+// so outlines never get re-rounded thick/thin as they move
+function artPx(scale){const dpr=window.devicePixelRatio||1;return Math.max(1,Math.round(scale/2*dpr))/dpr;}
 Object.assign(SPR,{
   w_greatsword:["..W..",".kWk.",".kwk.",".kwk.",".kwk.",".kwk.",".kwk.",".kwk.",".kwk.",".kwk.",".kwk.","yyyyy",".kbk.",".kbk.",".kbk.","..y.."],
   w_hammer:["kkkkkkk","kwWwwGk","kwwwwGk","kGGGGGk","kkkbkkk","...b...","...b...","...b...","...b...","...b...","...b...","...b...","...n..."],
@@ -992,7 +996,8 @@ function heroCanvas(P,i){const key='h4:'+JSON.stringify(P)+':'+i;if(SC[key])retu
   SC[key]=c;return [key,c];}
 function heroImg(scale,wt,at){const P=heroParts(wt,at),n=(P.ck||P.aura.length)&&!RM?NF:1,urls=[];let k0='';
   for(let i=0;i<n;i++){const [k,c]=heroCanvas(P,i);urls.push(canvasURL(k,c));if(!i)k0=k;}
-  return `<img class="spr idle"${n>1?` data-fr="${frameKey(k0,urls)}"`:''} src="${urls[0]}" width="${32*scale}" height="${24*scale}" alt="">`;}
+  const u=artPx(scale);
+  return `<img class="spr idle"${n>1?` data-fr="${frameKey(k0,urls)}"`:''} src="${urls[0]}" width="${64*u}" height="${48*u}" style="--bob:${u}px" alt="">`;}
 const MATICON={cshard:['m_gem','#f4efe4','#c9c2d6','#8f88a8'],crys2:['m_gem','#fff1a8','#f2c14e','#a8702a'],crys3:['m_gem','#e0c8ff','#c08cff','#7a3fb0'],crys4:['m_gem','#ffd2b0','#ff8b45','#c43c3c'],crys5:['m_gem','#ffd0f4','#ff4fd8','#7a1f6b'],moss:['m_leaf','#b6e36a','#6aa84f','#2f6b3a'],scrap:['m_chunk','#c9c2d6','#5d5672','#3b3450'],wing:['m_wing','#c08cff','#7a3fb0','#3b1f5a'],
   wardenheart:['m_heart','#b6e36a','#2f6b3a','#1d3b2a'],shard:['m_gem','#c4ecff','#6fb7e8','#3a5ea8'],venom:['m_vial','#b6e36a','#6aa84f','#2f6b3a'],
   silk:['m_leaf','#f4efe4','#e8b796','#a8703f'],crown:['m_gem','#ffc4ec','#e05aa8','#7a3fb0'],ember:['m_flame','#fff1a8','#e2782a','#c43c3c'],
