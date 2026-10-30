@@ -1334,10 +1334,10 @@ function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&NET.auto&&!NET.busy&&!S.combat&&Date.now()-NET.last>30000)cloudUp(true);}
 /* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
 // The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
-const SUPA={url:'',key:''};
+const SUPA={url:'https://gtktyabyczoouwgwpxlr.supabase.co',key:'sb_publishable_a-2GjUCLeKHkFbTlajLZwg_23JAHuKd'};
 const NET={sb:null,user:null,busy:false,msg:'',cloud:null,last:0,auto:true,ask:false,tried:false};
 async function net(){if(NET.sb)return NET.sb;if(!SUPA.url||!SUPA.key||NET.tried)return null;NET.tried=true;
-  try{const m=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm');NET.sb=m.createClient(SUPA.url,SUPA.key);
+  try{const m=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/+esm');NET.sb=m.createClient(SUPA.url,SUPA.key);
     const {data}=await NET.sb.auth.getSession();NET.user=data.session?data.session.user:null;
     NET.sb.auth.onAuthStateChange((ev,s)=>{NET.user=s?s.user:null;if(ev==='SIGNED_IN')cloudPeek();render(true);});if(NET.user)cloudPeek();}
   catch(e){NET.msg='Could not reach the server.';}render(true);return NET.sb;}
