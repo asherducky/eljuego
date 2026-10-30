@@ -2506,32 +2506,54 @@ function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date
 const ADMHASH='4425eaef2237f7c88c321256ca551dcf66bc4678bd7c2147a7fbe37d344d9658';
 async function admTry(){const el=document.getElementById('admc');const v=el?el.value:'';let hex='';try{const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));hex=[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');}catch(e){}
   if(hex===ADMHASH){UI.admOk=true;try{sessionStorage.setItem('eljuego-adm','1');}catch(e){}toast('Admin unlocked');}else toast('Wrong passcode');render(true);}
+const aval=(id,d=0)=>{const el=document.getElementById(id);const v=el?el.value:'';return v===''?d:v;};
+const anum=(id,d=0)=>{const n=Math.floor(+aval(id,d));return isFinite(n)?n:d;};
 const ADM={
-  gold:()=>{S.gold+=10000;},
-  mats:()=>{for(const m in MATS)S.mats[m]=(S.mats[m]||0)+20;},
-  lvl:()=>{if(S.lvl<MAXLV)gainXp(xpNeed(S.lvl)-S.xp);},
-  max:()=>{while(S.lvl<MAXLV)gainXp(xpNeed(S.lvl)-S.xp);},
-  sp:()=>{S.sp+=5;},
-  unlock:()=>{S.unlocked=AREAS.length;S.wins=Math.max(S.wins,3);S.flags.analyze=true;for(const k of ['inv','char','skills','town','online'])S.unl[k]=true;S.sanctum=true;S.key=false;for(let i=0;i<AREAS.length;i++)if(!S.cleared.includes(i))S.cleared.push(i);},
-  heal:()=>{const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;for(const k of ['potion','ether','salve'])S.cons[k]=(S.cons[k]||0)+5;},
+  tab:v=>{UI.admTab=v;},
+  gold:()=>{S.gold=Math.max(0,S.gold+anum('a_gold',1000));},
+  goldset:()=>{S.gold=Math.max(0,anum('a_gold',0));},
+  lvl:()=>{const to=Math.max(1,Math.min(MAXLV,anum('a_lvl',S.lvl)));while(S.lvl<to)gainXp(xpNeed(S.lvl)-S.xp);},
+  pts:()=>{S.pts+=Math.max(0,anum('a_pts',5));},
+  sp:()=>{S.sp+=Math.max(0,anum('a_sp',5));},
+  heal:()=>{const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;for(const k of ['potion','ether','salve'])S.cons[k]=(S.cons[k]||0)+5;S.cons.orb=(S.cons.orb||0)+1;},
   god:()=>{S.flags.god=!S.flags.god;},
-  win:()=>{const c=C();if(!c||c.over)return;c.enemies.forEach(e=>e.hp=0);PRE=null;fxAt=0;win();},
-  tier:v=>{UI.at=+v;},
-  item:v=>{addToBag([genItem(UI.at||0,+v,undefined,+v)]);},
-  gem:()=>{addToBag([mkGem(pick(Object.keys(GEMS)),Math.min(4,UI.at||0))]);},
+  mat:()=>{const m=aval('a_mat','essence'),q=anum('a_matq',20);if(m==='*'){for(const k in MATS)S.mats[k]=(S.mats[k]||0)+q;}else if(MATS[m])S.mats[m]=(S.mats[m]||0)+q;},
+  make:()=>{const [sl,ty]=aval('a_type','weapon:greatsword').split(':');const tier=anum('a_tier',0),rar=anum('a_rar',0),plus=anum('a_plus',0),rf=aval('a_rf','rand');
+    let it;if(sl==='gem')it=mkGem(ty,Math.min(4,tier));else{it=genItem(tier,rar,sl,rar);if(it.type!==ty){it.type=ty;}it.rar=rar;it.plus=Math.max(0,Math.min(5,plus));it.rf=rf==='none'?null:rf==='rand'?rollRf(sl):rf;it.rfv=1;it.name=itemName(it);}
+    addToBag([it]);toast('Added '+it.name);},
   uniq:()=>{addToBag(Object.keys(UNIQ).map(mkUnique));},
+  unlock:()=>{S.unlocked=AREAS.length;S.wins=Math.max(S.wins,3);S.flags.analyze=true;for(const k of ['inv','char','skills','town','online'])S.unl[k]=true;S.sanctum=true;S.key=false;for(let i=0;i<AREAS.length;i++)if(!S.cleared.includes(i))S.cleared.push(i);},
   disc:()=>{S.disc=Object.keys(ALLOYS);},
-  spire:()=>{S.towerBest=(S.towerBest||0)+10;},
+  spire:()=>{S.towerBest=Math.max(0,anum('a_spire',S.towerBest||0));spirePost();},
+  fight:()=>{if(S.combat)return;const id=aval('a_mob','goblin'),L=Math.max(1,anum('a_mlv',S.lvl)),n=Math.max(1,Math.min(3,anum('a_mn',1))),el=aval('a_kind','normal');
+    const one=()=>el==='elite'&&ELITE[id]?mkElite(id,L):mkEnemy(id,L);S.tab='explore';startCombat(Array.from({length:n},one),'wild');},
+  win:()=>{const c=C();if(!c||c.over)return;c.enemies.forEach(e=>e.hp=0);PRE=null;fxAt=0;win();},
+  cds:()=>{const c=C();if(c&&c.cd)c.cd={};if(S.dungeon)S.dungeon.cd={};if(S.tower)S.tower.cd={};},
+  ctr:()=>{S.ctr=null;ensureCtr();},
+  cloud:()=>{try{localStorage.removeItem('eljuego-cloudload');}catch(e){}toast('Cloud load cooldown cleared');},
   lock:()=>{UI.admOk=false;try{sessionStorage.removeItem('eljuego-adm');}catch(e){}},
 };
 function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm')==='1';}catch(e){}}
   if(!UI.admOk)return `<div class="row"><input class="inp" id="admc" type="password" placeholder="Passcode" autocomplete="off" style="text-align:left"><button class="btn sm" data-a="admin">Unlock</button></div>`;
-  const b=(k,n,on)=>`<button class="btn sm ${on?'tab on':''}" data-a="adm" data-v="${k}">${n}</button>`;
-  return `<div class="optrow">${b('gold','+10,000 gold')}${b('mats','+20 every material')}${b('heal','Heal + 5 of each potion')}${b('sp','+5 star points')}${b('spire','+10 best Spire floor')}</div>
-  <div class="optrow">${b('lvl','+1 level')}${b('max','Max level')}${b('unlock','Unlock everything')}${b('disc','Discover all alloys')}${b('god',`God mode: ${S.flags.god?'On':'Off'}`,S.flags.god)}${C()&&!C().over?b('win','Win this fight'):''}</div>
-  <div class="optrow"><b>Give item</b>${TIERN.map((t,i)=>b('tier:'+i,t,(UI.at||0)===i)).join('')}</div>
-  <div class="optrow">${RAR.map((r,i)=>b('item:'+i,r.n)).join('')}${b('gem','Gem (tier = grade)')}${b('uniq','All Legendaries')}</div>
-  <div class="optrow">${b('lock','Lock admin')}</div>`;}
+  const T=UI.admTab||'player',b=(k,n,cls='')=>`<button class="btn sm ${cls}" data-a="adm" data-v="${k}">${n}</button>`;
+  const tb=(k,n)=>`<button class="btn sm ${T===k?'tab on':''}" data-a="adm" data-v="tab:${k}">${n}</button>`;
+  const num=(id,v,w=90)=>`<input class="inp" id="${id}" type="number" value="${v}" style="width:${w}px;font-size:.9rem;padding:6px 8px">`;
+  const sel=(id,opts,v)=>`<select class="inp" id="${id}" style="width:auto;font-size:.9rem;padding:6px 8px;text-align:left">${opts.map(([k,n])=>`<option value="${esc(k)}" ${k===v?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+  let body='';
+  if(T==='player')body=`<div class="optrow"><b>Gold</b>${num('a_gold',1000,110)}${b('gold','Add')}${b('goldset','Set')}<span class="dim small">now ${S.gold.toLocaleString()}</span></div>
+    <div class="optrow"><b>Level</b>${num('a_lvl',MAXLV,70)}${b('lvl','Set')}<b>Stat points</b>${num('a_pts',5,70)}${b('pts','Give')}<b>Star points</b>${num('a_sp',5,70)}${b('sp','Give')}</div>
+    <div class="optrow">${b('heal','Full heal + potions + orb')}${b('god',`God mode: ${S.flags.god?'On':'Off'}`,S.flags.god?'tab on':'')}</div>
+    <div class="optrow"><b>Materials</b>${sel('a_mat',[['*','Every material'],...Object.entries(MATS)],'*')}${num('a_matq',20,70)}${b('mat','Give')}</div>`;
+  else if(T==='items'){const types=[...Object.entries(WT).map(([k,X])=>['weapon:'+k,'Weapon · '+X.n]),...[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].flatMap(([sl,X])=>Object.entries(X).map(([k,Y])=>[sl+':'+k,SLOTN[sl]+' · '+Y.n])),...Object.entries(GEMS).map(([k,G])=>['gem:'+k,'Gem · '+G.n])];
+    body=`<div class="optrow">${sel('a_type',types,'weapon:greatsword')}${sel('a_tier',TIERN.map((t,i)=>[String(i),t+' (tier '+(i+1)+')']),'3')}${sel('a_rar',RAR.map((r,i)=>[String(i),r.n]),'4')}</div>
+      <div class="optrow"><b>Temper</b>${sel('a_plus',[0,1,2,3,4,5].map(n=>[String(n),'+'+n]),'0')}<b>Reforge</b>${sel('a_rf',[['rand','Random'],['none','None'],...Object.entries(RFS).map(([k,R])=>[k,R.n+(R.w?' (weapon)':' (armor)')])],'rand')}${b('make','Add to bag','primary')}</div>
+      <div class="optrow">${b('uniq','All Legendaries')}<span class="dim small">Gems use the tier box for their grade.</span></div>`;}
+  else{const mobs=Object.entries(MOB).map(([k,m])=>[k,m.n+(m.boss?' (boss)':'')]);
+    body=`<div class="optrow"><b>Fight</b>${sel('a_mob',mobs,'goblin')}<b>Lv</b>${num('a_mlv',S.lvl,70)}<b>×</b>${num('a_mn',1,60)}${sel('a_kind',[['normal','Normal'],['elite','Elite']],'normal')}${b('fight','Start fight','primary')}</div>
+      <div class="optrow">${C()&&!C().over?b('win','Win this fight')+b('cds','Clear cooldowns'):'<span class="dim small">Win / clear cooldowns appear during a fight.</span>'}</div>
+      <div class="optrow"><b>Best Spire floor</b>${num('a_spire',S.towerBest||0,80)}${b('spire','Set')}</div>
+      <div class="optrow">${b('unlock','Unlock all regions')}${b('disc','Discover all alloys')}${b('ctr','New daily contracts')}${b('cloud','Clear cloud-load cooldown')}</div>`;}
+  return `<div class="row" style="justify-content:space-between"><div class="row">${tb('player','Player')}${tb('items','Items')}${tb('world','World')}</div>${b('lock','Lock admin')}</div>${body}`;}
 function vOnline(){const f=[['Trading post','Player listings and direct trades in the Market.'],['Clans','Shared bank, clan perks, a clan hall on a town plot.'],['PvP arena','Async duels against other players\' builds.'],['Boss raids','Party bosses with shared HP and turn order.']];
   return `<section class="px panel"><h2>Online</h2>${vChat()}${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
 
