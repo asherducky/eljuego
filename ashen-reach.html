@@ -1354,7 +1354,7 @@ async function cloudDown(){const sb=await net();if(!sb||!NET.user)return;const {
 async function signIn(email){const sb=await net();if(!sb)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){NET.msg='Enter a valid email.';render(true);return;}
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});NET.msg=error?error.message:'Check your email for a sign-in link.';render(true);}
 async function spirePost(){const sb=await net();if(!sb||!NET.user||!S||!S.named)return;
-  const row={user_id:NET.user.id,name:(S.name||'Wanderer').slice(0,16),best:S.towerBest||0,level:S.lvl,gold:Math.max(0,Math.floor(S.gold||0)),updated_at:new Date().toISOString()};
+  const row={user_id:NET.user.id,name:pname().slice(0,16),best:S.towerBest||0,level:S.lvl,gold:Math.max(0,Math.floor(S.gold||0)),updated_at:new Date().toISOString()};
   let {error}=await sb.from('spire').upsert(row);if(error&&/gold/.test(error.message||'')){delete row.gold;({error}=await sb.from('spire').upsert(row));}if(!error)NET.lbT=0;}
 async function spireLoad(){const sb=await net();if(!sb||NET.lbBusy)return;NET.lbBusy=true;NET.lbT=Date.now();
   const col=NET.lbMode==='gold'?'gold':'best';
@@ -1371,7 +1371,7 @@ function chatHTML(){return (NET.chat||[]).map(m=>`<div class="cm${NET.user&&m.us
 function chatPaint(){const el=document.getElementById('chatlog');if(!el)return;const end=el.scrollTop+el.clientHeight>=el.scrollHeight-24;el.innerHTML=chatHTML();if(end)el.scrollTop=el.scrollHeight;}
 async function chatSend(){const sb=await net();const el=document.getElementById('chatin');const body=(el?el.value:NET.draft||'').trim().slice(0,200);if(!sb||!NET.user||!body)return;
   if(Date.now()-(NET.chatLast||0)<2500){toast('Slow down a little');return;}NET.chatLast=Date.now();
-  const {data,error}=await sb.from('chat').insert({user_id:NET.user.id,name:(S.name||'Wanderer').slice(0,16),body}).select().single();
+  const {data,error}=await sb.from('chat').insert({user_id:NET.user.id,name:pname().slice(0,16),body}).select().single();
   if(error){toast(/row-level|policy/.test(error.message||'')?'Slow down a little':'Message failed to send');return;}
   NET.draft='';const el2=document.getElementById('chatin');if(el2)el2.value='';if(data&&NET.chat&&!NET.chat.some(x=>x.id===data.id)){NET.chat.push(data);chatPaint();}}
 function vChat(){if(!SUPA.url||!SUPA.key)return '';
@@ -1379,6 +1379,18 @@ function vChat(){if(!SUPA.url||!SUPA.key)return '';
   if(!NET.chatSub)chatOpen();
   return `<div class="sub"><h3>Global chat</h3>${NET.chatErr?`<p class="dim">${esc(NET.chatErr)}</p>`:`<div class="chatlog" id="chatlog">${NET.chat?chatHTML():'<p class="dim">Connecting…</p>'}</div>
     <div class="row"><input class="inp" id="chatin" maxlength="200" placeholder="Say something…" value="${esc(NET.draft||'')}" autocomplete="off" style="text-align:left;flex:1;width:auto"><button class="btn primary" data-a="chatsend">Send</button></div>`}</div>`;}
+// usernames: 3-16 letters, numbers or _. Supabase logs in by email, so "Bob" becomes bob@rpgjuego.pages.dev (no mail is ever sent there).
+const UNRE=/^[A-Za-z0-9_]{3,16}$/;const uMail=u=>u.toLowerCase()+'@rpgjuego.pages.dev';
+const pname=()=>(NET.user&&NET.user.user_metadata&&NET.user.user_metadata.username)||(S&&S.name)||'Wanderer';
+function authFields(){const u=(document.getElementById('un')||{}).value||NET.fun||'',p=(document.getElementById('pw')||{}).value||NET.fpw||'';
+  if(!UNRE.test(u.trim())){NET.msg='Usernames are 3 to 16 letters, numbers or _.';return null;}if(p.length<6){NET.msg='Passwords need at least 6 characters.';return null;}return [u.trim(),p];}
+async function signUpPw(){const sb=await net();if(!sb)return;const f=authFields();if(!f){render(true);return;}NET.msg='Creating your account…';render(true);
+  const {data,error}=await sb.auth.signUp({email:uMail(f[0]),password:f[1],options:{data:{username:f[0]}}});
+  if(error)NET.msg=/registered|exists/i.test(error.message)?'That username is taken.':error.message;
+  else if(!data.session)NET.msg='Account made, but Supabase still wants an email confirmation. Turn off "Confirm email" in Supabase, then log in.';
+  else{NET.msg='';NET.fpw='';}render(true);}
+async function signInPw(){const sb=await net();if(!sb)return;const f=authFields();if(!f){render(true);return;}NET.msg='Logging in…';render(true);
+  const {error}=await sb.auth.signInWithPassword({email:uMail(f[0]),password:f[1]});NET.msg=error?(/confirm/i.test(error.message)?'This account still needs email confirmation (turn off "Confirm email" in Supabase).':'Wrong username or password.'):'';if(!error)NET.fpw='';render(true);}
 async function signOut(){if(NET.sb&&NET.chatCh){try{NET.sb.removeChannel(NET.chatCh);}catch(e){}}NET.chatCh=null;NET.chatSub=false;NET.chat=null;NET.chatErr='';const sb=await net();if(sb)await sb.auth.signOut();NET.user=null;NET.cloud=null;NET.msg='';render(true);}
 function load(){try{const t=localStorage.getItem(SAVE);if(t){const s=JSON.parse(t);if(s&&s.v===3)return s;}}catch(e){}return null;}
 
@@ -1828,6 +1840,9 @@ const ACT={
   set:()=>{S.tab='settings';IMP=null;},
   lbmode:v=>{NET.lbMode=v;NET.lb=null;NET.lbT=0;},
   chatsend:()=>{chatSend();return 'async';},
+  pwin:()=>{signInPw();return 'async';},
+  pwup:()=>{signUpPw();return 'async';},
+  emode:()=>{NET.emailMode=!NET.emailMode;NET.msg='';},
   netin:()=>{const el=document.getElementById('em');signIn(el?el.value.trim():'');return 'async';},
   netout:()=>{signOut();return 'async';},
   cup:()=>{cloudUp(false);return 'async';},
@@ -2405,10 +2420,14 @@ function vAccount(){
   if(!SUPA.url||!SUPA.key)return '<p class="dim">Online play is not switched on yet.</p>';
   if(!NET.sb){net();return `<p class="dim">${NET.msg?esc(NET.msg):'Connecting…'}</p>`;}
   const m=NET.msg?`<p class="small">${esc(NET.msg)}</p>`:'';
-  if(!NET.user)return `<p class="dim">Sign in to keep your character in the cloud and play it on any device. No password: we email you a link.</p>
-    <div class="row"><input class="inp" id="em" type="email" placeholder="you@example.com" autocomplete="email" style="text-align:left"><button class="btn primary" data-a="netin">Send sign-in link</button></div>${m}`;
+  if(!NET.user)return NET.emailMode?`<p class="dim">We email you a link; no password needed.</p>
+    <div class="row"><input class="inp" id="em" type="email" placeholder="you@example.com" autocomplete="email" style="text-align:left"><button class="btn primary" data-a="netin">Send sign-in link</button></div>${m}<p class="small"><a href="#" data-a="emode">◂ Use a username and password</a></p>`
+    :`<p class="dim">Make an account to keep your character in the cloud, chat and get on the leaderboards. There's no email, so remember your password: it can't be reset.</p>
+    <div class="row"><input class="inp" id="un" placeholder="Username" maxlength="16" autocomplete="username" value="${esc(NET.fun||'')}" style="text-align:left"><input class="inp" id="pw" type="password" placeholder="Password" autocomplete="current-password" style="text-align:left"></div>
+    <div class="row"><button class="btn primary" data-a="pwin">Log in</button><button class="btn" data-a="pwup">Create account</button></div>${m}<p class="small"><a href="#" data-a="emode">Sign in with an email link instead</a></p>`;
   const c=NET.cloud;
-  return `<p>Signed in as <b>${esc(NET.user.email||'player')}</b></p>
+  const un=NET.user.user_metadata&&NET.user.user_metadata.username;
+  return `<p>Signed in as <b>${esc(un||NET.user.email||'player')}</b></p>
     <div class="row"><span class="tag">This device: ${esc(S.name)} · Lv ${S.lvl}</span><span class="tag ${c?'gold':''}">Cloud: ${c?`${esc(c.name||'?')} · Lv ${c.level} · ${esc(new Date(c.updated_at).toLocaleString())}`:'empty'}</span></div>
     ${NET.ask?`<div class="row"><span class="tag bad">Replace this device's save with the cloud save?</span><button class="btn danger sm" data-a="cdown">Yes, load it</button><button class="btn sm" data-a="cno">No</button></div>`
     :`<div class="row"><button class="btn primary" data-a="cup" ${NET.busy?'disabled':''}>Upload this save</button><button class="btn" data-a="cask" ${c?'':'disabled'}>Load cloud save</button>
@@ -2661,21 +2680,22 @@ function render(quiet){hideTip();
   setAmb(mode());const d=derive();document.getElementById('vig').style.opacity=S.combat&&!S.combat.over&&S.hp<d.maxHp*.3?1:0;
   document.getElementById('ovl').innerHTML='';
   const cl=document.getElementById('chatlog');if(cl)cl.scrollTop=cl.scrollHeight;
+  const pwf=document.getElementById('pw');if(pwf&&NET.fpw)pwf.value=NET.fpw;
   const ci=document.getElementById('chatin');if(ci&&NET.chatFocus){ci.focus();const n=ci.value.length;try{ci.setSelectionRange(n,n);}catch(e){}}
   save();if(!quiet)runFx();
 }
-const FREE=['chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cask','cno','cauto'];
+const FREE=['pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cask','cno','cauto'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
   if(Date.now()<busyUntil&&!FREE.includes(b.dataset.a))return;if(!QUIET.includes(b.dataset.a))sfx('ui');lastRect=b.getBoundingClientRect();fxAt=0;
   if(b.dataset.a!=='reset'&&b.dataset.a!=='resetNo')S._confirm=false;if(f(b.dataset.v,b)!=='async')render();});
-document.addEventListener('input',ev=>{if(ev.target&&ev.target.id==='nm')S.name=ev.target.value;if(ev.target&&ev.target.id==='chatin')NET.draft=ev.target.value;
+document.addEventListener('input',ev=>{if(ev.target&&ev.target.id==='nm')S.name=ev.target.value;if(ev.target&&ev.target.id==='chatin')NET.draft=ev.target.value;if(ev.target&&ev.target.id==='un')NET.fun=ev.target.value;if(ev.target&&ev.target.id==='pw')NET.fpw=ev.target.value;
   if(ev.target&&ev.target.id==='vol'){OPT.vol=+ev.target.value;saveOpt();if(AU.g)AU.g.gain.value=OPT.vol*.5;}});
 document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='impf'&&t.files&&t.files[0])importFile(t.files[0]);if(t&&t.id==='vol')sfx('coin');});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&UI.set){UI.set=false;IMP=null;render(true);}});
 document.addEventListener('focusin',ev=>{if(ev.target&&ev.target.id==='chatin')NET.chatFocus=true;});document.addEventListener('focusout',ev=>{if(ev.target&&ev.target.id==='chatin')NET.chatFocus=false;});
-document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if(t&&t.id==='chatin'&&ev.key==='Enter'){ev.preventDefault();chatSend();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if(t&&t.id==='chatin'&&ev.key==='Enter'){ev.preventDefault();chatSend();return;}if(t&&t.id==='pw'&&ev.key==='Enter'){ev.preventDefault();signInPw();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
 /* star chart: drag to pan, tap to select, double-tap to light */
 const starPan=()=>{UI.pan=UI.pan||{};const T=S&&S.starTab||'melee';return UI.pan[T]||(UI.pan[T]={x:0,y:78});};
 let SDRAG=null,STAP={id:null,t:0};

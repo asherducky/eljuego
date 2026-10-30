@@ -11,3 +11,4 @@
    ```
    The anon key is meant to be public. **Never** put the `service_role` key in the game or in this repo.
 5. Run `node build.js`, commit and push. Cloudflare Pages redeploys on its own.
+6. **Username + password accounts:** the game turns a username into `name@rpgjuego.pages.dev` behind the scenes, and no mail is ever sent there. So in **Authentication → Sign In / Providers → Email**, turn **off "Confirm email"**. Otherwise new accounts wait for a confirmation email that can never arrive.
