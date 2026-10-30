@@ -1556,7 +1556,7 @@ const SETS={0:{n:'Iron set',d2:'+5% max HP',d4:'Take 5% less damage',b2:{hpPct:5
   3:{n:'Hollow set',d2:'+10% max HP',d4:'+12% damage, take 8% less damage',b2:{hpPct:10},b4:{pdmg:12,sdmg:12,dr:8}}};
 const SETSLOTS=['armor','helm','boots','cloak'];
 function setCounts(g){g=g||S.gear;const o={};for(const s of SETSLOTS){const it=g[s];if(it)o[it.tier||0]=(o[it.tier||0]||0)+1;}return o;}
-/* bestiary: kill milestones per monster; each gives +2% damage to it and -2% damage from it; maxing one gives +1% max HP */
+/* bestiary: kill milestones per monster; each gives +2% damage against it */
 const BMILE=[1,5,10,25,50],BBOSS=[1,3,5,7,10];
 const bestTier=id=>{const m=MOB[id];if(!m)return 0;const L=m.boss?BBOSS:BMILE,k=(S.kc||{})[id]||0;return L.filter(x=>k>=x).length;};
 const bestBon=id=>bestTier(id)*.02;
@@ -1571,9 +1571,8 @@ function derive(){
     for(const k in st){const v=st[k];if(GEARMAP[k]){const [bk,f]=GEARMAP[k];b[bk]=(b[bk]||0)+v*f;}else if(sl==='weapon'&&k==='atk')continue;else b[k]=(b[k]||0)+v;}
     if(sl==='weapon')w=it;for(const f of it.fx||[])fx.push(f);for(const e of it.ench||[]){ench.push(e);const eb=ENCHBASE[e.id];if(eb)for(const k in eb){const [bk,f]=GEARMAP[k]||[k,1];b[bk]=(b[bk]||0)+eb[k]*f*(e.g?1.5:1);}}}
   if(fx.includes('heart'))b.regen+=3;if(fx.includes('overgrow'))b.regen+=4;if(fx.includes('stoneskin'))b.dr+=15;if(fx.includes('leech'))b.ls+=8;if(fx.includes('crown'))b.critd+=.4;
-  const sets=setCounts();for(const t in sets){const n=sets[t],B=SETS[t];if(n>=2)for(const k in B.b2)b[k]=(b[k]||0)+B.b2[k];if(n>=4)for(const k in B.b4)b[k]=(b[k]||0)+B.b4[k];}
   for(const id in (S.brews||{})){const X=BREWS[id];if(X&&S.brews[id]>0)for(const k in X.b)b[k]=(b[k]||0)+X.b[k];}
-  b.hpPct+=bestMaxed();
+  
   if(hasP('surge'))b.crit+=10;if(hasP('unyield')){b.hpPct+=15;b.dr+=8;}if(hasP('jugg')){b.hpPct+=30;b.spd-=3;}
   let atk=3;let el='phys';
   if(w){const W=WT[w.type];const base=itemBase(w).atk||0;const sv=t[wepStat(w.type)];atk=Math.round(base*(1+sv*GRP[wepGrade(w)]/100)+sv*.25+(itemStats(w).atk-base||0));el=W.el||'phys';}
@@ -1582,7 +1581,7 @@ function derive(){
   return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)*(hasP('static')?.8:1)),
     def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(75,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd,
     dodge:Math.min(40,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
-    regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:1+(t.str+b.pdmg)/100,sm:1+(t.int+b.sdmg)/100,wel:w&&WT[w.type].el||null,sets};
+    regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:1+(t.str+b.pdmg)/100,sm:1+(t.int+b.sdmg)/100,wel:w&&WT[w.type].el||null};
 }
 function fullRest(){const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;}
 function clampVitals(){const d=derive();S.hp=Math.min(S.hp,d.maxHp);S.mp=Math.min(S.mp,d.maxMp);}
@@ -1722,7 +1721,7 @@ function enemyAct(c,e){
   if(c.ps.evade){delete c.ps.evade;log(`You slip past ${e.n}.`,'buff');fx('num',{t:'p',txt:'Evade',cls:'miss'});return;}
   if(chance(d.dodge+(c.ps.veil?40:0))){log(`You dodge ${e.n}.`,'buff');fx('num',{t:'p',txt:'Dodge',cls:'miss'});return;}
   const chillRed=e.st.chill&&hasP('bite')?1-.1*e.st.chill.s:1;
-  let dmg=calc(e.atk*(ab==='heavy'?1.6:1)*chillRed,d.def)*(1-d.dr/100)*(1-bestBon(e.id));dmg=Math.max(1,Math.round(dmg));
+  let dmg=calc(e.atk*(ab==='heavy'?1.6:1)*chillRed,d.def)*(1-d.dr/100);dmg=Math.max(1,Math.round(dmg));
   if(c.ps.shield){const a=Math.min(c.ps.shield,dmg);c.ps.shield-=a;dmg-=a;if(!c.ps.shield)delete c.ps.shield;if(a)log(`Your shield absorbs ${a}.`,'buff');}
   if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);c.lastHit=e.id;fx('impact',{t:'p',el:{burn:'fire',poison:'venom'}[ab]||'phys',st:ab==='heavy'?'smash':'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:dmg,cls:'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});if(ab==='heavy'||dmg>d.maxHp*.15)fx('shake',{p:7});
   const verb={heavy:'smashes',drain:'drains',poison:'stings',bleed:'slashes',burn:'scorches',stun:'slams'}[ab]||'hits';
@@ -2267,7 +2266,7 @@ function statRows(it){if(!it)return [];const rows=[];const W=it.slot==='weapon'?
   return rows;}
 const fmtRow=r=>!r?'—':r.g!==undefined?`<span class="grd g${r.g}">${GR[r.g]}</span>`:(r.v>0&&!['atk','def','hp','mp'].includes(r.k)?'+':'')+r.v+(r.pct?'%':'');
 function extrasHTML(it){if(!it)return '';const n=enchSlots(it);
-  const st=SETSLOTS.includes(it.slot)&&SETS[it.tier||0]?(()=>{const B=SETS[it.tier||0],n=setCounts()[it.tier||0]||0;return `<div class="xl">◈ ${B.n} (${n}/4 worn): 2 · ${B.d2} — 4 · ${B.d4}</div>`;})():'';
+  const st=false&&SETSLOTS.includes(it.slot)&&SETS[it.tier||0]?(()=>{const B=SETS[it.tier||0],n=setCounts()[it.tier||0]||0;return `<div class="xl">◈ ${B.n} (${n}/4 worn): 2 · ${B.d2} — 4 · ${B.d4}</div>`;})():'';
   return st+(it.rf&&RFS[it.rf]?`<div class="xl gold">⚒ ${RFS[it.rf].n} reforge</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
    +Array.from({length:n},(_,i)=>{const e=it.ench[i];if(!e)return '<div class="xl dim">· empty enchant slot</div>';const E=ENCH[e.id];return `<div class="xl arc" style="color:${ENCHCOL[E.el]||'var(--arc)'}">◆ ${e.g?'Greater ':''}${E.n}: ${E.d}</div>`;}).join('');}
 function headHTML(it){const W=it.slot==='weapon'?WT[it.type]:null;return `<div class="ih"><span class="icbox">${itemImg(it,3)}</span><div><div class="iname">${it.plus?`+${it.plus} `:''}${esc(it.name)}</div>
@@ -2512,7 +2511,7 @@ function vChar(){const d=derive(),t=d.stats;
   const pct=v=>(Math.round(v*10)/10)+'%';
   const kv=[['Attack',d.atk],['Physical damage','+'+pct((d.pm-1)*100)],['Spell damage','+'+pct((d.sm-1)*100)],['Crit chance',d.crit+'%'],['Crit damage',Math.round(d.critd*100)+'%'],['Max HP',d.maxHp],['Max MP',d.maxMp],
     ['Defense',d.def],['Dodge',d.dodge+'%'],['Speed',d.spd],['Lifesteal',d.ls+'%'],['Damage taken',`−${d.dr}%`],['Gold find','+'+d.gold+'%'],['Better drops','+'+pct(d.luck)],['XP bonus','+'+(d.xp||0)+'%'],['Kills',S.kills]];
-  const sets=Object.entries(d.sets).filter(([,n])=>n>=2).map(([tt,n])=>{const B=SETS[tt];return `<div class="small"><b>${B.n} (${n}/4)</b>: ${B.d2}${n>=4?' · '+B.d4:` · 4 pieces: ${B.d4}`}</div>`;}).join('');
+  const sets=Object.entries({}).filter(([,n])=>n>=2).map(([tt,n])=>{const B=SETS[tt];return `<div class="small"><b>${B.n} (${n}/4)</b>: ${B.d2}${n>=4?' · '+B.d4:` · 4 pieces: ${B.d4}`}</div>`;}).join('');
   const brews=Object.entries(S.brews||{}).filter(([,n])=>n>0).map(([id,n])=>`<span class="tag">${BREWS[id].n} · ${n}</span>`).join('');
   S.loads=S.loads||[null,null,null];const tot=s=>Object.values(s.stats).reduce((a,b)=>a+b,0)+s.pts;const myTot=tot({stats:S.stats,pts:S.pts});
   const loads=S.loads.map((L,i)=>`<div class="srow"><b class="sk">Build ${i+1}</b><span class="sd small">${L?Object.keys(STATL).map(k=>`${STATL[k]} ${L.stats[k]}`).join(' · '):'<span class="dim">Empty</span>'}</span>
@@ -2522,7 +2521,7 @@ function vChar(){const d=derive(),t=d.stats;
     <div class="row"><button class="btn sm" data-a="respec" ${S.gold>=respecCost()?'':'disabled'}>Respec stats + stars ${coinImg(2)}<span class="num">${respecCost()}</span></button><span class="dim small">An Orb of Rebirth does it for free.</span></div>
     <h3>Builds</h3><div class="stats2">${loads}</div></section>
   <section class="px panel"><h3>Character sheet</h3><div class="kv">${kv.map(([k,v])=>`<div><span>${k}</span><b class="num">${v}</b></div>`).join('')}</div>
-    ${sets?`<h3>Set bonuses</h3>${sets}`:''}${brews?`<h3>Drinks</h3><div class="row">${brews}</div>`:''}</section></div>`;}
+${brews?`<h3>Drinks</h3><div class="row">${brews}</div>`:''}</section></div>`;}
 function vSettings(){
   const achs=ACH.map(([id,n,dd,,rw,sec])=>{const got=S.ach.includes(id);const hide=sec&&!got;
     return `<div class="ach ${got?'got':''}">${sprImg('trophy',3)}<div><b>${hide?'???':n}</b><span>${hide?'Secret':dd}</span></div></div>`;}).join('');
@@ -2679,13 +2678,13 @@ function vBeast(){const regions=AREAS.map((a,ai)=>{if(ai>=S.unlocked)return '';c
       return `<div class="sub beast ${seen?'':'unseen'}"><div class="row" style="gap:10px">${sprImg(id,3)}<div style="min-width:0"><b>${seen?m.n:'???'}</b>${m.boss?' <span class="tag bad">Boss</span>':''}
         <div class="stars5">${[0,1,2,3,4].map(i=>`<span class="${i<t?'on':''}">★</span>`).join('')}</div></div></div>
         ${bar('gold',Math.min(k,next||L[4]),next||L[4],next?'Kills':'Kills · max')}
-        <span class="small">${t?`+${t*2}% damage to it, −${t*2}% damage from it${t>=5?' · +1% max HP':''}`:'Defeat one to start'}</span>
+        <span class="small">${t?`+${t*2}% damage`:'Defeat one to start'}</span>
         ${seen?`<p class="small dim">${LORE[id]||''}</p>`:''}
         ${t>=2?`<span class="small">Weak: ${m.weak?`<b style="color:${EL[m.weak].c}">${EL[m.weak].n}</b>`:'none'} · Resists: ${m.res?`<b style="color:${EL[m.res].c}">${EL[m.res].n}</b>`:'none'} · Drops: ${m.drops.map(x=>matImg(x[0],2)).join('')}</span>`:seen?'<span class="small dim">Weakness and drops at 2★</span>':''}</div>`;}).join('');
     return `<h3>${a.name}</h3><div class="beastgrid">${cards}</div>`;}).join('');
   const all=Object.keys(MOB).filter(id=>AREAS.slice(0,S.unlocked).some(a=>a.mobs.includes(id)||a.dungeon.boss===id));const done=all.reduce((n,id)=>n+bestTier(id),0);
   return `<section class="px panel"><div class="row" style="justify-content:space-between"><h2>Bestiary</h2><span class="tag gold">${Math.round(done/(all.length*5)*100)}% · ${bestMaxed()} maxed</span></div>
-    <p class="dim small">Kill milestones: 1, 5, 10, 25, 50 (bosses 1, 3, 5, 7, 10). Each star: +2% damage to that monster and −2% damage from it. Maxing a monster gives +1% max HP for good.</p>${regions}</section>`;}
+    <p class="dim small">Kill milestones: 1, 5, 10, 25, 50 (bosses 1, 3, 5, 7, 10). Each star: +2% damage against that monster.</p>${regions}</section>`;}
 function vOnline(){const f=[['Trading post','Player listings and direct trades in the Market.'],['Clans','Shared bank, clan perks, a clan hall on a town plot.'],['PvP arena','Async duels against other players\' builds.'],['Boss raids','Party bosses with shared HP and turn order.']];
   return `<section class="px panel"><h2>Online</h2>${vChat()}${vArena()}${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
 
