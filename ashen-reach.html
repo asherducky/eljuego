@@ -2162,7 +2162,7 @@ function vTabs(){const busy=!!S.combat;const nNew=S.bag.filter(it=>it.isNew).len
 /* item display */
 function effAtk(it){if(!canEquip(it))return itemBase(it).atk;return deriveWith({...S.gear,weapon:it}).atk;}
 function statRows(it){if(!it)return [];const rows=[];const W=it.slot==='weapon'?WT[it.type]:null;
-  if(W){rows.push({k:'atk',l:'Attack',v:effAtk(it)});const ws=wepStat(it.type);rows.push({k:'g_'+ws,l:STATL[ws]+' scaling',g:wepGrade(it)});}
+  if(W){rows.push({k:'atk',l:'Attack',v:effAtk(it)});const ws=wepStat(it.type);for(const k of ['str','dex','int'])rows.push({k:'g_'+k,l:STATL[k]+' scaling',g:k===ws?wepGrade(it):0});}
   const st=itemStats(it);for(const k of ['def','hp','mp','crit','dodge','spd','str','dex','int','vit','luk','atk','ls','gold']){if(W&&k==='atk')continue;if(st[k])rows.push({k,l:LAB[k],v:st[k],pct:PCT.includes(k)});}
   return rows;}
 const fmtRow=r=>!r?'—':r.g!==undefined?`<span class="grd g${r.g}">${GR[r.g]}</span>`:(r.v>0&&!['atk','def','hp','mp'].includes(r.k)?'+':'')+r.v+(r.pct?'%':'');
@@ -2172,7 +2172,7 @@ function extrasHTML(it){if(!it)return '';const n=enchSlots(it);
 function headHTML(it){const W=it.slot==='weapon'?WT[it.type]:null;return `<div class="ih"><span class="icbox">${itemImg(it,3)}</span><div><div class="iname">${it.plus?`+${it.plus} `:''}${esc(it.name)}</div>
   <div class="rar">${it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
 function itemCard(it,actions,equipped){const rows=statRows(it);const W=it.slot==='weapon'?WT[it.type]:null;
-  const ws=W?wepStat(it.type):null,gg=W?wepGrade(it):0;const grades=W?`<div class="grades"><span class="gr g${gg}">${STATL[ws]} <span class="grd">${GR[gg]}</span></span><span class="dim small">+${GRP[gg]} attack per ${STATL[ws]}${(it.plus||0)<5?' · temper to raise':''}</span></div>`:'';
+  const ws=W?wepStat(it.type):null,gg=W?wepGrade(it):0;const grades=W?`<div class="grades">${['str','dex','int'].map(k=>{const g=k===ws?gg:0;return `<span class="gr g${g}">${STATL[k]} <span class="grd">${GR[g]}</span></span>`;}).join('')}</div><div class="grades"><span class="dim small">+${GRP[gg]} attack per ${STATL[ws]}${(it.plus||0)<5?' · temper to raise':''}</span></div>`:'';
   return `<div class="item r${it.rar}">${headHTML(it)}${equipped?'<span class="eqtag">Equipped</span>':''}
   ${W?`<div class="bigstat">ATK <b class="num">${effAtk(it)}</b></div>${grades}`:''}
   <ul>${rows.filter(r=>r.g===undefined&&!(W&&r.k==='atk')).map(r=>`<li><span>${r.l}</span><b class="num">${fmtRow(r)}</b></li>`).join('')}</ul>${extrasHTML(it)}${actions?`<div class="iact">${actions}</div>`:''}</div>`;}
