@@ -952,9 +952,10 @@ function auraDrip(px,B,ph,i){B.pts.forEach(p=>{if(p.up&&((p.x+p.y+i)%4)<2)px(p.x
 function auraSwirl(px,B,col,ph,front){const T=B.tip,Bs=B.base;if(!T)return;const dx=T.x-Bs.x,dy=T.y-Bs.y,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L,dim=mixC(col,'#0e0b14',.45),n=Math.round(L*1.3);
   for(let k=0;k<=n;k++){const s=k/n,ang=s*15-ph*2;if((Math.cos(ang)>0)!==front)continue;const off=Math.sin(ang)*2.2,hd=((ang%6.283)+6.283)%6.283;
     px(Bs.x+dx*s+nx*off,Bs.y+dy*s+ny*off,front?(hd>1.2&&hd<1.9?'#ffffff':col):dim);}}
-// a quiet halo two pixels out from the blade, with a brighter band drifting along it
-function auraGlow(px,B,col,i){const dim=mixC(col,'#0e0b14',.5),free=(x,y)=>((B.g[y]||'')[x]||'.')==='.';
-  B.pts.forEach(p=>{const band=(((p.x-p.y)-i*2)%16+16)%16<3,c=band?col:dim;for(const [dx,dy,on] of [[0,-2,p.up],[0,2,p.dn],[2,0,p.rt],[-2,0,p.lf]])if(on&&free(p.x+dx,p.y+dy))px(p.x+dx,p.y+dy,c);});}
+// a soft halo drawn behind the weapon (the blade itself never changes); it breathes in a slow wave along the blade
+function auraGlow(px,B,col,ph){const free=(x,y)=>((B.g[y]||"")[x]||".")===".",seen=new Set();
+  for(const p of B.pts)for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const X=p.x+dx,Y=p.y+dy,k=X+","+Y;if(seen.has(k)||!free(X,Y))continue;seen.add(k);
+    const w=(Math.sin(ph-(X-Y)*.18)+1)/2;if(w<.25)continue;px(X,Y,mixC(col,"#0e0b14",.75-w*.45));}}
 function auraMotes(px,B,col,ph){const T=B.tip;for(let k=0;k<3;k++){const a=ph+k*2.094;px(T.x-2+Math.cos(a)*6,T.y+3+Math.sin(a)*4,k?col:'#ffffff');}}
 function auraHaze(px,B,col,i){const dk=mixC(col,'#0e0b14',.45);for(let k=0;k<5;k++){const s=(i/NF+k/5)%1,q=B.pts[Math.floor(hsh(k+11)*B.pts.length)];if(!q||s>.85)continue;px(q.x-s*3+Math.sin(k+s*5),q.y-2-s*8,s<.45?col:dk);}}
 function auraGleam(px,B,col,i){const L=B.ord.length,k=Math.floor((i/NF)*L*1.6);if(k>=L)return;px(B.ord[k].x,B.ord[k].y,'#ffffff');for(const d of [-1,1]){const q=B.ord[k+d];if(q)px(q.x,q.y,col);}}
@@ -962,9 +963,9 @@ function auraDust(px,B,col,i){const dn=B.pts.filter(p=>p.dn);for(let k=0;k<4;k++
 function wepFrame(ts,P,aura,i){const n2=x2(ts),key='wf:'+pkey(n2,P)+aura.join(',')+':'+i;if(SC[key])return SC[key];
   const src=sprCanvas(n2,P),c=document.createElement('canvas');c.width=src.width+AM*2;c.height=src.height+AM*2;const x=c.getContext&&c.getContext('2d');
   if(x){const B=bladePts(n2),ph=i/NF*6.283,px=(X,Y,col)=>{x.fillStyle=col;x.fillRect(Math.round(X)+AM,Math.round(Y)+AM,1,1);};
-    for(const a of aura)if(a.startsWith('swirl'))auraSwirl(px,B,a.slice(6),ph,false);
+    for(const a of aura){if(a.startsWith('swirl'))auraSwirl(px,B,a.slice(6),ph,false);else if(a.startsWith('glow:'))auraGlow(px,B,a.slice(5),ph);}
     x.drawImage(src,AM,AM);
-    for(const a of aura){const [an,ac]=a.split(':');if(an==='glow')auraGlow(px,B,ac,i);else if(an==='motes')auraMotes(px,B,ac,ph);else if(an==='haze')auraHaze(px,B,ac,i);else if(an==='gleam')auraGleam(px,B,ac,i);else if(an==='dust')auraDust(px,B,ac,i);
+    for(const a of aura){const [an,ac]=a.split(':');if(an==='glow')continue;else if(an==='motes')auraMotes(px,B,ac,ph);else if(an==='haze')auraHaze(px,B,ac,i);else if(an==='gleam')auraGleam(px,B,ac,i);else if(an==='dust')auraDust(px,B,ac,i);
       else if(a==='flame')auraFlame(px,B,ph,i);else if(a==='frost')auraFrost(px,B,ph,i);else if(a==='spark')auraSpark(px,B,ph,i);else if(a==='drip')auraDrip(px,B,ph,i);else if(a.startsWith('swirl'))auraSwirl(px,B,a.slice(6),ph,true);}}
   SC[key]=c;return c;}
 
