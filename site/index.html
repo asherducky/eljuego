@@ -1334,7 +1334,7 @@ function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(
   if(s.flags)delete s.flags.god;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
   if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);return s;}
-function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&NET.auto&&!NET.busy&&!S.combat&&Date.now()-NET.last>30000)cloudUp(true);}
+function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();}}
 /* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
 // The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
 const SUPA={url:'https://gtktyabyczoouwgwpxlr.supabase.co',key:'sb_publishable_a-2GjUCLeKHkFbTlajLZwg_23JAHuKd'};
@@ -1344,13 +1344,18 @@ async function net(){if(NET.sb)return NET.sb;if(!SUPA.url||!SUPA.key||NET.tried)
     const {data}=await NET.sb.auth.getSession();NET.user=data.session?data.session.user:null;
     NET.sb.auth.onAuthStateChange((ev,s)=>{NET.user=s?s.user:null;if(ev==='SIGNED_IN'){cloudPeek();spirePost();}render(true);});if(NET.user)cloudPeek();}
   catch(e){NET.msg='Could not reach the server.';}render(true);return NET.sb;}
-async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('level,name,updated_at').eq('user_id',NET.user.id).maybeSingle();
+async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;NET.peekT=Date.now();const {data,error}=await sb.from('saves').select('level,name,updated_at').eq('user_id',NET.user.id).maybeSingle();
   if(error)NET.msg='Could not read your cloud save: '+error.message;else NET.cloud=data||null;render(true);}
-async function cloudUp(quiet){const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.last=Date.now();const row={user_id:NET.user.id,data:S,name:S.name,level:S.lvl,updated_at:new Date().toISOString()};
-  const {error}=await sb.from('saves').upsert(row);NET.busy=false;spirePost();if(error)NET.msg='Upload failed: '+error.message;else{NET.cloud={level:S.lvl,name:S.name,updated_at:row.updated_at};NET.msg='';if(!quiet)toast('Saved to the cloud');}render(true);}
-async function cloudDown(){const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('data').eq('user_id',NET.user.id).maybeSingle();
+async function cloudUp(force){const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.msg='Checking the cloud…';render(true);
+  const {data:cur,error:e0}=await sb.from('saves').select('level,name,updated_at').eq('user_id',NET.user.id).maybeSingle();
+  if(e0){NET.busy=false;NET.msg='Could not reach your cloud save: '+e0.message;render(true);return;}NET.cloud=cur||null;
+  if(!force&&cur&&cur.updated_at!==S.cloudAt){NET.busy=false;NET.msg='';NET.askUp=true;render(true);return;}
+  const at=new Date().toISOString();S.cloudAt=at;const row={user_id:NET.user.id,data:S,name:S.name,level:S.lvl,updated_at:at};
+  const {error}=await sb.from('saves').upsert(row);NET.busy=false;spirePost();NET.askUp=false;if(error){S.cloudAt=cur?cur.updated_at:undefined;NET.msg='Upload failed: '+error.message;toast('Upload failed');}else{NET.cloud={level:S.lvl,name:S.name,updated_at:at};NET.msg='Uploaded.';toast('Saved to the cloud');}
+  try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}render(true);}
+async function cloudDown(){const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('data,updated_at').eq('user_id',NET.user.id).maybeSingle();
   if(error||!data){toast('No cloud save found');return;}const s=data.data;if(!s||s.v!==3||!s.stats){toast('That cloud save cannot be read');return;}
-  S=migrate(s);PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}NET.ask=false;toast('Cloud save loaded');render(true);}
+  S=migrate(s);S.cloudAt=data.updated_at;PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}NET.ask=false;NET.msg='Loaded.';toast('Cloud save loaded');render(true);}
 async function signIn(email){const sb=await net();if(!sb)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){NET.msg='Enter a valid email.';render(true);return;}
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});NET.msg=error?error.message:'Check your email for a sign-in link.';render(true);}
 async function spirePost(){const sb=await net();if(!sb||!NET.user||!S||!S.named)return;
@@ -1846,9 +1851,10 @@ const ACT={
   netin:()=>{const el=document.getElementById('em');signIn(el?el.value.trim():'');return 'async';},
   netout:()=>{signOut();return 'async';},
   cup:()=>{cloudUp(false);return 'async';},
+  cupyes:()=>{cloudUp(true);return 'async';},cupno:()=>{NET.askUp=false;},
+  cpeek:()=>{cloudPeek();return 'async';},
   cask:()=>{NET.ask=true;},cno:()=>{NET.ask=false;},
   cdown:()=>{cloudDown();return 'async';},
-  cauto:()=>{NET.auto=!NET.auto;},
   setclose:()=>{UI.set=false;IMP=null;},
   spd:v=>{OPT.speed=+v;saveOpt();},
   mute:()=>{OPT.mute=!OPT.mute;saveOpt();if(AU.g)AU.g.gain.value=OPT.mute?0:OPT.vol*.5;},
@@ -2416,7 +2422,7 @@ function vInv(){
     <div class="sub" style="min-width:0">${det}</div></div>
   <h3>Consumables</h3><div class="mats">${['potion','ether','salve','orb'].map(k=>`<div data-tip="cons:${k}">${matImg(k==='orb'?'essence':k,2)}<span>${CONSN[k]}</span><b class="num">${S.cons[k]||0}</b>${k==='orb'&&S.cons.orb?'<button class="btn sm arcane" data-a="use" data-v="orb">Use</button>':''}</div>`).join('')}</div>
   <h3>Materials</h3><div class="mats">${mats||'<p class="empty-s">None yet.</p>'}</div></section>`;}
-function vAccount(){
+function vAccount(){if(NET.user&&NET.sb&&Date.now()-(NET.peekT||0)>15000)cloudPeek();
   if(!SUPA.url||!SUPA.key)return '<p class="dim">Online play is not switched on yet.</p>';
   if(!NET.sb){net();return `<p class="dim">${NET.msg?esc(NET.msg):'Connecting…'}</p>`;}
   const m=NET.msg?`<p class="small">${esc(NET.msg)}</p>`:'';
@@ -2429,9 +2435,10 @@ function vAccount(){
   const un=NET.user.user_metadata&&NET.user.user_metadata.username;
   return `<p>Signed in as <b>${esc(un||NET.user.email||'player')}</b></p>
     <div class="row"><span class="tag">This device: ${esc(S.name)} · Lv ${S.lvl}</span><span class="tag ${c?'gold':''}">Cloud: ${c?`${esc(c.name||'?')} · Lv ${c.level} · ${esc(new Date(c.updated_at).toLocaleString())}`:'empty'}</span></div>
-    ${NET.ask?`<div class="row"><span class="tag bad">Replace this device's save with the cloud save?</span><button class="btn danger sm" data-a="cdown">Yes, load it</button><button class="btn sm" data-a="cno">No</button></div>`
+    ${NET.askUp&&c?`<div class="row"><span class="tag bad">The cloud has a different save (${esc(c.name||'?')} · Lv ${c.level}, ${esc(new Date(c.updated_at).toLocaleString())}) from another device or session. Replace it with this one?</span><button class="btn danger sm" data-a="cupyes">Yes, replace it</button><button class="btn sm" data-a="cupno">No</button></div>`
+    :NET.ask?`<div class="row"><span class="tag bad">Replace this device's save with the cloud save?</span><button class="btn danger sm" data-a="cdown">Yes, load it</button><button class="btn sm" data-a="cno">No</button></div>`
     :`<div class="row"><button class="btn primary" data-a="cup" ${NET.busy?'disabled':''}>Upload this save</button><button class="btn" data-a="cask" ${c?'':'disabled'}>Load cloud save</button>
-      <button class="btn sm ${NET.auto?'tab on':''}" data-a="cauto" data-tip="txt:Uploads your save every 30 seconds or so while you play">Auto-sync ${NET.auto?'on':'off'}</button><button class="btn sm" data-a="netout">Sign out</button></div>`}${m}`;}
+      <button class="btn sm" data-a="cpeek" data-tip="txt:Check the cloud for a save made on another device">↻ Refresh</button><button class="btn sm" data-a="netout">Sign out</button></div>`}${m}`;}
 function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date.now()-(NET.lbT||0)>30000)spireLoad();
   const g=NET.lbMode==='gold';
   const rows=(NET.lb||[]).map((r,i)=>`<tr class="${NET.user&&r.user_id===NET.user.id?'me':''}"><td class="num">${i+1}</td><td>${esc(r.name)}</td><td class="num">Lv ${r.level}</td><td class="num"><b>${g?(r.gold||0).toLocaleString():'Floor '+r.best}</b></td></tr>`).join('');
@@ -2684,7 +2691,7 @@ function render(quiet){hideTip();
   const ci=document.getElementById('chatin');if(ci&&NET.chatFocus){ci.focus();const n=ci.value.length;try{ci.setSelectionRange(n,n);}catch(e){}}
   save();if(!quiet)runFx();
 }
-const FREE=['pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cask','cno','cauto'];
+const FREE=['pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
