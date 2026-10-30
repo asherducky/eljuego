@@ -1881,6 +1881,8 @@ const ACT={
     const n=enchSlots(it),out=[];for(let i=0;i<n&&pool.length;i++){const k=pool.splice(Math.floor(Math.random()*pool.length),1)[0];out.push({id:k,g:chance(10)});}it.ench=out;clampVitals();
     const g=out.some(e=>e.g);fx('rune',{ok:true,g,msg:`${it.name}: ${out.map(e=>(e.g?'Greater ':'')+ENCH[e.id].n).join(', ')}`});busyUntil=Date.now()+2200;},
   set:()=>{S.tab='settings';IMP=null;},
+  admin:()=>{admTry();return 'async';},
+  adm:v=>{const i=v.indexOf(':');const k=i<0?v:v.slice(0,i),a=i<0?undefined:v.slice(i+1);if(!UI.admOk||!ADM[k])return;ADM[k](a);clampVitals();},
   lbmode:v=>{NET.lbMode=v;NET.lb=null;NET.lbT=0;},
   chatsend:()=>{chatSend();return 'async';},
   pwin:()=>{signInPw();return 'async';},
@@ -1902,7 +1904,7 @@ const ACT={
   impyes:()=>{if(!IMP)return;S=migrate(IMP);IMP=null;UI.set=false;PRE=null;toast(`Loaded ${S.name}`);},
   reset:()=>{S._confirm=true;},
   resetNo:()=>{S._confirm=false;},
-  resetYes:()=>{S=migrate(fresh());UI.set=false;PRE=null;},
+  resetYes:()=>{if(NET.user&&NET.sb){NET.sb.from('saves').delete().eq('user_id',NET.user.id).then(()=>{NET.cloud=null;});}S=migrate(fresh());UI.set=false;PRE=null;toast('Save wiped');},
 };
 const tgt=()=>{const c=C();let e=c.enemies[c.target];if(!e||e.hp<=0){c.target=c.enemies.findIndex(x=>x.hp>0);e=c.enemies[c.target];}return e;};
 function turn(fn){const c=C();if(!c||c.over)return;PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
@@ -2417,7 +2419,8 @@ function vSettings(){
     <input type="range" id="vol" min="0" max="1" step="0.05" value="${OPT.vol}" aria-label="Volume" ${OPT.mute?'disabled':''}></div></div>
   <div class="sub"><h3>Save</h3><div class="optrow">${S.hc?'<span class="tag bad">Hardcore</span>':''}<button class="btn sm" data-a="exp">Export save</button><button class="btn sm" data-a="imp">Import save</button><input type="file" id="impf" accept=".json,application/json" hidden></div>
     ${IMP?`<div class="optrow"><span>Replace this character with <b>${esc(IMP.name)}</b> (Lv ${IMP.lvl})?</span><button class="btn sm danger" data-a="impyes">Load</button><button class="btn sm" data-a="impno">Cancel</button></div>`:''}
-    <div class="optrow">${S._confirm?`<span>Erase this character?</span><button class="btn sm danger" data-a="resetYes">Erase</button><button class="btn sm" data-a="resetNo">Keep</button>`:`<button class="btn sm danger" data-a="reset">New character</button>`}</div></div>
+    <div class="optrow">${S._confirm?`<span>Wipe your save${NET.user?' (and your cloud save)':''}? Everything is lost and you start over. This can't be undone.</span><button class="btn sm danger" data-a="resetYes">Wipe it</button><button class="btn sm" data-a="resetNo">Keep</button>`:`<button class="btn sm danger" data-a="reset">Wipe save</button>`}</div></div>
+  <div class="sub"><h3>Admin</h3>${vAdmin()}</div>
   <div class="sub"><h3>Achievements · ${S.ach.length}/${ACH.length}</h3><div class="achs">${achs}</div></div></section>`;}
 const UI={set:false,ms:null};
 let IMP=null;
@@ -2499,6 +2502,36 @@ function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date
   return `<div class="sub"><div class="row" style="justify-content:space-between"><div class="row"><h3>Leaderboards</h3>${lt('best','Spire floors')}${lt('gold','Richest')}</div><span class="tag">You: <b class="num">${g?S.gold.toLocaleString()+' gold':'Floor '+(S.towerBest||0)}</b></span></div>
     ${NET.lbErr?`<p class="dim">${esc(NET.lbErr)}</p>`:!NET.lb?'<p class="dim">Loading…</p>':rows?`<table class="lb"><tbody>${rows}</tbody></table>`:`<p class="dim">${g?'Nobody is on the board yet.':'No climbs yet. Be the first.'}</p>`}
     ${NET.user?'':'<p class="small dim">Sign in under Settings to put your best floor on the board.</p>'}</div>`;}
+/* admin panel: unlocked with a passcode for this browser session. It only stops casual use; anyone who edits the page can get in. */
+const ADMHASH='4425eaef2237f7c88c321256ca551dcf66bc4678bd7c2147a7fbe37d344d9658';
+async function admTry(){const el=document.getElementById('admc');const v=el?el.value:'';let hex='';try{const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));hex=[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');}catch(e){}
+  if(hex===ADMHASH){UI.admOk=true;try{sessionStorage.setItem('eljuego-adm','1');}catch(e){}toast('Admin unlocked');}else toast('Wrong passcode');render(true);}
+const ADM={
+  gold:()=>{S.gold+=10000;},
+  mats:()=>{for(const m in MATS)S.mats[m]=(S.mats[m]||0)+20;},
+  lvl:()=>{if(S.lvl<MAXLV)gainXp(xpNeed(S.lvl)-S.xp);},
+  max:()=>{while(S.lvl<MAXLV)gainXp(xpNeed(S.lvl)-S.xp);},
+  sp:()=>{S.sp+=5;},
+  unlock:()=>{S.unlocked=AREAS.length;S.wins=Math.max(S.wins,3);S.flags.analyze=true;for(const k of ['inv','char','skills','town','online'])S.unl[k]=true;S.sanctum=true;S.key=false;for(let i=0;i<AREAS.length;i++)if(!S.cleared.includes(i))S.cleared.push(i);},
+  heal:()=>{const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;for(const k of ['potion','ether','salve'])S.cons[k]=(S.cons[k]||0)+5;},
+  god:()=>{S.flags.god=!S.flags.god;},
+  win:()=>{const c=C();if(!c||c.over)return;c.enemies.forEach(e=>e.hp=0);PRE=null;fxAt=0;win();},
+  tier:v=>{UI.at=+v;},
+  item:v=>{addToBag([genItem(UI.at||0,+v,undefined,+v)]);},
+  gem:()=>{addToBag([mkGem(pick(Object.keys(GEMS)),Math.min(4,UI.at||0))]);},
+  uniq:()=>{addToBag(Object.keys(UNIQ).map(mkUnique));},
+  disc:()=>{S.disc=Object.keys(ALLOYS);},
+  spire:()=>{S.towerBest=(S.towerBest||0)+10;},
+  lock:()=>{UI.admOk=false;try{sessionStorage.removeItem('eljuego-adm');}catch(e){}},
+};
+function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm')==='1';}catch(e){}}
+  if(!UI.admOk)return `<div class="row"><input class="inp" id="admc" type="password" placeholder="Passcode" autocomplete="off" style="text-align:left"><button class="btn sm" data-a="admin">Unlock</button></div>`;
+  const b=(k,n,on)=>`<button class="btn sm ${on?'tab on':''}" data-a="adm" data-v="${k}">${n}</button>`;
+  return `<div class="optrow">${b('gold','+10,000 gold')}${b('mats','+20 every material')}${b('heal','Heal + 5 of each potion')}${b('sp','+5 star points')}${b('spire','+10 best Spire floor')}</div>
+  <div class="optrow">${b('lvl','+1 level')}${b('max','Max level')}${b('unlock','Unlock everything')}${b('disc','Discover all alloys')}${b('god',`God mode: ${S.flags.god?'On':'Off'}`,S.flags.god)}${C()&&!C().over?b('win','Win this fight'):''}</div>
+  <div class="optrow"><b>Give item</b>${TIERN.map((t,i)=>b('tier:'+i,t,(UI.at||0)===i)).join('')}</div>
+  <div class="optrow">${RAR.map((r,i)=>b('item:'+i,r.n)).join('')}${b('gem','Gem (tier = grade)')}${b('uniq','All Legendaries')}</div>
+  <div class="optrow">${b('lock','Lock admin')}</div>`;}
 function vOnline(){const f=[['Trading post','Player listings and direct trades in the Market.'],['Clans','Shared bank, clan perks, a clan hall on a town plot.'],['PvP arena','Async duels against other players\' builds.'],['Boss raids','Party bosses with shared HP and turn order.']];
   return `<section class="px panel"><h2>Online</h2>${vChat()}${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
 
@@ -2744,7 +2777,7 @@ function render(quiet){hideTip();
   const ci=document.getElementById('chatin');if(ci&&NET.chatFocus){ci.focus();const n=ci.value.length;try{ci.setSelectionRange(n,n);}catch(e){}}
   save();if(!quiet)runFx();
 }
-const FREE=['pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
+const FREE=['admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
@@ -2755,7 +2788,7 @@ document.addEventListener('input',ev=>{if(ev.target&&ev.target.id==='nm')S.name=
 document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='impf'&&t.files&&t.files[0])importFile(t.files[0]);if(t&&t.id==='vol')sfx('coin');});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&UI.set){UI.set=false;IMP=null;render(true);}});
 document.addEventListener('focusin',ev=>{if(ev.target&&ev.target.id==='chatin')NET.chatFocus=true;});document.addEventListener('focusout',ev=>{if(ev.target&&ev.target.id==='chatin')NET.chatFocus=false;});
-document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if(t&&t.id==='chatin'&&ev.key==='Enter'){ev.preventDefault();chatSend();return;}if(t&&t.id==='pw'&&ev.key==='Enter'){ev.preventDefault();signInPw();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.id==='nm'&&ev.key==='Enter'){ACT.begin();render();return;}if(t&&t.id==='chatin'&&ev.key==='Enter'){ev.preventDefault();chatSend();return;}if(t&&t.id==='pw'&&ev.key==='Enter'){ev.preventDefault();signInPw();return;}if(t&&t.id==='admc'&&ev.key==='Enter'){ev.preventDefault();admTry();return;}if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName.toLowerCase()!=='button'){ev.preventDefault();t.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
 /* star chart: drag to pan, tap to select, double-tap to light */
 const starPan=()=>{UI.pan=UI.pan||{};const T=S&&S.starTab||'melee';return UI.pan[T]||(UI.pan[T]={x:0,y:78});};
 let SDRAG=null,STAP={id:null,t:0};
