@@ -115,6 +115,7 @@ canvas.scene{display:block;width:100%;height:auto}
 .chatlog{height:220px;overflow-y:auto;background:#0e0b16;padding:8px 10px;box-shadow:inset 0 0 0 2px var(--edge);display:flex;flex-direction:column;gap:3px;word-break:break-word}
 .cm{font-size:.9rem}.cm b{color:var(--gold);margin-right:4px}.cm.me b{color:#9cd2f2}.ct{color:var(--mute);font-size:.75rem;margin-right:6px}
 .rfv{color:#6fb7e8;font-size:.85em}
+.brow{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:center;background:#1c1630;padding:6px 8px;box-shadow:inset 0 0 0 2px var(--edge)}.brow .sb{display:flex;gap:4px}.bchips{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
 .stats2{display:flex;flex-direction:column;gap:6px}.srow{display:grid;grid-template-columns:44px 34px 1fr auto;gap:8px;align-items:center;background:#1c1630;padding:6px 8px;box-shadow:inset 0 0 0 2px var(--edge)}
 .srow .sk.gold{color:var(--gold)}.srow .sd{display:flex;flex-direction:column;min-width:0}.srow .sb{display:flex;gap:4px}
 .beastgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}.beast{display:flex;flex-direction:column;gap:6px}.beast.unseen img{filter:brightness(0) opacity(.5)}
@@ -2514,7 +2515,7 @@ function vChar(){const d=derive(),t=d.stats;
   const sets=Object.entries({}).filter(([,n])=>n>=2).map(([tt,n])=>{const B=SETS[tt];return `<div class="small"><b>${B.n} (${n}/4)</b>: ${B.d2}${n>=4?' · '+B.d4:` · 4 pieces: ${B.d4}`}</div>`;}).join('');
   const brews=Object.entries(S.brews||{}).filter(([,n])=>n>0).map(([id,n])=>`<span class="tag">${BREWS[id].n} · ${n}</span>`).join('');
   S.loads=S.loads||[null,null,null];const tot=s=>Object.values(s.stats).reduce((a,b)=>a+b,0)+s.pts;const myTot=tot({stats:S.stats,pts:S.pts});
-  const loads=S.loads.map((L,i)=>`<div class="srow"><b class="sk">Build ${i+1}</b><span class="sd small">${L?Object.keys(STATL).map(k=>`${STATL[k]} ${L.stats[k]}`).join(' · '):'<span class="dim">Empty</span>'}</span>
+  const loads=S.loads.map((L,i)=>`<div class="brow"><b>Build ${i+1}</b><span class="bchips">${L?Object.keys(STATL).map(k=>`<span class="tag">${STATL[k]} <b class="num">${L.stats[k]}</b></span>`).join(''):'<span class="dim small">Empty</span>'}</span>
     <span class="sb"><button class="btn sm" data-a="lsave" data-v="${i}">Save</button>${L?`<button class="btn sm" data-a="lload" data-v="${i}" ${tot(L)===myTot&&S.gold>=respecCost()?'':'disabled'} data-tip="txt:${tot(L)===myTot?'Costs '+respecCost()+' gold, like a respec':'Saved at a different level'}">Load</button>`:''}</span></div>`).join('');
   return `<div class="chargrid"><section class="px panel"><div class="row" style="gap:12px">${heroImg(3).replace('idle','')}<div><h2>${esc(S.name)}</h2>${S.pts?`<span class="tag gold">${S.pts} points to spend</span>`:'<span class="tag">No points to spend</span>'}</div></div>
     <div class="stats2">${rows}</div>
