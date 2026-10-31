@@ -1078,10 +1078,10 @@ const MOB={
   golem:{n:'Obsidian Golem',hp:24,atk:5,def:5,spd:1,xp:10,gold:[3,6],drops:[['obsidian',65]],ab:[['shield',20],['stun',15]],weak:'frost',res:'phys'},
   knight:{n:'Ash Knight',hp:19,atk:5.4,def:4,spd:3,xp:10,gold:[3,7],drops:[['hollow',60],['shroud',10]],ab:[['heavy',25],['shield',15]],weak:'frost',res:'phys'},
   cwraith:{n:'Court Wraith',hp:13,atk:6.2,def:2,spd:9,xp:9,gold:[3,6],drops:[['shroud',60],['hollow',15]],ab:[['drain',30],['stun',12]],weak:'fire',res:'frost'},
-  stalker:{n:'Storm Eel',hp:54,atk:4.6,def:4,spd:8,xp:16,gold:[4,8],drops:[['voidsilk',40],['astral',20]],ab:[['heavy',22],['stun',12],['bleed',20]],weak:'frost',res:'storm'},
-  sentinel:{n:'Drowned Knight',hp:63,atk:4.4,def:5,spd:2,xp:16,gold:[4,8],drops:[['astral',55],['starshard',20]],ab:[['shield',20],['heavy',22],['stun',10]],weak:'storm',res:'frost'},
-  siren:{n:'Tide Siren',hp:45,atk:5,def:3,spd:9,xp:16,gold:[4,8],drops:[['starshard',45],['voidsilk',25]],ab:[['drain',28],['stun',12]],weak:'fire',res:'frost'},
-  unmaker:{n:'The Leviathan',hp:39,atk:4,def:4.5,spd:6,xp:22,gold:[8,12],drops:[['riftcore',100],['essence',100]],ab:[['heavy',22],['drain',20],['stun',12]],boss:1,weak:'storm',res:'frost'},
+  stalker:{n:'Storm Eel',hp:54,atk:5.2,def:4,spd:8,xp:16,gold:[4,8],drops:[['voidsilk',40],['astral',20]],ab:[['heavy',22],['stun',12],['bleed',20]],weak:'frost',res:'storm'},
+  sentinel:{n:'Drowned Knight',hp:63,atk:5,def:5,spd:2,xp:16,gold:[4,8],drops:[['astral',55],['starshard',20]],ab:[['shield',20],['heavy',22],['stun',10]],weak:'storm',res:'frost'},
+  siren:{n:'Tide Siren',hp:45,atk:5.6,def:3,spd:9,xp:16,gold:[4,8],drops:[['starshard',45],['voidsilk',25]],ab:[['drain',28],['stun',12]],weak:'fire',res:'frost'},
+  unmaker:{n:'The Leviathan',hp:39,atk:5,def:4.5,spd:6,xp:22,gold:[8,12],drops:[['riftcore',100],['essence',100]],ab:[['heavy',22],['drain',20],['stun',12]],boss:1,weak:'storm',res:'frost'},
   gargoyle:{n:'Gargoyle',hp:18,atk:5.4,def:5,spd:2,xp:10,gold:[3,6],drops:[['gargstone',65],['hollow',20]],ab:[['shield',30],['heavy',15]],weak:'storm',res:'venom'},
   hking:{n:'The Hollow King',hp:12,atk:5.2,def:4,spd:5,xp:14,gold:[7,10],drops:[['kingsoul',100],['essence',100]],ab:[['heavy',20],['drain',20],['stun',12]],boss:1,weak:'fire',res:'frost'},
   tyrant:{n:'The Ember Tyrant',hp:15,atk:5.4,def:3,spd:6,xp:14,gold:[6,9],drops:[['flame',100],['essence',100]],ab:[['burn',25],['heavy',20],['stun',12]],boss:1,weak:'frost',res:'venom'},
@@ -1091,7 +1091,7 @@ const AREAS=[
   {name:'Glasswind Dunes',lv:[5,9],boss:10,weak:'frost',res:'storm',mobs:['scorp','wraith','raider'],dungeon:{name:'Mirror Tomb',floors:[['scorp','raider'],['wraith','raider','scorp']],boss:'queen'}},
   {name:'Cinderfall Peaks',lv:[10,14],boss:15,weak:'frost',res:'fire',mobs:['imp','drake','golem'],dungeon:{name:'Caldera Throne',floors:[['imp','drake'],['drake','golem','imp']],boss:'tyrant'}},
   {name:'The Hollow Crown',lv:[15,19],boss:20,weak:'fire',res:'frost',mobs:['knight','cwraith','gargoyle'],dungeon:{name:'The Hollow Throne',floors:[['knight','gargoyle'],['knight','cwraith','gargoyle']],boss:'hking'}},
-  {name:'The Stormsea',lv:[20,32],boss:35,weak:'storm',res:'venom',mobs:['stalker','sentinel','siren'],dungeon:{name:'The Drowned Lighthouse',floors:[['stalker','sentinel'],['stalker','sentinel','siren']],boss:'unmaker'}},
+  {name:'The Stormsea',lv:[20,34],boss:35,weak:'storm',res:'venom',mobs:['stalker','sentinel','siren'],dungeon:{name:'The Drowned Lighthouse',floors:[['stalker','sentinel'],['stalker','sentinel','siren']],boss:'unmaker'}},
 ];
 
 /* gear */
@@ -1106,7 +1106,7 @@ const WT={
   scimitar:{n:'Scimitar',sub:'medium',atk:4.5,g:{str:4,dex:3},crit:3,spd:1,ft:1,twice:30,trn:'Flurry',tr:'30% chance to strike again for 60%. +1 SPD'},
   rapier:{n:'Rapier',sub:'light',atk:5.5,g:{dex:6},crit:8,spd:1,ft:1,riposte:25,trn:'Riposte',tr:'25% chance to counter for 70% when an enemy hits you. +1 SPD'},
   dagger:{n:'Dagger',sub:'light',atk:4.5,g:{dex:5},crit:12,spd:2,ft:0,poison:30,trn:'Envenom',tr:'30% chance per hit to Poison. +2 SPD'},
-  firestaff:{n:'Ember Staff',sub:'fire',atk:7,g:{int:7},el:'fire',ft:0},
+  firestaff:{n:'Ember Staff',sub:'fire',atk:6,g:{int:7},el:'fire',ft:0},
   frostwand:{n:'Icicle Wand',sub:'frost',atk:6,g:{int:6},el:'frost',crit:3,ft:0},
   stormrod:{n:'Storm Rod',sub:'storm',atk:7,g:{int:6,dex:2},el:'storm',ft:0},
 };
@@ -1739,7 +1739,7 @@ function mkEnemy(id,L){const b=MOB[id];const Le=L>20?20+(L-20)*.3:L;const ph=Mat
   if(e.boss&&rage){e.enraged=true;e.atk=Math.round(e.atk*1.3);}e.intent=rollIntent(e);return e;}
 const maxESpd=()=>Math.max(0,...alive().map(e=>e.spd));
 function startCombat(list,ctx){if(ctx!=='tower'&&ctx!=='duel'&&ctx!=='pvp')for(const e of list){const ai=AREAS.findIndex(a=>a.mobs.includes(e.id)||a.dungeon.boss===e.id);
-    if(ai>=3&&!e.r4){e.r4=1;e.atk=Math.round(e.atk*(ai>=4&&!e.boss?1.2:1.5)*10)/10;if(e.boss)e.pierce=.7;}}
+    if(ai>=3&&!e.r4){e.r4=1;e.atk=Math.round(e.atk*2*10)/10;if(e.boss)e.pierce=.7;}}
   S.combat={enemies:list,log:[],target:0,ps:{},ctx,over:null,menu:'main',hits:0,cd:ctx==='dungeon'&&S.dungeon&&S.dungeon.cd?{...S.dungeon.cd}:ctx==='tower'&&S.tower&&S.tower.cd?{...S.tower.cd}:{}};
   log(`${list.map(e=>e.n).join(', ')} ${list.length>1?'close in':'appears'}!`,'sys');
   const boss=list.find(e=>e.boss);if(boss){log(`${boss.n} blocks the way.`,'boss');fx('boss',{n:boss.n});busyUntil=Date.now()+1400;}

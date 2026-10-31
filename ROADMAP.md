@@ -376,7 +376,7 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
 - [x] **Auto-salvage:** picks by rarity, with optional gems and "keep upgrades". Uniques and locked items are never salvaged.
 - [x] **Spire:** you can start at half your best floor. XP is 0.3× and item drops are rarer.
 - [x] **Rarer drops overall:** items, gems, high-grade gems, boss rarities, crystals and uniques.
-- [x] **Area levels connect:** 1–4, 5–9, 10–14, 15–19, 20–32.
+- [x] **Area levels connect:** 1–4, 5–9, 10–14, 15–19, 20–34.
 - [x] **Regional elements:** each region has one weakness and one resistance.
 
   | Region | Weak to | Resists |
@@ -386,7 +386,7 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   | Cinderfall Peaks | frost | fire |
   | The Hollow Crown | fire | frost |
   | The Stormsea | storm | venom |
-- [x] **Late-game damage:** Hollow Crown monsters and every boss from there on deal 1.5× damage, and Stormsea regulars 1.2×. Those bosses ignore 70% of your defense. This doesn't apply in the Spire.
+- [x] **Late-game damage:** Hollow Crown monsters, Stormsea monsters and their bosses deal 2× damage. Those bosses ignore 70% of your defense. This doesn't apply in the Spire.
 - [x] **New art:**
   - The Ember Tyrant is an armored horned demon with a flaming greatsword and fire sword swings.
   - The Leviathan is a giant head and neck reaching in from off-screen.
