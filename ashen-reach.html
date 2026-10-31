@@ -1258,8 +1258,8 @@ const SK={
   winter:{n:"Winter's Embrace",mp:7,vfx:'shield',d:'Heal 15% max HP and gain a shield of 100% ATK',use:(e,d)=>{heal(d.maxHp*.15);shield(d.atk);}},
   ball:{n:'Ball Lightning',mp:7,bolt:['#fff1a8','#f2c14e','#c08cff'],d:'4 bolts of 60% storm on random enemies, each adds Shock',use:()=>{for(let k=0;k<4;k++){const a=alive();if(!a.length)break;const x=pick(a);hit(x,.6,{el:'storm',proc:k===0});if(x.hp>0)shock(x,1);}}},
   staticshield:{n:'Static Shield',mp:6,vfx:'shield',d:'Shield of 150% ATK; enemies that hit you get Shocked',use:(e,d)=>{shield(d.atk*1.5);C().ps.staticward=3;}},
-  dimcut:{n:'Dimension Cut',mp:1,d:'Spend all your MP: 10% damage to every enemy per 5% of your max MP spent (200% from a full bar)',
-    use:(e,d)=>{const spent=S.mp+1;S.mp=0;const m=Math.round(2*Math.min(1,spent/d.maxMp)*100)/100;log(`You tear the air apart (${Math.round(m*100)}%).`,'you');alive().forEach((x,k)=>hit(x,m,{proc:k===0}));}},
+  dimcut:{n:'Dimension Cut',mp:1,d:'Spend all your MP to cut every enemy: 200% from a full bar, but it falls off fast below full (90% MP: 146%, 75%: 84%, 50%: 25%)',
+    use:(e,d)=>{const spent=S.mp+1;S.mp=0;const m=Math.round(2*Math.pow(Math.min(1,spent/d.maxMp),3)*100)/100;log(`You tear the air apart (${Math.round(m*100)}%).`,'you');alive().forEach((x,k)=>hit(x,m,{proc:k===0}));}},
   thunderclap:{n:'Thunderclap',mp:12,vfx:'nova',d:'90% storm to all, 25% stun',use:()=>alive().forEach(x=>{hit(x,.9,{el:'storm'});if(x.hp>0&&!x.boss&&chance(25))stun(x);})},
 };
 
@@ -2151,7 +2151,7 @@ const SKFX={
   frostlance:{ic:1},blizzard:{snow:1},frostnova:{spikes:1},shatter:{encase:1,big:1},
   spark:{p:'zap'},chain:{chain:1},overload:{implode:1},thunderclap:{sky:1,all:1,big:1},
   ironskin:{aura:['#c9c2d6','#f4efe4']},riposte:{aura:['#f2c14e','#f4efe4']},emberward:{aura:['#e2782a','#f2c14e']},icebarrier:{aura:['#6fb7e8','#c4ecff']},
-  stormstep:{aura:['#f2c14e','#c08cff'],zap:1},veil:{smoke:1},dimcut:{dimcut:1,big:1,imp:'iaido'},
+  stormstep:{aura:['#f2c14e','#c08cff'],zap:1},veil:{smoke:1},dimcut:{dimcut:1,imp:'iaido'},
   warcry:{aura:['#c43c3c','#f2c14e']},guillotine:{m:'leap',imp:'execute'},crimson:{m:'center',imp:'sweep'},thousand:{m:'iaido',imp:'twin'},
   fan:{knives:1,imp:'knife'},hemorrhage:{m:'dash',imp:'hemorrhage'},immolate:{pillar:1},cauterize:{aura:['#e2782a','#fff1a8']},
   glacial:{ic:1},winter:{aura:['#6fb7e8','#c4ecff']},ball:{chain:1},staticshield:{aura:['#f2c14e','#fff1a8'],zap:1},
@@ -2180,7 +2180,7 @@ function perform(cfg,e,run){const c=C();const ti=c.enemies.indexOf(e);const al=a
   else if(cfg.knives){fx('knives',{ts:al});fxAt+=PROJ_T+60;}
   else if(cfg.at){fx('freeze',{t:ti});fxAt+=220;}
   else if(cfg.aura){fx('aura',{col:cfg.aura,zap:cfg.zap});fxAt+=200;}
-  else if(cfg.dimcut){fx('dimcut',{});fxAt+=1050;}
+  else if(cfg.dimcut){fx('dimcut',{});fxAt+=1750;}
   else if(cfg.smoke){fx('smoke',{t:'p'});fxAt+=150;}
   run();curStyle=null;}
 const respecCost=()=>40*S.lvl;
@@ -3118,10 +3118,24 @@ const PLAY={
     if(e.m==='blink'||e.m==='behind'||e.m==='iaido')heroTo([{transform:from,opacity:1},{transform:from,opacity:0,offset:.35},{transform:'translate(0px,0px)',opacity:0,offset:.65},{transform:'translate(0px,0px)',opacity:1}],BACK_T);
     else heroTo([{transform:from},{transform:'translate(0px,-14px)',offset:.6},{transform:'translate(0px,0px)'}],BACK_T);},
   dimcut:e=>{const st=document.querySelector('.stage');if(!st)return;const R0=st.getBoundingClientRect(),cx=R0.left+R0.width/2,cy=R0.top+R0.height/2,L=Math.hypot(R0.width,R0.height)*.6;sfx('dark');
-    const hh=heroEl();if(hh&&!RM)hh.animate([{opacity:1},{opacity:0,offset:.1},{opacity:0,offset:.9},{opacity:1}],{duration:TS(1000),easing:'steps(4)'});
-    for(let k=0;k<11;k++)setTimeout(()=>{const a=Math.random()*Math.PI,ox=(Math.random()-.5)*R0.width*.5,oy=(Math.random()-.5)*R0.height*.4,dx=Math.cos(a)*L,dy=Math.sin(a)*L;
-      streakFx(cx+ox-dx,cy+oy-dy,cx+ox+dx,cy+oy+dy,k%2?['#c08cff','#ffffff']:['#e0c8ff','#ffffff'],420,k%3?1:2,R0);sfx('swing');},TS(k*55));
-    setTimeout(()=>{flash('#ffffff',160);shake(10);for(const f of document.querySelectorAll('.foe:not(.dead)')){const s=sprEl(f),c=ctr(s);burst(c.x,c.y,{n:24,col:['#ffffff','#c08cff','#7a3fb0'],spd:6,life:28});}},TS(820));},
+    const clip=()=>{px.save();px.beginPath();px.rect(R0.left,R0.top,R0.width,R0.height);px.clip();};
+    // your hero flares white and vanishes, and the battlefield goes dark
+    const hh=heroEl();if(hh&&!RM)hh.animate([{opacity:1,filter:'none'},{opacity:1,filter:'brightness(3)',offset:.06},{opacity:0,offset:.12},{opacity:0,offset:.9},{opacity:1,filter:'brightness(2)',offset:.95},{opacity:1,filter:'none'}],{duration:TS(1900),easing:'steps(8)'});
+    fxo(1800,t=>{clip();const a=t<.08?t/.08:t>.9?Math.max(0,1-(t-.9)/.1):1;px.globalAlpha=.6*a;px.fillStyle='#07040f';px.fillRect(R0.left,R0.top,R0.width,R0.height);px.globalAlpha=1;px.restore();});
+    // sixteen cuts, faster and faster, each one leaving a crack in the air
+    const cuts=[],N=16;
+    for(let k=0;k<N;k++){const at=Math.round(180+900*(1-Math.pow(1-k/N,1.7)));
+      setTimeout(()=>{const a=Math.random()*Math.PI,ox=(Math.random()-.5)*R0.width*.6,oy=(Math.random()-.5)*R0.height*.5,dx=Math.cos(a)*L,dy=Math.sin(a)*L,c={x0:cx+ox-dx,y0:cy+oy-dy,x1:cx+ox+dx,y1:cy+oy+dy};cuts.push(c);
+        streakFx(c.x0,c.y0,c.x1,c.y1,k%3===0?['#3b1f5a','#ffffff']:['#c08cff','#ffffff'],240,k%4===0?3:k%2?1:2,R0);sfx('swing');
+        burst((c.x0+c.x1)/2,(c.y0+c.y1)/2,{n:4,col:['#ffffff','#e0c8ff'],spd:2,life:12});},TS(at));}
+    // time stops: every cut hangs there, flickering
+    setTimeout(()=>fxo(600,t=>{clip();const on=(t*10|0)%2;for(const c of cuts){pline(c.x0,c.y0,c.x1,c.y1,'#7a3fb0',GU*2);pline(c.x0,c.y0,c.x1,c.y1,on?'#ffffff':'#e0c8ff',GP);}px.restore();}),TS(1120));
+    // and then it all breaks
+    setTimeout(()=>{flash('#ffffff',220);shake(14);sfx('crit');
+      for(let k=0;k<80;k++)burst(R0.left+Math.random()*R0.width,R0.top+Math.random()*R0.height*.85,{n:1,col:['#ffffff','#e0c8ff','#c08cff','#3b1f5a'],spd:5,grav:.25,life:36});
+      for(const f of document.querySelectorAll('.foe:not(.dead)')){const s=sprEl(f),c=ctr(s);ringFx(c.x,c.y,4,Math.max(c.r.width,c.r.height),['#ffffff','#c08cff'],320);burst(c.x,c.y,{n:30,col:['#ffffff','#c08cff','#7a3fb0'],spd:7,life:30});}},TS(1720));
+    // your hero returns with a sheathe gleam
+    setTimeout(()=>{const A=hh&&ctr(hh);if(A){streakFx(A.x-40,A.y-4,A.x+40,A.y-4,['#c08cff','#ffffff'],220,1,R0);sfx('shield');}},TS(1880));},
   knives:e=>{const hh=heroEl();if(!hh)return;const A=ctr(hh);e.ts.forEach((t,k)=>setTimeout(()=>{const f=sprEl(elFor(t));if(!f)return;const B=ctr(f);projFx('knife',{x:A.r.right-6,y:A.y-6-(k-1)*6},{x:B.x,y:B.y},PROJ_T-40);sfx('swing');},TS(k*40)));},
   bcharge:e=>{const f=sprEl(elFor(e.t));if(!f)return;const B=ctr(f),col=(e.col||'#f4efe4,#fff1a8').split(','),r=Math.max(B.r.width,B.r.height)*.8;sfx('shield');
     ringFx(B.x,B.y,r,6,col,420,.4);for(let k=0;k<16;k++){const a=k/16*6.283;setTimeout(()=>streakFx(B.x+Math.cos(a)*r,B.y+Math.sin(a)*r*.7,B.x+Math.cos(a)*8,B.y+Math.sin(a)*6,col,260,0),TS(k*14));}
