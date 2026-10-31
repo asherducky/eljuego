@@ -2421,7 +2421,7 @@ function vTabs(){const busy=!!S.combat;const nNew=S.bag.filter(it=>it.isNew).len
 /* item display */
 function effAtk(it){if(!canEquip(it))return itemBase(it).atk;return deriveWith({...S.gear,weapon:it}).atk;}
 function statRows(it){if(!it)return [];const rows=[];const W=it.slot==='weapon'?WT[it.type]:null;
-  if(W){rows.push({k:'atk',l:'Attack',v:effAtk(it)});const ws=wepStat(it.type);for(const k of ['str','dex','int'])rows.push({k:'g_'+k,l:STATL[k]+' scaling',g:k===ws?wepGrade(it):0});}
+  if(W){rows.push({k:'atk',l:'Attack',v:effAtk(it)});const xa=Math.round((itemStats(it).atk||0)-(itemBase(it).atk||0));if(xa)rows.push({k:'batk',l:'Bonus attack',v:xa});const ws=wepStat(it.type);for(const k of ['str','dex','int'])rows.push({k:'g_'+k,l:STATL[k]+' scaling',g:k===ws?wepGrade(it):0});}
   const st=itemStats(it),rf=rfStats(it);for(const k of ['def','hp','mp','crit','dodge','spd','str','dex','int','vit','luk','atk','ls','gold']){if(W&&k==='atk')continue;if(st[k])rows.push({k,l:LAB[k],v:st[k],pct:PCT.includes(k),rfv:rf[k]});}
   return rows;}
 const fmtRow=r=>!r?'—':r.g!==undefined?`<span class="grd g${r.g}">${GR[r.g]}</span>`:(r.v>0&&!['atk','def','hp','mp'].includes(r.k)?'+':'')+r.v+(r.pct?'%':'');
