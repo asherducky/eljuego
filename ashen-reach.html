@@ -1231,7 +1231,7 @@ const SK={
   flurry:{n:'Flurry',mp:5,d:'3 hits of 40%, +20% crit each',use:e=>{FLX.i=3;for(let k=0;k<3&&(e.hp>0||C().ctx==='duel');k++)hit(e,.4,{critBonus:20,proc:k===0});}},
   veil:{n:'Smoke Veil',mp:5,vfx:'smoke',d:'+40% dodge for 2 enemy turns',use:()=>{C().ps.veil=2;log('You vanish into smoke.','buff');}},
   shadowstep:{n:'Shadowstep',mp:6,d:'120% damage; the next attack on you misses',use:e=>{hit(e,1.2);C().ps.evade=1;}},
-  assassinate:{n:'Assassinate',mp:10,d:'300% damage, auto-crit on bleeding targets',use:e=>hit(e,3,{crit:e.st.bleed||e.st.poison?true:undefined})},
+  assassinate:{n:'Assassinate',mp:10,d:'200% damage. Always crits against an enemy with 5+ Bleed stacks',use:e=>hit(e,2,{crit:e.st.bleed&&(e.st.bleed.s||0)>=5?true:undefined})},
   firebolt:{n:'Firebolt',mp:4,bolt:['#e2782a','#fff1a8','#c43c3c'],d:'140% fire + 1 flame stack',use:e=>{hit(e,1.4,{el:'fire'});if(e.hp>0)burn(e,1);}},
   flamewave:{n:'Flame Wave',mp:7,vfx:'nova',d:'70% fire to all + 1 flame stack each',use:()=>alive().forEach(x=>{hit(x,.7,{el:'fire'});if(x.hp>0)burn(x,1);})},
   kindle:{n:'Kindle',mp:6,bolt:['#fff1a8','#e2782a','#c43c3c'],d:'Detonate flame stacks: 80% + 50% per stack',use:e=>{const s=e.st.burn?e.st.burn.s:0;delete e.st.burn;hit(e,.8+.5*s,{el:'fire'});}},
