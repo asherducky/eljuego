@@ -2341,7 +2341,7 @@ const tipEl=document.createElement('div');tipEl.className='tip';tipEl.hidden=tru
 function tipHTML(key){const [k,v]=[key.slice(0,key.indexOf(':')),key.slice(key.indexOf(':')+1)];
   if(key==='hero'){const d=derive();return `<b>${esc(S.name)}</b><div class="dim small">Lv ${S.lvl}</div><div class="tg">ATK <b>${d.atk}</b> DEF <b>${d.def}</b> SPD <b>${d.spd}</b> Crit <b>${d.crit}%</b> Dodge <b>${d.dodge}%</b></div>`;}
   if(k==='txt')return esc(v);
-  if(k==='item'){const it=findAny(v);return it?itemTip(it):'';}
+  if(k==='item'){const it=findAny(v);return it?itemCard(it,'',isWorn(it)):'';}
   if(k==='st')return STDESC[v]||'';
   if(k==='cons')return `<b>${CONSN[v]}</b> <span class="tag num">×${S.cons[v]||0}</span><div class="small">${CONSD[v]}</div>`;
   if(k==='mat')return matTip(v);
