@@ -415,3 +415,7 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   | Frost | Glacial Spike, Winter's Embrace |
   | Storm | Ball Lightning, Static Shield |
 - [x] **Dimension Cut:** a Swords ultimate one star past the keystone (Lv 16). It spends all your MP and deals 10% to every enemy per 5% of max MP spent (200% from a full bar). 5-turn cooldown. The screen goes dark, long slashes cut across it, then everything breaks open at once.
+- [x] **Souls-style bleed:**
+  - Every bleed adds a stack. At 10 stacks the target hemorrhages for 25% of its max HP (10% for bosses and players).
+  - The bleed itself ticks for 20% of your attack. Stacks fade 1 per turn, except with Open Wounds.
+  - Lacerate's cuts each add a stack. The Hemorrhage skill bursts the stacks early.
