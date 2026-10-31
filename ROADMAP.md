@@ -395,3 +395,4 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   - Every boss gathers particles while a signature move is coming, then rears back before it lands.
   - The enraged red outline is gone; "Enraged" shows next to the name instead.
 - [x] **Attack effects:** each weapon has its own basic attack (cleave, chop, twin cut, thrust, iaido…). Tidebreaker rides a wave; Cinderbrand and Emberforged blades cut with fire; Obsidian Edge does a void cut.
+- [x] **Auto battle:** its own button next to Wander. It repeats one move you pick (Attack or one equipped skill), falling back to Attack when that skill can't be used. It only unlocks where you've beaten the area boss. It runs dungeons too, never the Spire or duels, and any loss stops it.

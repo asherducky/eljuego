@@ -130,6 +130,7 @@ canvas.scene{display:block;width:100%;height:auto}
 @keyframes cur{50%{transform:translate(-50%,-4px)}}
 .idle{}
 @keyframes idle{50%{transform:translateY(calc(-1 * var(--bob,3px)))}}
+#autobar{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;display:flex;gap:10px;align-items:center;background:#1a1626;padding:6px 10px;box-shadow:0 0 0 2px var(--edge);font-size:.8rem}
 .foe.rage .fname::after{content:' · Enraged';color:#ff6b5e}
 .foe.huge{transform:translateX(24%)}.foe.huge .intent{position:absolute;top:42%;left:2%;z-index:3}.foe.huge .bar{width:62%!important}.foe.huge .bar,.foe.huge .fname,.foe.huge .sts{align-self:flex-start;margin-left:4%}
 .sts{display:flex;gap:3px;min-height:16px;flex-wrap:wrap;justify-content:center}
@@ -2104,6 +2105,8 @@ const ACT={
   setclose:()=>{UI.set=false;IMP=null;},
   spd:v=>{OPT.speed=+v;saveOpt();},
   stab:v=>{UI.stab=v;},
+  autob:()=>{if(AB.on){AB.on=false;toast('Auto battle stopped');return;}if(!S.cleared.includes(S.area)||(S.combat&&['tower','duel','pvp'].includes(S.combat.ctx)))return;AB.on=true;toast('Auto battle on');},
+  amove:v=>{if(v==='attack'||(S.equip||[]).includes(v))S.autoMove=v;},
   as:v=>{const A=S.autoSalv=S.autoSalv||{on:false,rar:[false,false,false,false,false,false],gems:false,keepUp:true};if(v==='on')A.on=!A.on;else if(v==='gems')A.gems=!A.gems;else if(v==='up')A.keepUp=A.keepUp===false;else{const i=+v.slice(1);A.rar[i]=!A.rar[i];}},
   autonext:()=>{OPT.noAuto=!OPT.noAuto;saveOpt();},
   mute:()=>{OPT.mute=!OPT.mute;saveOpt();if(AU.g)AU.g.gain.value=OPT.mute?0:OPT.vol*.5;},
@@ -2482,7 +2485,8 @@ function vExplore(){
   return `<div class="grid2"><div class="areas"><h3>Regions</h3>${areas}<h3>Challenges</h3>${spire}</div>
   <section class="px panel">${sceneHTML('wild'+S.area)}<div class="row" style="justify-content:space-between"><h2>${a.name}</h2><span class="tag">Lv ${a.lv[0]}–${a.lv[1]}</span></div>
   <div class="note">${esc(S.note)}</div>
-  <div class="row"><button class="btn primary" data-a="wander">Wander</button></div>
+  <div class="row"><button class="btn primary" data-a="wander">Wander</button>${S.cleared.includes(S.area)?`<button class="btn ${AB.on?'danger':''}" data-a="autob">${AB.on?'Stop auto battle':'Auto battle'}</button>`:`<span class="dim small">Auto battle unlocks after you beat ${MOB[D.boss].n}</span>`}</div>
+  ${S.cleared.includes(S.area)?`<div class="row"><span class="dim small">Auto battle uses</span>${['attack',...(S.equip||[])].map(k=>`<button class="btn sm ${(S.autoMove||'attack')===k?'tab on':''}" data-a="amove" data-v="${k}">${k==='attack'?'Attack':(SK[k]||{}).n||k}</button>`).join('')}</div>`:''}
   ${first?'':`
   <div class="sub dungeon"><div class="row" style="gap:14px">${sprImg(D.boss,3)}<div><div class="eyebrow">Dungeon</div><h2>${D.name}</h2><span class="dim small">Floor 1 → Floor 2 → ${boss.n} (Lv ${a.boss})</span></div></div>
     <div class="row"><span class="dim small">Modifiers</span>${Object.entries(MODS).map(([k,[n,dd]])=>`<button class="btn sm ${S.dmods.includes(k)?'danger':''}" data-a="dmod" data-v="${k}" data-tip="txt:${dd}" aria-pressed="${S.dmods.includes(k)}">${n}</button>`).join('')}
@@ -3137,10 +3141,24 @@ function notice(t){toast(t);clearTimeout(toastT);toastT=setTimeout(()=>document.
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2600);}
 function mode(){if(S.combat||S.tab==='explore')return String(S.area);if(S.tab==='town')return ({inn:'inn',forge:'forge',sanctum:'sanctum',sealed:'sanctum'}[S.loc])||'town';return 'dust';}
 let AUTOC=null;
+/* auto battle: one move over and over (it falls back to Attack when that move is out of MP or cooling down).
+   It only runs where you've beaten the boss, never in the Spire or duels, and any loss stops it. */
+const AB={on:false};
+function autoStop(msg){AB.on=false;if(msg)toast(msg);render(true);}
+function autoTick(){if(!AB.on||!S)return;if(Date.now()<busyUntil||MG.active||UI.set||PRE)return;const c=S.combat;
+  if(S.tab!=='explore')return autoStop('Auto battle stopped');
+  if(c){if(['tower','duel','pvp','first'].includes(c.ctx))return autoStop();const area=c.ctx==='dungeon'&&S.dungeon?S.dungeon.area:S.area;
+    if(c.over){if(!c.over.win){ACT.done();return autoStop('Defeated. Auto battle stopped.');}if(c.ctx==='dungeon'&&S.dungeon)ACT.descend();else ACT.done();render();return;}
+    if(!S.cleared.includes(area))return autoStop('Auto battle only works where you have beaten the boss');
+    const m=S.autoMove||'attack',s=SK[m];if(m!=='attack'&&s&&(S.equip||[]).includes(m)&&S.mp>=s.mp&&!(c.cd&&c.cd[m]>0))ACT.skill(m);else ACT.attack();render();return;}
+  if(!S.cleared.includes(S.area))return autoStop();ACT.wander();render();}
+setInterval(autoTick,350);
+function autoBar(){let b=document.getElementById('autobar');if(!AB.on){if(b)b.remove();return;}if(!b){b=document.createElement('div');b.id='autobar';document.body.appendChild(b);}
+  const m=S.autoMove||'attack';b.innerHTML=`<span>Auto battle · ${m==='attack'?'Attack':(SK[m]||{}).n||'Attack'}</span><button class="btn sm danger" data-a="autob">Stop</button>`;}
 // after a win in the Spire or a dungeon, the next floor starts by itself unless you switch it off in Settings
 function autoNext(){const c=S&&S.combat;if(!c||!c.over||!c.over.win||OPT.noAuto||MG.active)return;if(!(c.ctx==='tower'&&S.tower)&&!(c.ctx==='dungeon'&&S.dungeon))return;if(AUTOC===c)return;AUTOC=c;
   const go=n=>{if(S.combat!==c||!c.over)return;if(UI.set||Date.now()<busyUntil){if(n<20)setTimeout(()=>go(n+1),500);return;}const b=document.querySelector('[data-a="tclimb"],[data-a="descend"]');if(b)b.click();};setTimeout(()=>go(0),350);}
-function render(quiet){hideTip();setTimeout(autoNext,0);if(S&&S.rfComp){const m=S.rfComp;delete S.rfComp;S.note=m;setTimeout(()=>notice(m),600);}
+function render(quiet){hideTip();setTimeout(autoNext,0);setTimeout(autoBar,0);if(S&&S.rfComp){const m=S.rfComp;delete S.rfComp;S.note=m;setTimeout(()=>notice(m),600);}
   if(!S.named){UI.set=false;IMP=null;document.getElementById('ovl').innerHTML='';document.getElementById('top').innerHTML='';document.getElementById('tabs').innerHTML='';document.getElementById('main').innerHTML=vIntro();
     document.querySelectorAll('canvas.scene').forEach(cv=>{try{drawScene(cv,performance.now());}catch(e){}});setAmb('0');const nm=document.getElementById('nm');if(nm&&!quiet)nm.focus();return;}
   checkUnlocks();if(!S.combat||S.combat.over)checkAch();
@@ -3157,7 +3175,7 @@ function render(quiet){hideTip();setTimeout(autoNext,0);if(S&&S.rfComp){const m=
   const ci=document.getElementById('chatin');if(ci&&NET.chatFocus){ci.focus();const n=ci.value.length;try{ci.setSelectionRange(n,n);}catch(e){}}
   save();if(!quiet)runFx();
 }
-const FREE=['stab','as','autonext','mgems','duelnew','duelgo','duelcancel','pvpfind','szoom','admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
+const FREE=['autob','amove','stab','as','autonext','mgems','duelnew','duelgo','duelcancel','pvpfind','szoom','admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
