@@ -1073,7 +1073,7 @@ const MOB={
   scorp:{n:'Glass Scorpion',hp:15,atk:5,def:3,spd:5,xp:8,gold:[2,5],drops:[['shard',50],['venom',40],['steel',20]],ab:[['poison',30]],weak:'storm',res:'venom'},
   wraith:{n:'Sand Wraith',hp:12,atk:6,def:1,spd:8,xp:8,gold:[2,4],drops:[['silk',60],['steel',25]],ab:[['drain',30],['stun',12]],weak:'storm',res:'phys'},
   raider:{n:'Dune Raider',hp:17,atk:5,def:2,spd:5,xp:9,gold:[3,6],drops:[['steel',60],['silk',20]],ab:[['heavy',25],['bleed',20]],weak:'frost'},
-  queen:{n:'Queen of Shards',hp:16,atk:5,def:3,spd:6,xp:14,gold:[6,9],drops:[['crown',100],['essence',100]],ab:[['heavy',20],['bleed',25],['shield',15]],boss:1,weak:'storm',res:'frost'},
+  queen:{n:'Queen of Shards',hp:20.8,atk:5,def:3,spd:6,xp:14,gold:[6,9],drops:[['crown',100],['essence',100]],ab:[['heavy',20],['bleed',25],['shield',15]],boss:1,weak:'storm',res:'frost'},
   imp:{n:'Magma Imp',hp:13,atk:6,def:2,spd:8,xp:8,gold:[2,5],drops:[['ember',60]],ab:[['burn',35]],weak:'frost',res:'fire'},
   drake:{n:'Ash Drake',hp:18,atk:6,def:3,spd:5,xp:9,gold:[3,6],drops:[['scale',55],['ember',25]],ab:[['burn',25],['heavy',20]],weak:'frost',res:'fire'},
   golem:{n:'Obsidian Golem',hp:24,atk:5,def:5,spd:1,xp:10,gold:[3,6],drops:[['obsidian',65]],ab:[['shield',20],['stun',15]],weak:'frost',res:'phys'},
@@ -1268,13 +1268,14 @@ const BASEMAT=[{m:'scrap',q:4,g:10},{m:'steel',q:4,g:50},{m:'obsidian',q:4,g:150
 const SUP={
   moss:{q:2,aff:{hp:10}}, wing:{q:2,aff:{dodge:3}}, scrap:{q:3,aff:{def:2}}, shard:{q:2,aff:{crit:3}}, silk:{q:2,aff:{spd:2}},
   venom:{q:2,fx:'venom',d:'Hits have a 25% chance to Poison'}, scale:{q:2,aff:{def:3}}, ember:{q:2,fx:'ember',d:'Each hit deals +10% extra fire damage'},
-  essence:{q:3,aff:{mp:10}}, wardenheart:{q:1,fx:'heart',d:'Regenerate 3% HP each turn'}, crown:{q:1,fx:'crown',d:'Crits deal +20% damage'},
+  essence:{q:3,aff:{mp:10}}, wardenheart:{q:1,fx:'heart',d:'Regenerate 1% HP each turn, +0.5% per tier'}, crown:{q:1,fx:'crown',d:'Crits deal +20% damage'},
   flame:{q:1,fx:'tyrant',d:'Every hit adds a flame stack'}, shroud:{q:2,aff:{dodge:4}}, gargstone:{q:2,aff:{def:4}},
   kingsoul:{q:1,fx:'soul',d:'Kills restore 10% HP'}, starshard:{q:2,aff:{crit:4}}, voidsilk:{q:2,aff:{ls:2}},
 };
 // flat stats grow like the tier's base stats; percent stats gain 50% per tier
+const heartPct=t=>1+.5*Math.min(4,t);
 const supVal=(k,v,t)=>SCALED.includes(k)?Math.round(v*TMA[t||0]):Math.round(v*(1+(t||0)*.5));
-function supLine(m,t){const X=SUP[m];if(!X)return '';if(X.fx)return X.d;return Object.entries(X.aff).map(([k,v])=>`+${supVal(k,v,t)}${PCT.includes(k)?'%':''} ${LAB[k]}`).join(', ');}
+function supLine(m,t){const X=SUP[m];if(!X)return '';if(X.fx==='heart')return `Regenerate ${heartPct(t||0)}% HP each turn`;if(X.fx)return X.d;return Object.entries(X.aff).map(([k,v])=>`+${supVal(k,v,t)}${PCT.includes(k)?'%':''} ${LAB[k]}`).join(', ');}
 /* alloys: a base metal plus one reagent becomes a named metal with its own bonus and colours */
 const METAL={scrap:0,steel:1,obsidian:2,hollow:3,astral:4};
 const ALLOYS={
@@ -1674,7 +1675,7 @@ function derive(){
   for(const sl of SLOTS){const it=S.gear[sl];if(!it)continue;const st=itemStats(it);
     for(const k in st){const v=st[k];if(GEARMAP[k]){const [bk,f]=GEARMAP[k];b[bk]=(b[bk]||0)+v*f;}else if(sl==='weapon'&&k==='atk')continue;else b[k]=(b[k]||0)+v;}
     if(sl==='weapon')w=it;for(const f of it.fx||[])fx.push(f);for(const e of it.ench||[]){ench.push(e);const eb=ENCHBASE[e.id];if(eb)for(const k in eb){const [bk,f]=GEARMAP[k]||[k,1];b[bk]=(b[bk]||0)+eb[k]*f*(e.g?1.5:1);}}}
-  if(fx.includes('heart'))b.regen+=3;if(fx.includes('overgrow'))b.regen+=4;if(fx.includes('stoneskin'))b.dr+=15;if(fx.includes('leech'))b.ls+=8;if(fx.includes('crown'))b.critd+=.2;
+  {const hT=Math.max(-1,...SLOTS.map(s=>S.gear[s]&&(S.gear[s].fx||[]).includes('heart')?S.gear[s].tier||0:-1));if(hT>=0)b.regen+=heartPct(hT);}if(fx.includes('overgrow'))b.regen+=4;if(fx.includes('stoneskin'))b.dr+=15;if(fx.includes('leech'))b.ls+=8;if(fx.includes('crown'))b.critd+=.2;
   for(const id in (S.brews||{})){const X=BREWS[id];if(X&&S.brews[id]>0)for(const k in X.b)b[k]=(b[k]||0)+X.b[k];}
   
   if(hasP('surge'))b.crit+=10;if(hasP('unyield')){b.hpPct+=15;b.dr+=8;}if(hasP('jugg'))b.hpPct+=30;
@@ -2437,7 +2438,7 @@ function statRows(it){if(!it)return [];const rows=[];const W=it.slot==='weapon'?
 const fmtRow=r=>!r?'—':r.g!==undefined?`<span class="grd g${r.g}">${GR[r.g]}</span>`:(r.v>0&&!['atk','def','hp','mp'].includes(r.k)?'+':'')+r.v+(r.pct?'%':'');
 function extrasHTML(it){if(!it)return '';const n=enchSlots(it);const TW=it.slot==='weapon'&&WT[it.type];
   const st=false&&SETSLOTS.includes(it.slot)&&SETS[it.tier||0]?(()=>{const B=SETS[it.tier||0],n=setCounts()[it.tier||0]||0;return `<div class="xl">◈ ${B.n} (${n}/4 worn): 2 · ${B.d2} — 4 · ${B.d4}</div>`;})():'';
-  return st+(TW&&TW.tr?`<div class="xl">▸ ${TW.trn}: ${TW.tr}</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
+  return st+(TW&&TW.tr?`<div class="xl">▸ ${TW.trn}: ${TW.tr}</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${f==='heart'?`Regenerate ${heartPct(it.tier||0)}% HP each turn`:FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
    +Array.from({length:n},(_,i)=>{const e=it.ench[i];if(!e)return '<div class="xl dim">· empty enchant slot</div>';const E=ENCH[e.id];return `<div class="xl arc" style="color:${ENCHCOL[E.el]||'var(--arc)'}">◆ ${e.g?'Greater ':''}${E.n}: ${E.d}</div>`;}).join('');}
 function headHTML(it){const W=it.slot==='weapon'?WT[it.type]:null;return `<div class="ih"><span class="icbox">${itemImg(it,3)}</span><div><div class="iname">${it.plus?`+${it.plus} `:''}${esc(it.name)}</div>
   <div class="rar">${it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
