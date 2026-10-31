@@ -1258,8 +1258,8 @@ const SK={
   winter:{n:"Winter's Embrace",mp:7,vfx:'shield',d:'Heal 15% max HP and gain a shield of 100% ATK',use:(e,d)=>{heal(d.maxHp*.15);shield(d.atk);}},
   ball:{n:'Ball Lightning',mp:7,bolt:['#fff1a8','#f2c14e','#c08cff'],d:'4 bolts of 60% storm on random enemies, each adds Shock',use:()=>{for(let k=0;k<4;k++){const a=alive();if(!a.length)break;const x=pick(a);hit(x,.6,{el:'storm',proc:k===0});if(x.hp>0)shock(x,1);}}},
   staticshield:{n:'Static Shield',mp:6,vfx:'shield',d:'Shield of 150% ATK; enemies that hit you get Shocked',use:(e,d)=>{shield(d.atk*1.5);C().ps.staticward=3;}},
-  dimcut:{n:'Dimension Cut',mp:1,d:'Spend all your MP to cut every enemy: 150% from a full bar, falling off fast below full (90% MP: 109%, 75%: 63%, 50%: 19%). Can\x27t crit',
-    use:(e,d)=>{const spent=S.mp+1;S.mp=0;const m=Math.round(1.5*Math.pow(Math.min(1,spent/d.maxMp),3)*100)/100;log(`You tear the air apart (${Math.round(m*100)}%).`,'you');alive().forEach((x,k)=>hit(x,m,{proc:k===0,crit:false}));}},
+  dimcut:{n:'Dimension Cut',mp:1,d:'Spend all your MP to cut every enemy: 250% from a full bar, falling off fast below full (90% MP: 182%, 75%: 105%, 50%: 31%). Can\x27t crit',
+    use:(e,d)=>{const spent=S.mp+1;S.mp=0;const m=Math.round(2.5*Math.pow(Math.min(1,spent/d.maxMp),3)*100)/100;log(`You tear the air apart (${Math.round(m*100)}%).`,'you');alive().forEach((x,k)=>hit(x,m,{proc:k===0,crit:false}));}},
   thunderclap:{n:'Thunderclap',mp:12,vfx:'nova',d:'90% storm to all, 25% stun',use:()=>alive().forEach(x=>{hit(x,.9,{el:'storm'});if(x.hp>0&&!x.boss&&chance(25))stun(x);})},
 };
 
