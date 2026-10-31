@@ -1413,7 +1413,7 @@ function salvage(items){const got={essence:0};const add=(m,q)=>{if(q>0)got[m]=(g
     if(it.rar===3)add('cshard',R(1,2));if(it.rar===4)add('cshard',R(3,5));if(it.rar>=5)add('crys4',1);}
   for(const m in got)S.mats[m]=(S.mats[m]||0)+got[m];return Object.entries(got).map(([m,q])=>`+${q} ${MATS[m]}`).join(', ');}
 function addToBag(items){const A=S.autoSalv;
-  if(A&&A.on){const auto=items.filter(it=>!it.uq&&!it.lock&&(it.slot!=='gem'||A.gems)&&A.rar[it.rar||0]&&!(A.keepUp!==false&&isUpgrade(it)));
+  if(A&&A.on){const auto=items.filter(it=>!it.uq&&!it.lock&&!it.forged&&(it.slot!=='gem'||A.gems)&&A.rar[it.rar||0]&&!(A.keepUp!==false&&isUpgrade(it)));
     if(auto.length){for(const it of auto)it.salv=true;const msg=salvage(auto);toast(`Auto-salvaged ${auto.length} item${auto.length>1?'s':''}: ${msg}`);items=items.filter(it=>!it.salv);}}
   let over=0;for(const it of items){if(it.rar>=4)S.flags.legend=true;if(S.bag.length>=bagMax()){S.mats.essence=(S.mats.essence||0)+salvVal(it);over++;}else{it.isNew=true;S.bag.push(it);}}
   if(over)toast(`Bag full: ${over} item${over>1?'s':''} salvaged`);return over;}
@@ -2710,7 +2710,7 @@ function vSettings(){
   const st=UI.stab||'qol',A=S.autoSalv||{rar:[]};const tb=(k,n)=>`<button class="btn sm ${st===k?'tab on':''}" data-a="stab" data-v="${k}">${n}</button>`;
   const qol=`<div class="sub"><h3>Combat</h3><div class="optrow"><b>Animation speed</b>${[1,1.5,2,3].map(v=>`<button class="btn sm ${OPT.speed===v?'tab on':''}" data-a="spd" data-v="${v}">${v}×</button>`).join('')}</div>
     <div class="optrow"><b>Auto-continue in the Spire and dungeons</b><button class="btn sm ${OPT.noAuto?'':'tab on'}" data-a="autonext" aria-pressed="${!OPT.noAuto}">${OPT.noAuto?'Off':'On'}</button></div></div>
-    <div class="sub"><h3>Auto-salvage</h3><p class="dim small">New drops of the rarities you pick are salvaged straight away. Uniques and locked items are never touched.</p>
+    <div class="sub"><h3>Auto-salvage</h3><p class="dim small">New drops of the rarities you pick are salvaged straight away. Uniques, locked items and anything you forge are never touched.</p>
     <div class="optrow"><b>Auto-salvage</b><button class="btn sm ${A.on?'tab on':''}" data-a="as" data-v="on">${A.on?'On':'Off'}</button></div>
     <div class="optrow"><b>Rarities</b>${RAR.map((r,i)=>`<button class="btn sm r${i} ${A.rar[i]?'tab on':''}" style="color:var(--rc)" data-a="as" data-v="r${i}">${r.n}</button>`).join('')}</div>
     <div class="optrow"><b>Gems too</b><button class="btn sm ${A.gems?'tab on':''}" data-a="as" data-v="gems">${A.gems?'On':'Off'}</button><b>Keep upgrades</b><button class="btn sm ${A.keepUp!==false?'tab on':''}" data-a="as" data-v="up">${A.keepUp!==false?'On':'Off'}</button></div></div>`;
