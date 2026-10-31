@@ -2147,7 +2147,7 @@ const SKFX={
   ironskin:{aura:['#c9c2d6','#f4efe4']},riposte:{aura:['#f2c14e','#f4efe4']},emberward:{aura:['#e2782a','#f2c14e']},icebarrier:{aura:['#6fb7e8','#c4ecff']},
   stormstep:{aura:['#f2c14e','#c08cff'],zap:1},veil:{smoke:1},dimcut:{dimcut:1,big:1,imp:'iaido'},
   warcry:{aura:['#c43c3c','#f2c14e']},guillotine:{m:'leap',imp:'execute'},crimson:{m:'center',imp:'sweep'},thousand:{m:'iaido',imp:'twin'},
-  fan:{m:'center',imp:'knife'},hemorrhage:{m:'dash',imp:'hemorrhage'},immolate:{pillar:1},cauterize:{aura:['#e2782a','#fff1a8']},
+  fan:{knives:1,imp:'knife'},hemorrhage:{m:'dash',imp:'hemorrhage'},immolate:{pillar:1},cauterize:{aura:['#e2782a','#fff1a8']},
   glacial:{ic:1},winter:{aura:['#6fb7e8','#c4ecff']},ball:{chain:1},staticshield:{aura:['#f2c14e','#fff1a8'],zap:1},
 };
 const MOVE_T={dash:230,center:270,leap:400,blink:210,behind:230,iaido:250},BACK_T=250,PROJ_T=330;
@@ -2171,6 +2171,7 @@ function perform(cfg,e,run){const c=C();const ti=c.enemies.indexOf(e);const al=a
   else if(cfg.rain){fx('meteors',{ts:al});fxAt+=520;}
   else if(cfg.sky){fx('sky',{ts:cfg.all?al:[ti]});fxAt+=90;}
   else if(cfg.chain){fx('chain',{ts:[ti,...al.filter(x=>x!==ti)]});fxAt+=90;}
+  else if(cfg.knives){fx('knives',{ts:al});fxAt+=PROJ_T+60;}
   else if(cfg.at){fx('freeze',{t:ti});fxAt+=220;}
   else if(cfg.aura){fx('aura',{col:cfg.aura,zap:cfg.zap});fxAt+=200;}
   else if(cfg.dimcut){fx('dimcut',{});fxAt+=1050;}
@@ -2924,7 +2925,7 @@ function arcFx(cx,cy,r,a0,a1,cols,dur,th=2,sy=1){fxo(dur,k=>{const head=Math.min
 function streakFx(x0,y0,x1,y1,cols,dur,th=1){fxo(dur,k=>{const hd=Math.min(1,k*3),tl=Math.max(0,(k-.3)/.7);const ax=x0+(x1-x0)*tl,ay=y0+(y1-y0)*tl,bx=x0+(x1-x0)*hd,by=y0+(y1-y0)*hd;
   pline(ax,ay,bx,by,cols[0],GU*(th+1));pline(ax,ay,bx,by,cols[1],GU*th);});}
 function ringFx(x,y,r0,r1,cols,dur,sy=1){fxo(dur,k=>{const r=r0+(r1-r0)*k;const n=Math.max(8,Math.ceil(r*6.283/(GU*2)));for(let i=0;i<n;i++){const a=i/n*6.283;pp(x+Math.cos(a)*r,y+Math.sin(a)*r*sy,k<.5?cols[0]:cols[1]||cols[0]);}});}
-const TRAIL={icicle:['#c4ecff','#6fb7e8'],fireball:['#e2782a','#f2c14e','#c43c3c'],ember:['#e2782a','#f2c14e'],meteor:['#e2782a','#f2c14e','#c43c3c','#5d5672'],lance:['#c4ecff','#6fb7e8'],lance3:['#c4ecff','#6fb7e8'],shard:['#c4ecff','#f4efe4'],zap:['#fff1a8','#f2c14e','#c08cff'],glob:['#6aa84f','#b6e36a']};
+const TRAIL={knife:['#c9c2d6','#e0455a'],icicle:['#c4ecff','#6fb7e8'],fireball:['#e2782a','#f2c14e','#c43c3c'],ember:['#e2782a','#f2c14e'],meteor:['#e2782a','#f2c14e','#c43c3c','#5d5672'],lance:['#c4ecff','#6fb7e8'],lance3:['#c4ecff','#6fb7e8'],shard:['#c4ecff','#f4efe4'],zap:['#fff1a8','#f2c14e','#c08cff'],glob:['#6aa84f','#b6e36a']};
 // an icicle: pale shaft, white tip; g grows it in
 function drawIcicle(x,y,ang,g){const dx=Math.cos(ang),dy=Math.sin(ang),L=24*g;pline(x-dx*L*.6,y-dy*L*.6,x+dx*L*.4,y+dy*L*.4,'#3a5ea8',GU*2);pline(x-dx*L*.5,y-dy*L*.5,x+dx*L*.4,y+dy*L*.4,'#6fb7e8',GU);
   pline(x-dx*L*.2,y-dy*L*.2,x+dx*L*.4,y+dy*L*.4,'#c4ecff',GP);pp(x+dx*L*.5,y+dy*L*.5,'#ffffff',GU);}
@@ -2932,6 +2933,7 @@ function drawProj(k,x,y,ang,now){if(k==='icicle'){drawIcicle(x,y,ang,1);return;}
   if(k==='fireball'||k==='ember'||k==='meteor'){const r={ember:9,fireball:14,meteor:24}[k];for(let j=-r-8;j<=r+8;j+=GP)for(let i=-r-8;i<=r+8;i+=GP){const d=i*i+j*j;if(d>r*r&&d<=(r+8)*(r+8)&&((i+j)/GP&1)===f)pp(x+i,y+j,'#7a1f2b');}pdisc(x,y,r+(f?GP:0),'#c43c3c');pdisc(x,y,r-2,'#e2782a');pdisc(x+2,y-2,Math.max(3,r-6),'#f2c14e');pdisc(x+3,y-3,Math.max(2,r-10),'#fff1a8');return;}
   if(k==='lance'||k==='lance3'){const dx=Math.cos(ang),dy=Math.sin(ang);for(const o of k==='lance3'?[-14,0,14]:[0]){const X=x-dy*o,Y=y+dx*o,L=46;
     pline(X-dx*L,Y-dy*L,X,Y,'#3a5ea8',GU*3);pline(X-dx*L*.85,Y-dy*L*.85,X,Y,'#6fb7e8',GU*2);pline(X-dx*L*.5,Y-dy*L*.5,X+dx*3,Y+dy*3,'#c4ecff',GP);pp(X+dx*6,Y+dy*6,'#ffffff',GU*2);}return;}
+  if(k==='knife'){const sp=now/45,dx=Math.cos(sp),dy=Math.sin(sp),L=10;pline(x-dx*L,y-dy*L,x,y,'#3b3450',GU*2);pline(x,y,x+dx*L*1.4,y+dy*L*1.4,'#c9c2d6',GU*2);pp(x+dx*L*1.4,y+dy*L*1.4,'#ffffff',GU);pp(x-dx*L,y-dy*L,'#e0455a',GU);return;}
   if(k==='shard'){pdisc(x,y,5,'#6fb7e8');pdisc(x,y,3,'#c4ecff');pp(x,y,'#fff');return;}
   if(k==='zap'){pdisc(x,y,6,'#f2c14e');pdisc(x,y,3,'#fff1a8');for(let i=0;i<3;i++){const a=Math.random()*6.283;pjag(jagPts(x,y,x+Math.cos(a)*16,y+Math.sin(a)*16,3,8),'#fff1a8',GP);}return;}
   if(k==='glob'){pdisc(x,y,8,'#1d3b2a');pdisc(x,y,6,'#6aa84f');pp(x-3,y-3,'#b6e36a',GU*2);}}
@@ -3114,6 +3116,7 @@ const PLAY={
     for(let k=0;k<11;k++)setTimeout(()=>{const a=Math.random()*Math.PI,ox=(Math.random()-.5)*R0.width*.5,oy=(Math.random()-.5)*R0.height*.4,dx=Math.cos(a)*L,dy=Math.sin(a)*L;
       streakFx(cx+ox-dx,cy+oy-dy,cx+ox+dx,cy+oy+dy,k%2?['#c08cff','#ffffff']:['#e0c8ff','#ffffff'],420,k%3?1:2);sfx('swing');},TS(k*55));
     setTimeout(()=>{flash('#ffffff',160);shake(10);for(const f of document.querySelectorAll('.foe:not(.dead)')){const s=sprEl(f),c=ctr(s);burst(c.x,c.y,{n:24,col:['#ffffff','#c08cff','#7a3fb0'],spd:6,life:28});}},TS(820));},
+  knives:e=>{const hh=heroEl();if(!hh)return;const A=ctr(hh);e.ts.forEach((t,k)=>setTimeout(()=>{const f=sprEl(elFor(t));if(!f)return;const B=ctr(f);projFx('knife',{x:A.r.right-6,y:A.y-6-(k-1)*6},{x:B.x,y:B.y},PROJ_T-40);sfx('swing');},TS(k*40)));},
   bcharge:e=>{const f=sprEl(elFor(e.t));if(!f)return;const B=ctr(f),col=(e.col||'#f4efe4,#fff1a8').split(','),r=Math.max(B.r.width,B.r.height)*.8;sfx('shield');
     ringFx(B.x,B.y,r,6,col,420,.4);for(let k=0;k<16;k++){const a=k/16*6.283;setTimeout(()=>streakFx(B.x+Math.cos(a)*r,B.y+Math.sin(a)*r*.7,B.x+Math.cos(a)*8,B.y+Math.sin(a)*6,col,260,0),TS(k*14));}
     if(!RM)f.animate([{transform:'translateX(0)'},{transform:'translateX(14px) translateY(-4px)',offset:.75},{transform:'translateX(0)'}],{duration:TS(460),easing:'steps(5)'});},
