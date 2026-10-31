@@ -369,3 +369,29 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   - Soulforged (region 4): ignores 35% of defense, and kills heal 8% HP.
   - Stormforged (region 5): storm damage that arcs to another enemy. It uses a Leviathan Heart as its reagent.
 - [x] **Supplements:** Crowned is down to +20% crit damage, and you can use only one boss-material effect per item.
+
+## Round 14 — Arena, QoL and harder late game (done)
+- [x] **Duels:** fought in a colosseum. Results show your rating change, and duels give no gold or loot.
+- [x] **Settings:** split into QoL (speed, auto-continue, auto-salvage) and Options (account, sound, save, admin, achievements). Auto-continue is now near-instant.
+- [x] **Auto-salvage:** picks by rarity, with optional gems and "keep upgrades". Uniques and locked items are never salvaged.
+- [x] **Spire:** you can start at half your best floor. XP is 0.3× and item drops are rarer.
+- [x] **Rarer drops overall:** items, gems, high-grade gems, boss rarities, crystals and uniques.
+- [x] **Area levels connect:** 1–4, 5–9, 10–14, 15–19, 20–32.
+- [x] **Regional elements:** each region has one weakness and one resistance.
+
+  | Region | Weak to | Resists |
+  |---|---|---|
+  | Mossy Hollow | fire | venom |
+  | Glasswind Dunes | frost | storm |
+  | Cinderfall Peaks | frost | fire |
+  | The Hollow Crown | fire | frost |
+  | The Stormsea | storm | venom |
+- [x] **Late-game damage:** Hollow Crown monsters and every boss from there on deal 1.5× damage, and Stormsea regulars 1.2×. Those bosses ignore 70% of your defense. This doesn't apply in the Spire.
+- [x] **New art:**
+  - The Ember Tyrant is an armored horned demon with a flaming greatsword and fire sword swings.
+  - The Leviathan is a giant head and neck reaching in from off-screen.
+  - Abyssal armor has shell pauldrons, scales, fins and pearls.
+- [x] **Boss effects:**
+  - Every boss gathers particles while a signature move is coming, then rears back before it lands.
+  - The enraged red outline is gone; "Enraged" shows next to the name instead.
+- [x] **Attack effects:** each weapon has its own basic attack (cleave, chop, twin cut, thrust, iaido…). Tidebreaker rides a wave; Cinderbrand and Emberforged blades cut with fire; Obsidian Edge does a void cut.
