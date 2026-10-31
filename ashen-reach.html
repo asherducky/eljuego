@@ -1022,7 +1022,7 @@ function heroImg(scale,wt,at){const P=heroParts(wt,at),n=(P.ck||P.aura.length)&&
   for(let i=0;i<n;i++){const [k,c]=heroCanvas(P,i);urls.push(canvasURL(k,c));if(!i)k0=k;}
   const u=artPx(scale);
   return `<img class="spr idle"${n>1?` data-fr="${frameKey(k0,urls)}"`:''} src="${urls[0]}" width="${64*u}" height="${48*u}" style="--bob:${u}px" alt="">`;}
-const MATICON={emberflux:['m_gem','#fff1a8','#e2782a','#c43c3c'],bloodflux:['m_gem','#ffb3a8','#c43c3c','#5d1f1f'],astral:['m_chunk','#5ec4b0','#2a6e6e','#1d2b52'],voidsilk:['m_leaf','#c4ecff','#3a5ea8','#1d2b52'],starshard:['m_gem','#ffffff','#c4ecff','#6fb7e8'],riftcore:['m_gem','#9cc8ff','#3a5ea8','#1d2b52'],cshard:['m_gem','#f4efe4','#c9c2d6','#8f88a8'],crys2:['m_gem','#fff1a8','#f2c14e','#a8702a'],crys3:['m_gem','#e0c8ff','#c08cff','#7a3fb0'],crys4:['m_gem','#ffd2b0','#ff8b45','#c43c3c'],crys5:['m_gem','#ffd0f4','#ff4fd8','#7a1f6b'],moss:['m_leaf','#b6e36a','#6aa84f','#2f6b3a'],scrap:['m_chunk','#c9c2d6','#5d5672','#3b3450'],wing:['m_wing','#c08cff','#7a3fb0','#3b1f5a'],
+const MATICON={soulflux:['m_gem','#e8fbff','#9cc8ff','#3a5ea8'],emberflux:['m_gem','#fff1a8','#e2782a','#c43c3c'],bloodflux:['m_gem','#ffb3a8','#c43c3c','#5d1f1f'],astral:['m_chunk','#5ec4b0','#2a6e6e','#1d2b52'],voidsilk:['m_leaf','#c4ecff','#3a5ea8','#1d2b52'],starshard:['m_gem','#ffffff','#c4ecff','#6fb7e8'],riftcore:['m_gem','#9cc8ff','#3a5ea8','#1d2b52'],cshard:['m_gem','#f4efe4','#c9c2d6','#8f88a8'],crys2:['m_gem','#fff1a8','#f2c14e','#a8702a'],crys3:['m_gem','#e0c8ff','#c08cff','#7a3fb0'],crys4:['m_gem','#ffd2b0','#ff8b45','#c43c3c'],crys5:['m_gem','#ffd0f4','#ff4fd8','#7a1f6b'],moss:['m_leaf','#b6e36a','#6aa84f','#2f6b3a'],scrap:['m_chunk','#c9c2d6','#5d5672','#3b3450'],wing:['m_wing','#c08cff','#7a3fb0','#3b1f5a'],
   wardenheart:['m_heart','#b6e36a','#2f6b3a','#1d3b2a'],shard:['m_gem','#c4ecff','#6fb7e8','#3a5ea8'],venom:['m_vial','#b6e36a','#6aa84f','#2f6b3a'],
   silk:['m_leaf','#f4efe4','#e8b796','#a8703f'],crown:['m_gem','#ffc4ec','#e05aa8','#7a3fb0'],ember:['m_flame','#fff1a8','#e2782a','#c43c3c'],
   scale:['m_gem','#e2782a','#5d5672','#3b3450'],steel:['m_chunk','#ffffff','#8f88a8','#3b3450'],hollow:['m_chunk','#fff8ec','#d8ccb4','#6e6680'],shroud:['m_leaf','#c08cff','#7a3fb0','#3b1f5a'],gargstone:['m_chunk','#8f88a8','#3b3450','#1f1a2b'],kingsoul:['m_gem','#e8fbff','#9cc8ff','#3a5ea8'],obsidian:['m_chunk','#7a3fb0','#2e2742','#1f1a2b'],flame:['m_flame','#fff1a8','#f2c14e','#c43c3c'],
@@ -1046,7 +1046,7 @@ const PS=()=>innerWidth>=1080?4:innerWidth>=800?3:2;
 
 /* ============ data ============ */
 const CRYS={crys2:{r:2},crys3:{r:3},crys4:{r:4},crys5:{r:5}};
-const MATS={emberflux:'Ember Flux',bloodflux:'Blood Flux',astral:'Abyssal Ore',voidsilk:'Siren Scale',starshard:'Storm Pearl',riftcore:'Leviathan Heart',cshard:'Crystal Shard',crys2:'Rare Crystal',crys3:'Epic Crystal',crys4:'Legendary Crystal',crys5:'Mythic Crystal',moss:'Moss Fiber',scrap:'Goblin Scrap',wing:'Bat Wing',wardenheart:"Warden's Heart",shard:'Glass Shard',steel:'Steel Fragment',hollow:'Hollow Iron',shroud:'Court Shroud',gargstone:'Gargoyle Stone',kingsoul:"King's Soul",venom:'Scorpion Venom',silk:'Wraith Silk',crown:'Shard Crown',ember:'Ember Core',scale:'Drake Scale',obsidian:'Obsidian Chunk',flame:'Tyrant Flame',essence:'Arcane Essence'};
+const MATS={soulflux:'Soul Flux',emberflux:'Ember Flux',bloodflux:'Blood Flux',astral:'Abyssal Ore',voidsilk:'Siren Scale',starshard:'Storm Pearl',riftcore:'Leviathan Heart',cshard:'Crystal Shard',crys2:'Rare Crystal',crys3:'Epic Crystal',crys4:'Legendary Crystal',crys5:'Mythic Crystal',moss:'Moss Fiber',scrap:'Goblin Scrap',wing:'Bat Wing',wardenheart:"Warden's Heart",shard:'Glass Shard',steel:'Steel Fragment',hollow:'Hollow Iron',shroud:'Court Shroud',gargstone:'Gargoyle Stone',kingsoul:"King's Soul",venom:'Scorpion Venom',silk:'Wraith Silk',crown:'Shard Crown',ember:'Ember Core',scale:'Drake Scale',obsidian:'Obsidian Chunk',flame:'Tyrant Flame',essence:'Arcane Essence'};
 const AREA_MATS=[['moss','scrap','wing'],['steel','shard','venom','silk'],['ember','scale','obsidian'],['hollow','shroud','gargstone'],['astral','voidsilk','starshard']];
 const EL={phys:{n:'Physical',c:'#c9c2d6'},fire:{n:'Fire',c:'#e2782a'},frost:{n:'Frost',c:'#6fb7e8'},storm:{n:'Storm',c:'#f2c14e'},venom:{n:'Venom',c:'#b6e36a'}};
 /* Enemy numbers are per-unit; mkEnemy scales them by level. */
@@ -1065,10 +1065,10 @@ const MOB={
   golem:{n:'Obsidian Golem',hp:24,atk:5,def:5,spd:1,xp:10,gold:[3,6],drops:[['obsidian',65]],ab:[['shield',20],['stun',15]],weak:'frost',res:'phys'},
   knight:{n:'Ash Knight',hp:19,atk:5.4,def:4,spd:3,xp:10,gold:[3,7],drops:[['hollow',60],['shroud',10]],ab:[['heavy',25],['shield',15]],weak:'frost',res:'phys'},
   cwraith:{n:'Court Wraith',hp:13,atk:6.2,def:2,spd:9,xp:9,gold:[3,6],drops:[['shroud',60],['hollow',15]],ab:[['drain',30],['stun',12]],weak:'fire',res:'frost'},
-  stalker:{n:'Storm Eel',hp:18,atk:5.2,def:4,spd:8,xp:16,gold:[4,8],drops:[['voidsilk',40],['astral',20]],ab:[['heavy',22],['stun',12],['bleed',20]],weak:'frost',res:'storm'},
-  sentinel:{n:'Drowned Knight',hp:21,atk:5,def:5,spd:2,xp:16,gold:[4,8],drops:[['astral',55],['starshard',20]],ab:[['shield',20],['heavy',22],['stun',10]],weak:'storm',res:'frost'},
-  siren:{n:'Tide Siren',hp:15,atk:5.6,def:3,spd:9,xp:16,gold:[4,8],drops:[['starshard',45],['voidsilk',25]],ab:[['drain',28],['stun',12]],weak:'fire',res:'frost'},
-  unmaker:{n:'The Leviathan',hp:13,atk:5,def:4.5,spd:6,xp:22,gold:[8,12],drops:[['riftcore',100],['essence',100]],ab:[['heavy',22],['drain',20],['stun',12]],boss:1,weak:'storm',res:'frost'},
+  stalker:{n:'Storm Eel',hp:54,atk:5.2,def:4,spd:8,xp:16,gold:[4,8],drops:[['voidsilk',40],['astral',20]],ab:[['heavy',22],['stun',12],['bleed',20]],weak:'frost',res:'storm'},
+  sentinel:{n:'Drowned Knight',hp:63,atk:5,def:5,spd:2,xp:16,gold:[4,8],drops:[['astral',55],['starshard',20]],ab:[['shield',20],['heavy',22],['stun',10]],weak:'storm',res:'frost'},
+  siren:{n:'Tide Siren',hp:45,atk:5.6,def:3,spd:9,xp:16,gold:[4,8],drops:[['starshard',45],['voidsilk',25]],ab:[['drain',28],['stun',12]],weak:'fire',res:'frost'},
+  unmaker:{n:'The Leviathan',hp:39,atk:5,def:4.5,spd:6,xp:22,gold:[8,12],drops:[['riftcore',100],['essence',100]],ab:[['heavy',22],['drain',20],['stun',12]],boss:1,weak:'storm',res:'frost'},
   gargoyle:{n:'Gargoyle',hp:18,atk:5.4,def:5,spd:2,xp:10,gold:[3,6],drops:[['gargstone',65],['hollow',20]],ab:[['shield',30],['heavy',15]],weak:'storm',res:'venom'},
   hking:{n:'The Hollow King',hp:12,atk:5.2,def:4,spd:5,xp:14,gold:[7,10],drops:[['kingsoul',100],['essence',100]],ab:[['heavy',20],['drain',20],['stun',12]],boss:1,weak:'fire',res:'frost'},
   tyrant:{n:'The Ember Tyrant',hp:15,atk:5.4,def:3,spd:6,xp:14,gold:[6,9],drops:[['flame',100],['essence',100]],ab:[['burn',25],['heavy',20],['stun',12]],boss:1,weak:'frost',res:'venom'},
@@ -1093,9 +1093,9 @@ const WT={
   scimitar:{n:'Scimitar',sub:'medium',atk:4.5,g:{str:4,dex:3},crit:3,spd:1,ft:1,twice:30,trn:'Flurry',tr:'30% chance to strike again for 60%. +1 SPD'},
   rapier:{n:'Rapier',sub:'light',atk:5.5,g:{dex:6},crit:8,spd:1,ft:1,riposte:25,trn:'Riposte',tr:'25% chance to counter for 70% when an enemy hits you. +1 SPD'},
   dagger:{n:'Dagger',sub:'light',atk:4.5,g:{dex:5},crit:12,spd:2,ft:0,poison:30,trn:'Envenom',tr:'30% chance per hit to Poison. +2 SPD'},
-  firestaff:{n:'Ember Staff',sub:'fire',atk:5,g:{int:7},el:'fire',ft:0},
-  frostwand:{n:'Icicle Wand',sub:'frost',atk:5,g:{int:6},el:'frost',crit:3,ft:0},
-  stormrod:{n:'Storm Rod',sub:'storm',atk:5,g:{int:6,dex:2},el:'storm',ft:0},
+  firestaff:{n:'Ember Staff',sub:'fire',atk:6,g:{int:7},el:'fire',ft:0},
+  frostwand:{n:'Icicle Wand',sub:'frost',atk:6,g:{int:6},el:'frost',crit:3,ft:0},
+  stormrod:{n:'Storm Rod',sub:'storm',atk:7,g:{int:6,dex:2},el:'storm',ft:0},
 };
 const AT={robe:{n:'Robe',def:1,mp:6},leather:{n:'Tunic',def:2,dodge:3},plate:{n:'Chestplate',def:3.5,spd:-2}};
 const HT={cap:{n:'Cap',def:.5,hp:5},helm:{n:'Helm',def:1.5},hood:{n:'Hood',def:.5,crit:3}};
@@ -1103,8 +1103,8 @@ const BT={shoes:{n:'Shoes',spd:2},greaves:{n:'Plated Boots',def:1.5},treads:{n:'
 const CT={cape:{n:'Cape',dodge:2,spd:1},mantle:{n:'Cloak',def:1,hp:6},shroud:{n:'Shroud',mp:5,crit:2}};
 const TT={ring:{n:'Ring',crit:3},charm:{n:'Charm',hp:6},band:{n:'Band',spd:2}};
 /* gems sit in your character's gem slots; three of a kind fuse into the next grade */
-const GEMS={ruby:{n:'Ruby',s:{atk:2},pal:['#ffb3a8','#c43c3c','#7a1f2b']},sapphire:{n:'Sapphire',s:{mp:6,int:1},pal:['#c4ecff','#3a5ea8','#1d2b52']},
-  emerald:{n:'Emerald',s:{hp:8},pal:['#d8f0c0','#3fae5a','#1d3b2a']},topaz:{n:'Topaz',s:{crit:3},pal:['#fff1a8','#f2c14e','#a8702a']},
+const GEMS={ruby:{n:'Ruby',s:{str:2,int:2},pal:['#ffb3a8','#c43c3c','#7a1f2b']},sapphire:{n:'Sapphire',s:{mp:6,int:1},pal:['#c4ecff','#3a5ea8','#1d2b52']},
+  emerald:{n:'Emerald',s:{vit:3},pal:['#d8f0c0','#3fae5a','#1d3b2a']},topaz:{n:'Topaz',s:{crit:3},pal:['#fff1a8','#f2c14e','#a8702a']},
   amethyst:{n:'Amethyst',s:{spd:1,dodge:2},pal:['#e0c8ff','#9a6ad8','#3b1f5a']},onyx:{n:'Onyx',s:{def:2},pal:['#a8a2c0','#3b3450','#1f1a2b']},
   bloodstone:{n:'Bloodstone',s:{ls:2},pal:['#ff9a8f','#7a1f2b','#2a0e14']}};
 const GRADEN=['Chipped','Cut','Polished','Flawless','Perfect'],GMUL=[1,2,3.5,5.5,8],FUSEG=[20,60,150,400];
@@ -1238,7 +1238,7 @@ const BASEMAT=[{m:'scrap',q:4,g:10},{m:'steel',q:4,g:50},{m:'obsidian',q:4,g:150
 const SUP={
   moss:{q:2,aff:{hp:10}}, wing:{q:2,aff:{dodge:3}}, scrap:{q:3,aff:{def:2}}, shard:{q:2,aff:{crit:3}}, silk:{q:2,aff:{spd:2}},
   venom:{q:2,fx:'venom',d:'Hits have a 25% chance to Poison'}, scale:{q:2,aff:{def:3}}, ember:{q:2,fx:'ember',d:'Each hit deals +10% extra fire damage'},
-  essence:{q:3,aff:{mp:10}}, wardenheart:{q:1,fx:'heart',d:'Regenerate 3% HP each turn'}, crown:{q:1,fx:'crown',d:'Crits deal +40% damage'},
+  essence:{q:3,aff:{mp:10}}, wardenheart:{q:1,fx:'heart',d:'Regenerate 3% HP each turn'}, crown:{q:1,fx:'crown',d:'Crits deal +20% damage'},
   flame:{q:1,fx:'tyrant',d:'Every hit adds a flame stack'}, shroud:{q:2,aff:{dodge:4}}, gargstone:{q:2,aff:{def:4}},
   kingsoul:{q:1,fx:'soul',d:'Kills restore 10% HP'}, starshard:{q:2,aff:{crit:4}}, voidsilk:{q:2,aff:{ls:2}},
 };
@@ -1271,9 +1271,12 @@ Object.assign(ALLOYS,{starsteel:{n:'Starsteel',base:'astral',r:'starshard',q:2,a
   voidsteel:{n:'Voidsteel',base:'astral',r:'voidsilk',q:2,aff:{dodge:5,ls:2},d:'+Dodge, +Lifesteal',pal:{W:'#c08cff',w:'#3b1f5a',G:'#1f1a2b'}},
   riftforged:{n:'Riftforged',base:'astral',r:'riftcore',q:1,fx:'erupt',aff:{atk:3},d:'Crits erupt for 50% to all foes',pal:{W:'#fff1a8',w:'#e05aa8',G:'#3b1f5a'}}});
 // the old alloys stay only so items made with them keep their names and colours
-Object.assign(ALLOYS,{emberforged:{n:'Emberforged',r:'emberflux',q:1,fx:'emberblade',short:'Hits deal fire damage and add flame stacks',pal:{W:'#ffd36a',w:'#e2782a',G:'#c43c3c'}},
-  bloodforged:{n:'Bloodforged',r:'bloodflux',q:1,fx:'bloodblade',short:'+30% damage, +15% lifesteal, −25% max HP',pal:{W:'#ffb3a8',w:'#c43c3c',G:'#5d1f1f'}}});
-const ALLOYOF={emberflux:'emberforged',bloodflux:'bloodforged'};
+Object.assign(ALLOYS,{emberforged:{n:'Emberforged',r:'emberflux',q:1,ar:2,fx:'emberblade',short:'Hits deal fire damage and add flame stacks',pal:{W:'#ffd36a',w:'#e2782a',G:'#c43c3c'}},
+  bloodforged:{n:'Bloodforged',r:'bloodflux',q:1,ar:1,fx:'bloodblade',short:'+15% damage, +8% lifesteal, −20% max HP',pal:{W:'#ffb3a8',w:'#c43c3c',G:'#5d1f1f'}},
+  soulforged:{n:'Soulforged',r:'soulflux',q:1,ar:3,fx:'soulblade',short:'Ignore 35% of defense; kills heal 8% HP',pal:{W:'#e8fbff',w:'#9cc8ff',G:'#3a5ea8'}},
+  stormforged:{n:'Stormforged',r:'riftcore',q:1,ar:4,fx:'stormblade',short:'Hits deal storm damage; 35% arc to another enemy',pal:{W:'#fff1a8',w:'#5ec4b0',G:'#1d2b52'}}});
+const ALLOYOF={bloodflux:'bloodforged',emberflux:'emberforged',soulflux:'soulforged',riftcore:'stormforged'};
+const alloyOpen=k=>S.unlocked>(ALLOYS[k].ar||0);
 const UNIQ={
   mirrorfang:{n:'Mirrorfang',type:'rapier',tier:2,from:'queen',fx:'mirror',col:'#c4ecff',a:'Reflection',d:'30% chance to strike again for 60%',affs:{dex:4,crit:4}},
   shardcrown:{n:'Shardcrown Wand',type:'frostwand',tier:2,from:'queen',fx:'prism',col:'#e05aa8',a:'Prism',d:'Elemental hits split onto another enemy for 40%',affs:{int:4,mp:10}},
@@ -1286,8 +1289,9 @@ const UNIQ={
   obsidianedge:{n:'Obsidian Edge',type:'katana',tier:2,from:'golem',fx:'sever',col:'#7a3fb0',a:'Sever',d:'Ignore 30% of enemy defense',affs:{dex:4,str:3}},
 };
 const FXD={emberblade:'Your hits deal fire damage instead of physical (physical damage bonuses still count). Each hit adds a flame stack.',
-  bloodblade:'+30% damage and +15% lifesteal, but −25% max HP.',jagged:'Hits have a 20% chance to Bleed'};
-const FXN={emberblade:'Emberforged',bloodblade:'Bloodforged',jagged:'Jagged',soul:'Soulbound',venom:'Venomed',ember:'Smouldering',heart:"Warden's Heart",crown:'Crowned',tyrant:"Tyrant's Flame"};
+  bloodblade:'+15% damage and +8% lifesteal, but −20% max HP.',
+  soulblade:'Hits ignore 35% of enemy defense, and kills restore 8% HP.',stormblade:'Your hits deal storm damage instead of physical (physical damage bonuses still count). 35% of hits arc to another enemy for 50%.',jagged:'Hits have a 20% chance to Bleed'};
+const FXN={emberblade:'Emberforged',bloodblade:'Bloodforged',soulblade:'Soulforged',stormblade:'Stormforged',jagged:'Jagged',soul:'Soulbound',venom:'Venomed',ember:'Smouldering',heart:"Warden's Heart",crown:'Crowned',tyrant:"Tyrant's Flame"};
 const CATS={weapon:'Weapon',armor:'Armor',helm:'Helm',boots:'Boots',cloak:'Cloak'};
 const ENCH={
   keen:{n:'Keen',slots:['weapon'],d:'+8% crit, crits deal +25%',cost:{essence:4,scrap:3},area:0},
@@ -1325,6 +1329,7 @@ const SUPPLY=[
   {id:'salve',n:'Cleansing Salve',cost:{moss:1,wing:1},g:5,out:'salve',q:1,d:'Cleanse + 15% HP'},
   {id:'ef',n:'Ember Flux',cost:{essence:6,moss:3},g:80,out:'emberflux',q:1,d:'Alloy reagent: Emberforged',mat:1},
   {id:'bf',n:'Blood Flux',cost:{essence:6,wing:3},g:80,out:'bloodflux',q:1,d:'Alloy reagent: Bloodforged',mat:1},
+  {id:'sf',n:'Soul Flux',cost:{essence:8,shroud:2},g:150,out:'soulflux',q:1,d:'Alloy reagent: Soulforged',mat:1},
   {id:'c2',n:'Rare Crystal',cost:{cshard:6},g:50,out:'crys2',q:1,d:'Forge an item at Rare',mat:1},
   {id:'c3',n:'Epic Crystal',cost:{crys2:3},g:200,out:'crys3',q:1,d:'Forge an item at Epic',mat:1},
   {id:'c4',n:'Legendary Crystal',cost:{crys3:3},g:800,out:'crys4',q:1,d:'Forge an item at Legendary',mat:1},
@@ -1363,9 +1368,12 @@ function allItems(){return [...SLOTS.map(s=>S.gear[s]).filter(Boolean),...S.bag]
 function findItem(u){return allItems().find(i=>i.uid===u);}
 function findAny(u){return findItem(u)||null;}
 const isWorn=it=>SLOTS.some(s=>S.gear[s]===it);
-const equipSlotFor=it=>it.slot!=='gem'?it.slot:GEMSLOTS.filter(gemOpen).find(s=>!S.gear[s])||'gem1';
+const equipSlotFor=it=>it.slot!=='gem'?it.slot:GEMSLOTS.find(s=>S.gear[s]&&S.gear[s].type===it.type)||GEMSLOTS.filter(gemOpen).find(s=>!S.gear[s])||'gem1';
+// old saves: rebuild gem stats (Ruby and Emerald are percents now, Perfect is Legendary) and unequip a second gem of the same type
+function fixGems(s){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.slot==='gem'&&GEMS[it.type]){const g=mkGem(it.type,it.g||0);it.affixes=g.affixes;it.rar=g.rar;}
+  const seen=new Set();for(const sl of GEMSLOTS){const g=s.gear&&s.gear[sl];if(!g)continue;if(seen.has(g.type)){(s.bag=s.bag||[]).push(g);s.gear[sl]=null;}else seen.add(g.type);}}
 function mkGem(type,g){const G=GEMS[type];const affs=Object.entries(G.s).map(([k,v])=>({id:k,v:Math.max(1,Math.round(v*GMUL[g])),r:0}));
-  const it=mkItem('gem',type,0,[0,1,2,3,3][g],affs,{g});it.name=`${GRADEN[g]} ${G.n}`;return it;}
+  const it=mkItem('gem',type,0,[0,1,2,3,4][g],affs,{g});it.name=`${GRADEN[g]} ${G.n}`;return it;}
 const TCONV={ring:'topaz',charm:'emerald',band:'amethyst'};
 const convTrinket=it=>mkGem(TCONV[it.type]||'ruby',Math.min(4,it.tier+(it.rar>=2?1:0)));
 const salvVal=it=>1+it.rar*2+it.tier+it.plus;
@@ -1394,7 +1402,7 @@ function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(
   for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.uq&&!UNIQ[it.uq]){it.uq=null;it.rar=3;it.name=itemName(it);}
   if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&(s.combat.ctx==='duel'||s.combat.ctx==='pvp'))s.combat=null;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
-  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);return s;}
+  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);return s;}
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();pvpPost();}}
 /* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
 // The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
@@ -1479,19 +1487,27 @@ function duelMsg(p){const D=NET.duel;if(!D||!p)return;
     const els=hits.map(x=>x.el).filter(x=>x&&x!=='phys');const pk=/meteor/i.test(p.name||'')?'meteor':{fire:'fireball',frost:'icicle',storm:'zap',venom:'glob'}[els[0]];
     if(hits.length){if(pk){fx('ecast',{t:0});fxAt+=160;fx('eproj',{t:0,k:pk});fxAt+=pk==='meteor'?520:PROJ_T;}else{fx('lunge',{t:0});fxAt+=220;}}
     const WP=S.gear.weapon&&WT[S.gear.weapon.type];const miss=hits.length?(chance(d.dodge+(c.ps.veil?40:0))?'Dodge':WP&&WP.parry&&chance(WP.parry)?'Parry':null):null;
-    if(miss){log(miss==='Dodge'?`You dodge ${e.n}.`:`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:miss,cls:'miss'});}
+    const counter=[];if(miss){log(miss==='Dodge'?`You dodge ${e.n}.`:`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:miss,cls:'miss'});}
     else if(p.name!=='Stunned'){let tot=0;
       for(const x of hits){let dmg=Math.max(1,Math.round((+x.d||0)*(1-d.dr/100)));if(c.ps.shield){const a=Math.min(c.ps.shield,dmg);c.ps.shield-=a;dmg-=a;if(!c.ps.shield)delete c.ps.shield;}
         if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);tot+=dmg;fx('impact',{t:'p',el:x.el||'phys',st:'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:dmg+(x.c?'!':''),cls:x.c?'crit':'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});fxAt+=120;if(S.hp<=0)break;}
-      if(hits.length)log(`${e.n} hits you ${hits.length>1?hits.length+' times ':''}for ${tot}.`,'hurt');stUnP(c,p.st||{});}
-    if(c.ps.veil)c.ps.veil--;
+      if(hits.length)log(`${e.n} hits you ${hits.length>1?hits.length+' times ':''}for ${tot}.`,'hurt');stUnP(c,p.st||{});
+      if(tot>0&&S.hp>0){if(d.thorns){const r=Math.max(1,Math.round(tot*d.thorns/100));counter.push({d:r,el:'phys'});fx('num',{t:0,txt:r,cls:'dmg'});log(`Thorns deal ${r} back.`,'buff');}
+        if(c.ps.riposte||(WP&&WP.riposte&&chance(WP.riposte))){c.duelHits=[];fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});counter.push(...c.duelHits);c.duelHits=[];}}}
+    for(const k of ['veil','riposte'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];
     if(S.hp>0)tickDots(c.ps,'You',dd=>{if(!S.flags.god)S.hp=Math.max(0,S.hp-dd);},'p');
-    duelSend({t:'hp',hp:S.hp,st:stPack(c.ps)});
+    duelSend({t:'hp',hp:S.hp,st:stPack(c.ps),counter:counter.slice(0,10)});
     if(S.hp<=0){lose();fx('sync');runFx();render(true);return;}
     c.myTurn=true;startTurn();
     if(c.ps.stun){delete c.ps.stun;log('You are stunned and lose your turn.','hurt');fx('num',{t:'p',txt:'Stunned',cls:'miss'});c.myTurn=false;duelSend({t:'act',hits:[],name:'Stunned',hp:S.hp,st:stPack(e.st),me:stPack(c.ps)});}
     fx('sync');runFx();render(true);return;}
-  if(p.t==='hp'){e.hp=Math.max(0,+p.hp||0);e.st=stUnE(p.st||{});fx('hp',{t:0,hp:e.hp,max:e.max});if(e.hp<=0){fx('die',{t:0});win();}fx('sync');runFx();render(true);return;}
+  if(p.t==='hp'){e.hp=Math.max(0,+p.hp||0);e.st=stUnE(p.st||{});fx('hp',{t:0,hp:e.hp,max:e.max});if(e.hp<=0){fx('die',{t:0});win();fx('sync');runFx();render(true);return;}
+    const ctr=Array.isArray(p.counter)?p.counter.slice(0,10):[];if(ctr.length&&S.hp>0){const d=derive();fx('lunge',{t:0});fxAt+=200;let tot=0;
+      for(const x of ctr){let dmg=Math.max(1,Math.round((+x.d||0)*(1-d.dr/100)));if(c.ps.shield){const a=Math.min(c.ps.shield,dmg);c.ps.shield-=a;dmg-=a;if(!c.ps.shield)delete c.ps.shield;}
+        if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);tot+=dmg;fx('impact',{t:'p',el:x.el||'phys',st:'claw'});fx('num',{t:'p',txt:dmg+(x.c?'!':''),cls:'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});fxAt+=120;}
+      log(`${e.n} strikes back for ${tot}.`,'hurt');if(S.hp<=0){duelSend({t:'dead'});lose();}}
+    fx('sync');runFx();render(true);return;}
+  if(p.t==='dead'){e.hp=0;fx('hp',{t:0,hp:0,max:e.max});fx('die',{t:0});win();fx('sync');runFx();render(true);return;}
   if(p.t==='end'){log(`${e.n} forfeits.`,'sys');e.hp=0;win();fx('sync');runFx();render(true);}}
 function vArena(){if(!SUPA.url||!SUPA.key)return '';
   if(!NET.user)return '<div class="sub"><h3>Duel a friend</h3><p class="dim">Sign in under Settings to duel other players.</p></div>';
@@ -1615,15 +1631,15 @@ function derive(){
   for(const sl of SLOTS){const it=S.gear[sl];if(!it)continue;const st=itemStats(it);
     for(const k in st){const v=st[k];if(GEARMAP[k]){const [bk,f]=GEARMAP[k];b[bk]=(b[bk]||0)+v*f;}else if(sl==='weapon'&&k==='atk')continue;else b[k]=(b[k]||0)+v;}
     if(sl==='weapon')w=it;for(const f of it.fx||[])fx.push(f);for(const e of it.ench||[]){ench.push(e);const eb=ENCHBASE[e.id];if(eb)for(const k in eb){const [bk,f]=GEARMAP[k]||[k,1];b[bk]=(b[bk]||0)+eb[k]*f*(e.g?1.5:1);}}}
-  if(fx.includes('heart'))b.regen+=3;if(fx.includes('overgrow'))b.regen+=4;if(fx.includes('stoneskin'))b.dr+=15;if(fx.includes('leech'))b.ls+=8;if(fx.includes('crown'))b.critd+=.4;
+  if(fx.includes('heart'))b.regen+=3;if(fx.includes('overgrow'))b.regen+=4;if(fx.includes('stoneskin'))b.dr+=15;if(fx.includes('leech'))b.ls+=8;if(fx.includes('crown'))b.critd+=.2;
   for(const id in (S.brews||{})){const X=BREWS[id];if(X&&S.brews[id]>0)for(const k in X.b)b[k]=(b[k]||0)+X.b[k];}
   
   if(hasP('surge'))b.crit+=10;if(hasP('unyield')){b.hpPct+=15;b.dr+=8;}if(hasP('jugg')){b.hpPct+=30;b.spd-=3;}
-  let atk=3;let el='phys';if(fx.includes('bloodblade'))b.ls+=15;
-  if(w){const W=WT[w.type];const base=itemBase(w).atk||0;const sv=t[wepStat(w.type)];atk=Math.round(base*(1+sv*GRP[wepGrade(w)]/100)+sv*.25+(itemStats(w).atk-base||0));el=W.el||'phys';}if(fx.includes('emberblade'))el='fire';
+  let atk=3;let el='phys';if(fx.includes('bloodblade'))b.ls+=8;
+  if(w){const W=WT[w.type];const base=itemBase(w).atk||0;const sv=t[wepStat(w.type)];atk=Math.round(base*(1+sv*GRP[wepGrade(w)]/100)+sv*.25+(itemStats(w).atk-base||0));el=W.el||'phys';}if(fx.includes('emberblade'))el='fire';if(fx.includes('stormblade'))el='storm';
   atk+=Math.round(b.atk||0);
-  let hpM=(1+(t.vit+b.hpPct)/100)*(hasP('wayblade')?.85:1)*(hasP('inferno')?.8:1)*(fx.includes('bloodblade')?.75:1);const bb=fx.includes('bloodblade')?1.3:1;
-  return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)*(hasP('static')?.8:1)),
+  let hpM=(1+(t.vit+b.hpPct)/100)*(hasP('wayblade')?.85:1)*(hasP('inferno')?.8:1)*(fx.includes('bloodblade')?.8:1);const bb=fx.includes('bloodblade')?1.15:1;
+  return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM*(1+Math.min(.6,Math.max(0,S.lvl-8)*.025))),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)*(hasP('static')?.8:1)),
     def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(75,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
     dodge:Math.min(40,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
     regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:(1+(t.str+b.pdmg)/100)*bb,sm:(1+(t.int+b.sdmg)/100)*bb,wel:w&&WT[w.type].el||null,mel:!w||!WT[w.type].el};
@@ -1714,7 +1730,7 @@ function bleed(e,t){const d=derive();e.st.bleed={t:t+(hasP('deepw')?1:0),p:Math.
 function chill(e,s){const cur=e.st.chill;const n=(cur?cur.s:0)+s;if(n>=(hasP('zero')?2:3))freeze(e);else e.st.chill={s:n};}
 function shock(e,s){const mx=hasP('conduct')?8:5;const cur=e.st.shock;e.st.shock={s:Math.min(mx,(cur?cur.s:0)+s)};}
 function shield(v){const c=C();v=Math.round(v*skM*(hasP('jugg')?1.5:1));c.ps.shield=(c.ps.shield||0)+v;log(`You gain a ${v}-point shield.`,'buff');}
-function onKill(e){S.kills++;const c=C();{const d=derive();let hp=0,mp=0;if(d.fx.includes('soul'))hp+=.1;if(d.fx.includes('siphon')){hp+=.15;mp+=10;}if(hp||mp){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*hp));S.mp=Math.min(d.maxMp,S.mp+mp);fx('num',{t:'p',txt:'+'+Math.round(d.maxHp*hp),cls:'heal'});}}if(S.bounty&&S.bounty.mob===e.id&&S.bounty.have<S.bounty.need)S.bounty.have++;questHook('kill',e.id);ctrHook('kill',e.id);if(MOB[e.id]){S.kc=S.kc||{};const t0=bestTier(e.id);S.kc[e.id]=(S.kc[e.id]||0)+1;if(bestTier(e.id)>t0)toast(`Bestiary: ${MOB[e.id].n} milestone!`);}if(e.elite){questHook('elite',e.id);ctrHook('elite');}fx('die',{t:c.enemies.indexOf(e)});
+function onKill(e){S.kills++;const c=C();{const d=derive();let hp=0,mp=0;if(d.fx.includes('soul'))hp+=.1;if(d.fx.includes('soulblade'))hp+=.08;if(d.fx.includes('siphon')){hp+=.15;mp+=10;}if(hp||mp){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*hp));S.mp=Math.min(d.maxMp,S.mp+mp);fx('num',{t:'p',txt:'+'+Math.round(d.maxHp*hp),cls:'heal'});}}if(S.bounty&&S.bounty.mob===e.id&&S.bounty.have<S.bounty.need)S.bounty.have++;questHook('kill',e.id);ctrHook('kill',e.id);if(MOB[e.id]){S.kc=S.kc||{};const t0=bestTier(e.id);S.kc[e.id]=(S.kc[e.id]||0)+1;if(bestTier(e.id)>t0)toast(`Bestiary: ${MOB[e.id].n} milestone!`);}if(e.elite){questHook('elite',e.id);ctrHook('elite');}fx('die',{t:c.enemies.indexOf(e)});
   if(hasP('pyre')&&e.st.burn)alive().forEach(x=>burn(x,e.st.burn.s));}
 function hit(e,mult,o={}){
   const d=derive(),c=C(),i=c.enemies.indexOf(e);const duel=c.ctx==='duel';if(e.hp<=0&&!duel)return 0;const logHit=x=>{if(duel&&c.duelHits)c.duelHits.push(x);};
@@ -1722,7 +1738,7 @@ function hit(e,mult,o={}){
   const crit=o.crit!==undefined?o.crit:(hasP('wayblade')&&c.hits%3===0)||chance(d.crit+(o.critBonus||0));
   let bonus=(el==='phys'||(d.mel&&el===d.el)?d.pm:d.sm)*(d.wel&&el===d.wel?1.15:1)*(1+bestBon(e.id));if(hasP('brute')&&(e.st.stun||e.st.brk))bonus*=1.2;if(hasP('inferno')&&el==='fire')bonus*=1.35;if(hasP('zero'))bonus*=.85;if(d.fx.includes('wrath')&&e.st.burn)bonus*=1.2;if(d.fx.includes('edict')&&e.hp<e.max*.3)bonus*=1.5;
   const sh=e.st.shock?e.st.shock.s*(hasP('conduct')?.08:.05):0;
-  const base=calc(d.atk*mult*bonus*skM,effDef(e)*(d.fx.includes('sever')?.7:1))*(1+sh);
+  const base=calc(d.atk*mult*bonus*skM,effDef(e)*(d.fx.includes('sever')?.7:1)*(d.fx.includes('soulblade')?.65:1))*(1+sh);
   let dmg=base*elMult(e,el);if(crit)dmg*=d.critd;dmg=Math.max(1,Math.round(dmg));
   if(e.st.ward){const ab=Math.min(e.st.ward,dmg);e.st.ward-=ab;dmg-=ab;if(!e.st.ward)delete e.st.ward;if(ab)log(`${e.n}'s ward absorbs ${ab}.`);}
   e.hp=Math.max(0,e.hp-dmg);logHit({d:dmg,c:crit?1:0,el});revealHint(e,el);
@@ -1743,6 +1759,7 @@ function hit(e,mult,o={}){
   fxAt+=110;
   if(!o.echo&&proc){const others=alive().filter(z=>z!==e);const W1=S.gear.weapon&&WT[S.gear.weapon.type];
     if(W1&&W1.twice&&(e.hp>0||duel)&&chance(W1.twice))hit(e,mult*.6,{...o,echo:1,crit:undefined,label:'Flurry hits'});
+    if(d.fx.includes('stormblade')&&others.length&&chance(35))hit(pick(others),mult*.5,{...o,el:'storm',echo:1,crit:false,label:'Lightning arcs to'});
     if(W1&&W1.cleave&&others.length)hit(pick(others),mult*.3,{...o,echo:1,crit:false,label:'Cleave hits'});
     if(d.fx.includes('mirror')&&(e.hp>0||duel)&&chance(30))hit(e,mult*.6,{...o,echo:1,crit:undefined,label:'Mirrorfang hits'});
     if(d.fx.includes('prism')&&el!=='phys'&&others.length)hit(pick(others),mult*.4,{...o,el,echo:1,crit:false,label:'The prism hits'});
@@ -1863,7 +1880,7 @@ const matPrice=i=>8*(i+1);
 const hasMats=cost=>Object.entries(cost).every(([m,q])=>(S.mats[m]||0)>=q);
 const payMats=cost=>{for(const m in cost)S.mats[m]-=cost[m];};
 function forgeSpec(){const f=S.fg;const [cat,type]=(f.type||'').split(':');const base=f.metal&&METAL[f.metal]!==undefined?f.metal:null;const tier=base?METAL[base]:0;
-  const al=base&&cat==='weapon'&&f.alloy?ALLOYOF[f.alloy]||null:null;const sup=(f.sups||[]).filter(m=>SUP[m]&&m!==base).slice(0,2);const cr=f.crystal&&CRYS[f.crystal]?f.crystal:null;
+  const al=base&&cat==='weapon'&&f.alloy&&ALLOYOF[f.alloy]&&alloyOpen(ALLOYOF[f.alloy])?ALLOYOF[f.alloy]:null;let fxn=0;const sup=(f.sups||[]).filter(m=>SUP[m]&&m!==base).slice(0,2).filter(m=>!SUP[m].fx||fxn++<1);const cr=f.crystal&&CRYS[f.crystal]?f.crystal:null;
   const cost={};const add=(m,q)=>{cost[m]=(cost[m]||0)+q;};if(base)add(base,4);if(al)add(f.alloy,ALLOYS[al].q);for(const s of sup)add(s,SUP[s].q);if(cr)add(cr,1);
   const ok=!!(cat&&type&&TYPES[cat]&&TYPES[cat][type]&&(cat!=='weapon'||(WT[type].ft||0)<=tier));
   return {cat:cat||null,type:ok?type:null,tier,base,al,sup,cr,cost,g:base?BASEMAT[tier].g:0};}
@@ -1963,17 +1980,21 @@ const ACT={
   lload:v=>{const L=(S.loads||[])[+v];if(!L)return;const tot=s=>Object.values(s.stats).reduce((a,b)=>a+b,0)+s.pts;if(tot(L)!==tot({stats:S.stats,pts:S.pts})||S.gold<respecCost())return;S.gold-=respecCost();S.stats={...L.stats};S.pts=L.pts;clampVitals();toast(`Loaded build ${+v+1}`);},
   respec:()=>{const cost=respecCost();if(S.gold<cost)return;S.gold-=cost;respecAll();toast('Stats and stars refunded');},
   eqskill:v=>{const i=S.equip.indexOf(v);if(i>=0)S.equip.splice(i,1);else if(S.equip.length<4&&S.skills[v])S.equip.push(v);},
-  equip:v=>{const i=S.bag.findIndex(x=>x.uid===v);if(i<0)return;const it=S.bag[i];const sl=equipSlotFor(it);S.bag.splice(i,1);it.isNew=false;if(S.gear[sl])S.bag.push(S.gear[sl]);S.gear[sl]=it;clampVitals();},
+  equip:v=>{const [u,want]=String(v).split(':');const i=S.bag.findIndex(x=>x.uid===u);if(i<0)return;const it=S.bag[i];if(!canEquip(it))return;
+    let sl=equipSlotFor(it);if(want){if(it.slot==='gem'?!GEMSLOTS.includes(want)||!gemOpen(want):want!==it.slot)return;sl=want;}
+    S.bag.splice(i,1);it.isNew=false;if(it.slot==='gem')for(const g of GEMSLOTS)if(g!==sl&&S.gear[g]&&S.gear[g].type===it.type){S.bag.push(S.gear[g]);S.gear[g]=null;}
+    if(S.gear[sl])S.bag.push(S.gear[sl]);S.gear[sl]=it;clampVitals();},
   unequip:v=>{if(S.gear[v]){S.bag.push(S.gear[v]);S.gear[v]=null;clampVitals();}},
   salvage:v=>{const i=S.bag.findIndex(x=>x.uid===v);if(i<0||S.bag[i].lock)return;const it=S.bag[i];S.bag.splice(i,1);const msg=salvage([it]);if(S.ench===v)S.ench=null;if(S.invSel===v)S.invSel=null;toast(msg);},
   isel:v=>{S.invSel=v;const it=findItem(v);if(it)it.isNew=false;},
   lock:v=>{const it=findItem(v);if(it)it.lock=!it.lock;},
-  salvjunk:()=>{const junk=S.bag.filter(it=>it.rar<=1&&!it.lock);if(!junk.length)return;let e=0;for(const it of junk)e+=salvVal(it);S.bag=S.bag.filter(it=>!junk.includes(it));S.mats.essence=(S.mats.essence||0)+e;
+  salvjunk:()=>{const junk=S.bag.filter(it=>it.rar<=1&&!it.lock&&it.slot!=='gem');if(!junk.length)return;let e=0;for(const it of junk)e+=salvVal(it);S.bag=S.bag.filter(it=>!junk.includes(it));S.mats.essence=(S.mats.essence||0)+e;
     if(junk.some(it=>it.uid===S.invSel))S.invSel=null;toast(`Salvaged ${junk.length} items: +${e} essence`);},
   ifilter:v=>{S.invFilter=v;},
   msel:()=>{UI.ms=UI.ms?null:new Set();},
+  mgems:()=>{UI.msGems=!UI.msGems;if(!UI.msGems&&UI.ms)for(const it of S.bag)if(it.slot==='gem')UI.ms.delete(it.uid);},
   mtog:v=>{const it=S.bag.find(x=>x.uid===v);if(!it||!UI.ms)return;if(UI.ms.has(v))UI.ms.delete(v);else UI.ms.add(v);},
-  mfil:v=>{if(!UI.ms)return;if(v==='none'){UI.ms.clear();return;}const n=+v.slice(1);const grp=S.bag.filter(it=>!it.lock&&(v[0]==='r'?it.rar===n:it.slot!=='gem'&&(it.tier||0)===n));
+  mfil:v=>{if(!UI.ms)return;if(v==='none'){UI.ms.clear();return;}const n=+v.slice(1);const grp=S.bag.filter(it=>!it.lock&&(UI.msGems||it.slot!=='gem')&&(v[0]==='r'?it.rar===n:it.slot!=='gem'&&(it.tier||0)===n));
     const all=grp.length&&grp.every(it=>UI.ms.has(it.uid));for(const it of grp)all?UI.ms.delete(it.uid):UI.ms.add(it.uid);},
   msalv:()=>{if(!UI.ms||!UI.ms.size)return;const out=S.bag.filter(it=>UI.ms.has(it.uid)&&!it.lock);if(!out.length)return;S.bag=S.bag.filter(it=>!out.includes(it));const msg=salvage(out);
     if(out.some(it=>it.uid===S.invSel))S.invSel=null;UI.ms=null;toast(`Salvaged ${out.length}: ${msg}`);},
@@ -2047,6 +2068,7 @@ const ACT={
   cdown:()=>{cloudDown();return 'async';},
   setclose:()=>{UI.set=false;IMP=null;},
   spd:v=>{OPT.speed=+v;saveOpt();},
+  autonext:()=>{OPT.noAuto=!OPT.noAuto;saveOpt();},
   mute:()=>{OPT.mute=!OPT.mute;saveOpt();if(AU.g)AU.g.gain.value=OPT.mute?0:OPT.vol*.5;},
   exp:()=>{exportSave();},
   imp:()=>{const f=document.getElementById('impf');if(f)f.click();return 'async';},
@@ -2448,7 +2470,7 @@ function vBattle(){
       <div class="row">${tm?`<button class="btn primary" data-a="tclimb">Floor ${S.tower.floor}${S.tower.floor%10===0?' · Boss':S.tower.floor%5===0?' · Champion':''} ▸</button>
         <button class="btn" data-a="use" data-v="potion" ${S.cons.potion?'':'disabled'}>${matImg('potion',2)} Potion ×${S.cons.potion}</button>
         <button class="btn" data-a="use" data-v="ether" ${S.cons.ether?'':'disabled'}>${matImg('ether',2)} Ether ×${S.cons.ether}</button>
-        <button class="btn danger" data-a="tleave">Leave the Spire</button>`:more?`<button class="btn primary" data-a="descend">${D.stage+1<AREAS[D.area].dungeon.floors.length?`Floor ${D.stage+2}`:'Boss chamber'} ▸</button>
+        <button class="btn danger" data-a="tleave">Leave the Spire</button>${OPT.noAuto?'':'<span class="dim small">Next floor starts in a moment…</span>'}`:more?`<button class="btn primary" data-a="descend">${D.stage+1<AREAS[D.area].dungeon.floors.length?`Floor ${D.stage+2}`:'Boss chamber'} ▸</button>
         <button class="btn" data-a="use" data-v="potion" ${S.cons.potion&&!dmods().includes('nopot')?'':'disabled'}>${matImg('potion',2)} Potion ×${S.cons.potion}</button>
         <button class="btn" data-a="use" data-v="ether" ${S.cons.ether?'':'disabled'}>${matImg('ether',2)} Ether ×${S.cons.ether}</button>
         <button class="btn danger" data-a="retreat">Retreat</button>`:`<button class="btn primary" data-a="done">Continue ▸</button>`}</div></div>`;
@@ -2508,7 +2530,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
     if(W&&(W.ft||0)>tier)return `<button class="pick off" disabled>${img}<span>${n}<small>Needs ${TIERN[W.ft]}</small></span></button>`;
     return `<button class="pick ${f.type===v?'on':''}" data-a="fgtype" data-v="${v}">${img}<span>${n}${W?`<small>${W.trn||EL[W.el].n}</small>`:''}</span></button>`;};
   const types=cat==='weapon'?Object.entries(WT).map(([k,W])=>tpB('weapon',k,W.n)).join(''):cat==='armor'?[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].map(([sl,T])=>Object.entries(T).map(([k,X])=>tpB(sl,k,X.n)).join('')).join(''):'';
-  const alloys=Object.entries(ALLOYOF).map(([r,k])=>{const A=ALLOYS[k],have=S.mats[r]||0;
+  const alloys=Object.entries(ALLOYOF).map(([r,k])=>{const A=ALLOYS[k],have=S.mats[r]||0;if(!alloyOpen(k))return `<button class="pick off" disabled>${matImg(r,2)}<span>???<small>Opens in ${AREAS[A.ar].name}</small></span></button>`;
     return `<button class="pick ${f.alloy===r?'on':''} ${have<A.q?'short':''}" data-a="fgalloy" data-v="${r}">${matImg(r,2)}<span>${A.n}<small class="num">${have}/${A.q} ${MATS[r]}</small><small>${A.short}</small></span></button>`;}).join('');
   const sups=Object.keys(SUP).filter(m=>(S.mats[m]||0)>0&&m!==f.metal).map(m=>mB('fgsup',m,(f.sups||[]).includes(m),SUP[m].q,supLine(m,tier))).join('');
   const crys=Object.keys(CRYS).filter(m=>(S.mats[m]||0)>0).map(m=>mB('fgcrys',m,f.crystal===m,1,'Makes it '+RAR[CRYS[m].r].n)).join('');
@@ -2520,7 +2542,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
     ${sp.base?`${step(2,'Weapons or armor')}<div class="row">${catB('weapon','Weapons')}${catB('armor','Armor')}</div>`:''}
     ${sp.base&&cat?`${step(3,'What to make')}<div class="picks">${types}</div>`:''}
     ${sp.type?`${cat==='weapon'?`${step(4,'Alloy')} <span class="dim small">optional · changes how the weapon fights</span><div class="picks">${alloys}</div>`:''}
-      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">up to 2 · stronger at higher tiers</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
+      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">up to 2 · stronger at higher tiers · only one with a special effect</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
       ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}`:''}</div>
     <div class="sub anvil"><div class="row" style="justify-content:space-between"><h3>The anvil</h3>${sp.type||f.metal?'<button class="btn sm" data-a="fgclear">Clear</button>':''}</div>
       ${prev?itemCard(prev,''):`<p class="empty-s">${need}</p>`}
@@ -2605,6 +2627,7 @@ function vSettings(){
   return `<section class="px panel" aria-label="Settings"><h2>Settings</h2>
   <div class="sub"><h3>Account</h3>${vAccount()}</div>
   <div class="sub"><h3>Combat</h3><div class="optrow"><b>Animation speed</b>${[1,1.5,2,3].map(v=>`<button class="btn sm ${OPT.speed===v?'tab on':''}" data-a="spd" data-v="${v}">${v}×</button>`).join('')}</div></div>
+  <div class="sub"><h3>Gameplay</h3><div class="optrow"><b>Auto-continue in the Spire and dungeons</b><button class="btn sm ${OPT.noAuto?'':'tab on'}" data-a="autonext" aria-pressed="${!OPT.noAuto}">${OPT.noAuto?'Off':'On'}</button></div></div>
   <div class="sub"><h3>Sound</h3><div class="optrow"><b>Sound effects</b><button class="btn sm ${OPT.mute?'':'tab on'}" data-a="mute" aria-pressed="${!OPT.mute}">${OPT.mute?'Off':'On'}</button>
     <input type="range" id="vol" min="0" max="1" step="0.05" value="${OPT.vol}" aria-label="Volume" ${OPT.mute?'disabled':''}></div></div>
   <div class="sub"><h3>Save</h3><div class="optrow">${S.hc?'<span class="tag bad">Hardcore</span>':''}<button class="btn sm" data-a="exp">Export save</button><button class="btn sm" data-a="imp">Import save</button><input type="file" id="impf" accept=".json,application/json" hidden></div>
@@ -2641,9 +2664,11 @@ function cell(it,area){return `<button class="cell r${it.rar} ${it.uid===S.invSe
 const bagSorter=so=>so==='tier'?(a,b)=>b.tier-a.tier||b.rar-a.rar:so==='new'?(a,b)=>parseInt(b.uid,36)-parseInt(a.uid,36):(a,b)=>b.rar-a.rar||b.tier-a.tier;
 let DRAG=null;
 document.addEventListener('dragstart',ev=>{const c=ev.target.closest&&ev.target.closest('.bag .cell[draggable]');if(!c)return;DRAG=c.dataset.v;try{ev.dataTransfer.setData('text/plain',DRAG);ev.dataTransfer.effectAllowed='move';}catch(e){}});
-document.addEventListener('dragover',ev=>{if(DRAG&&ev.target.closest&&ev.target.closest('.bag .cell'))ev.preventDefault();});
+document.addEventListener('dragover',ev=>{if(DRAG&&ev.target.closest&&(ev.target.closest('.bag .cell')||ev.target.closest('.doll [data-slot]')))ev.preventDefault();});
 document.addEventListener('dragend',()=>{DRAG=null;});
-document.addEventListener('drop',ev=>{const c=ev.target.closest&&ev.target.closest('.bag .cell');const src=DRAG;DRAG=null;if(!src||!c)return;ev.preventDefault();
+document.addEventListener('drop',ev=>{const sl=ev.target.closest&&ev.target.closest('.doll [data-slot]');if(sl&&DRAG){const src=DRAG;DRAG=null;ev.preventDefault();const it=S.bag.find(x=>x.uid===src);
+    const s=sl.dataset.slot;if(it&&(it.slot===s||(it.slot==='gem'&&GEMSLOTS.includes(s)))){if(!canEquip(it)){toast("You can't use that yet");return;}ACT.equip(src+':'+s);sfx('ui');}else if(it)toast(`That goes in the ${SLOTN[it.slot==='gem'?'gem1':it.slot]||it.slot} slot`);render(true);return;}
+  const c=ev.target.closest&&ev.target.closest('.bag .cell');const src=DRAG;DRAG=null;if(!src||!c)return;ev.preventDefault();
   if((S.invSort||'rarity')!=='custom'){S.bag.sort(bagSorter(S.invSort||'rarity'));S.invSort='custom';}
   const from=S.bag.findIndex(x=>x.uid===src);if(from<0)return;const [it]=S.bag.splice(from,1);let to=c.dataset.v?S.bag.findIndex(x=>x.uid===c.dataset.v):S.bag.length;if(to<0)to=S.bag.length;S.bag.splice(to,0,it);render(true);});
 document.addEventListener('contextmenu',ev=>{const c=ev.target.closest&&ev.target.closest('.bag .cell[data-v]');if(!c||!findItem(c.dataset.v))return;ev.preventDefault();ACT.lock(c.dataset.v);render(true);});
@@ -2651,10 +2676,10 @@ function vInv(){
   const fl=S.invFilter||'all',so=S.invSort||'rarity';
   let list=S.bag.slice();if(fl!=='all')list=list.filter(it=>it.slot===fl);
   if(so!=='custom')list.sort(bagSorter(so));
-  const doll=SLOTS.map(s=>S.gear[s]?cell(S.gear[s],s):!gemOpen(s)?`<div class="cell empty" style="grid-area:${s}" data-tip="txt:Opens after clearing Cinderfall Peaks">${sprImg('lock',3)}</div>`:`<div class="cell empty" style="grid-area:${s}" data-tip="txt:Empty ${SLOTN[s].toLowerCase()} slot">${sprImg(SLOTICON[s],3)}</div>`).join('');
+  const doll=SLOTS.map(s=>S.gear[s]?cell(S.gear[s],s).replace('<button class="cell',`<button data-slot="${s}" class="cell`):!gemOpen(s)?`<div class="cell empty" style="grid-area:${s}" data-tip="txt:Opens after clearing Cinderfall Peaks">${sprImg('lock',3)}</div>`:`<div class="cell empty" data-slot="${s}" style="grid-area:${s}" data-tip="txt:Empty ${SLOTN[s].toLowerCase()} slot">${sprImg(SLOTICON[s],3)}</div>`).join('');
   const sel=S.invSel?findItem(S.invSel):null;let det='<p class="empty-s">Hover an item for details. Click it to compare and equip.</p>';
   if(sel){const worn=isWorn(sel);const wslot=worn?SLOTS.find(s=>S.gear[s]===sel):null;
-    det=`${worn?itemCard(sel,'',true):compareCols(S.gear[equipSlotFor(sel)],sel)}<div class="row">${worn?`<button class="btn sm" data-a="unequip" data-v="${wslot}">Unequip</button>`:`<button class="btn sm primary" data-a="equip" data-v="${sel.uid}" ${canEquip(sel)?'':'disabled'}>Equip</button>`}
+    det=`${worn?itemCard(sel,'',true):compareCols(S.gear[equipSlotFor(sel)],sel)}<div class="row">${worn?`<button class="btn sm" data-a="unequip" data-v="${wslot}">Unequip</button>`:sel.slot==='gem'?GEMSLOTS.map((g,k)=>`<button class="btn sm ${k?'':'primary'}" data-a="equip" data-v="${sel.uid}:${g}" ${gemOpen(g)?'':'disabled'}>Slot ${k+1}</button>`).join(''):`<button class="btn sm primary" data-a="equip" data-v="${sel.uid}" ${canEquip(sel)?'':'disabled'}>Equip</button>`}
       <button class="btn sm" data-a="lock" data-v="${sel.uid}">${sprImg('lock',2)} ${sel.lock?'Unlock':'Lock'}</button>${worn?'':`<button class="btn sm" data-a="salvage" data-v="${sel.uid}" ${sel.lock?'disabled':''}>Salvage ${matImg('essence',2)}<span class="num">${salvVal(sel)}</span></button>`}</div>`;}
   const fb=(v,n)=>`<button class="btn sm ${fl===v?'tab on':''}" data-a="ifilter" data-v="${v}">${n}</button>`;
   const sbn=(v,n)=>`<button class="btn sm ${so===v?'tab on':''}" data-a="isort" data-v="${v}">${n}</button>`;
@@ -2664,8 +2689,8 @@ function vInv(){
     <div class="sub" style="align-items:center"><h3>Equipped</h3><div class="doll">${doll}<div class="dollhero">${heroImg(3).replace('idle','')}</div></div></div>
     <div class="sub" style="min-width:0"><div class="row" style="justify-content:space-between"><h3>Bag · <span class="num">${S.bag.length}/${bagMax()}</span></h3><div class="row">${(S.bagx||0)<5?`<button class="btn sm" data-a="bagx" ${S.gold>=bagCost()?'':'disabled'} data-tip="txt:Ten more bag slots">+10 slots ${coinImg(2)}<span class="num">${bagCost()}</span></button>`:''}<button class="btn sm ${UI.ms?'tab on':''}" data-a="msel">Select</button></div></div>
       <div class="row">${fb('all','All')}${fb('weapon','Weapons')}${fb('armor','Armor')}${fb('helm','Helms')}${fb('boots','Boots')}${fb('cloak','Cloaks')}${fb('gem','Gems')}</div>
-      <div class="row"><span class="dim small">Sort</span>${sbn('rarity','Rarity')}${sbn('tier','Tier')}${sbn('new','Newest')}${sbn('custom','Custom')}<span class="dim small">Drag to arrange · right-click to lock</span></div>
-      ${UI.ms?`<div class="row msbar"><b class="num">${UI.ms.size} selected</b><span class="tag">${matImg('essence',2)}+<span class="num">${S.bag.filter(it=>UI.ms.has(it.uid)).reduce((a,it)=>a+salvVal(it),0)}</span></span><span class="dim small">Rarity</span>${RAR.map((r,i)=>`<button class="btn sm r${i}" style="color:var(--rc)" data-a="mfil" data-v="r${i}">${r.n}</button>`).join('')}<span class="dim small">Tier</span>${TIERN.map((t,i)=>`<button class="btn sm" data-a="mfil" data-v="t${i}">${t}</button>`).join('')}<button class="btn sm" data-a="mfil" data-v="none">None</button><button class="btn sm" data-a="mlock">Lock / unlock</button><button class="btn sm danger" data-a="msalv" ${UI.ms.size?'':'disabled'}>Salvage</button><button class="btn sm" data-a="msel">Cancel</button></div>`:''}<div class="bag">${list.map(it=>UI.ms?cell(it).replace('data-a="isel"','data-a="mtog"').replace('class="cell ',`class="cell ${UI.ms.has(it.uid)?'msel ':''}`):cell(it).replace('<button class="cell','<button draggable="true" class="cell')).join('')+(fl==='all'&&!UI.ms?'<div class="cell empty"></div>'.repeat(Math.max(0,bagMax()-S.bag.length)):'')||'<p class="empty-s">Empty.</p>'}</div></div>
+      <div class="row"><span class="dim small">Sort</span>${sbn('rarity','Rarity')}${sbn('tier','Tier')}${sbn('new','Newest')}${sbn('custom','Custom')}<span class="dim small">Drag to arrange or onto a slot to equip · right-click to lock</span></div>
+      ${UI.ms?`<div class="row msbar"><b class="num">${UI.ms.size} selected</b><span class="tag">${matImg('essence',2)}+<span class="num">${S.bag.filter(it=>UI.ms.has(it.uid)).reduce((a,it)=>a+salvVal(it),0)}</span></span><span class="dim small">Rarity</span>${RAR.map((r,i)=>`<button class="btn sm r${i}" style="color:var(--rc)" data-a="mfil" data-v="r${i}">${r.n}</button>`).join('')}<span class="dim small">Tier</span>${TIERN.map((t,i)=>`<button class="btn sm" data-a="mfil" data-v="t${i}">${t}</button>`).join('')}<button class="btn sm ${UI.msGems?'tab on':''}" data-a="mgems" data-tip="txt:Whether picking by rarity also picks gems">Gems: ${UI.msGems?'On':'Off'}</button><button class="btn sm" data-a="mfil" data-v="none">None</button><button class="btn sm" data-a="mlock">Lock / unlock</button><button class="btn sm danger" data-a="msalv" ${UI.ms.size?'':'disabled'}>Salvage</button><button class="btn sm" data-a="msel">Cancel</button></div>`:''}<div class="bag">${list.map(it=>UI.ms?cell(it).replace('data-a="isel"','data-a="mtog"').replace('class="cell ',`class="cell ${UI.ms.has(it.uid)?'msel ':''}`):cell(it).replace('<button class="cell','<button draggable="true" class="cell')).join('')+(fl==='all'&&!UI.ms?'<div class="cell empty"></div>'.repeat(Math.max(0,bagMax()-S.bag.length)):'')||'<p class="empty-s">Empty.</p>'}</div></div>
     <div class="sub" style="min-width:0">${det}</div></div>
   <h3>Consumables</h3><div class="mats">${['potion','ether','salve','orb'].map(k=>`<div data-tip="cons:${k}">${matImg(k==='orb'?'essence':k,2)}<span>${CONSN[k]}</span><b class="num">${S.cons[k]||0}</b>${k==='orb'&&S.cons.orb?'<button class="btn sm arcane" data-a="use" data-v="orb">Use</button>':''}</div>`).join('')}</div>
   <h3>Materials</h3><div class="mats">${mats||'<p class="empty-s">None yet.</p>'}</div></section>`;}
@@ -3043,7 +3068,11 @@ let toastT;
 function notice(t){toast(t);clearTimeout(toastT);toastT=setTimeout(()=>document.getElementById('toast').hidden=true,9000);}
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2600);}
 function mode(){if(S.combat||S.tab==='explore')return String(S.area);if(S.tab==='town')return ({inn:'inn',forge:'forge',sanctum:'sanctum',sealed:'sanctum'}[S.loc])||'town';return 'dust';}
-function render(quiet){hideTip();if(S&&S.rfComp){const m=S.rfComp;delete S.rfComp;S.note=m;setTimeout(()=>notice(m),600);}
+let AUTOC=null;
+// after a win in the Spire or a dungeon, the next floor starts by itself unless you switch it off in Settings
+function autoNext(){const c=S&&S.combat;if(!c||!c.over||!c.over.win||OPT.noAuto||MG.active)return;if(!(c.ctx==='tower'&&S.tower)&&!(c.ctx==='dungeon'&&S.dungeon))return;if(AUTOC===c)return;AUTOC=c;
+  const go=n=>{if(S.combat!==c||!c.over)return;if(UI.set||Date.now()<busyUntil){if(n<20)setTimeout(()=>go(n+1),500);return;}const b=document.querySelector('[data-a="tclimb"],[data-a="descend"]');if(b)b.click();};setTimeout(()=>go(0),2600);}
+function render(quiet){hideTip();setTimeout(autoNext,0);if(S&&S.rfComp){const m=S.rfComp;delete S.rfComp;S.note=m;setTimeout(()=>notice(m),600);}
   if(!S.named){UI.set=false;IMP=null;document.getElementById('ovl').innerHTML='';document.getElementById('top').innerHTML='';document.getElementById('tabs').innerHTML='';document.getElementById('main').innerHTML=vIntro();
     document.querySelectorAll('canvas.scene').forEach(cv=>{try{drawScene(cv,performance.now());}catch(e){}});setAmb('0');const nm=document.getElementById('nm');if(nm&&!quiet)nm.focus();return;}
   checkUnlocks();if(!S.combat||S.combat.over)checkAch();
@@ -3060,7 +3089,7 @@ function render(quiet){hideTip();if(S&&S.rfComp){const m=S.rfComp;delete S.rfCom
   const ci=document.getElementById('chatin');if(ci&&NET.chatFocus){ci.focus();const n=ci.value.length;try{ci.setSelectionRange(n,n);}catch(e){}}
   save();if(!quiet)runFx();
 }
-const FREE=['duelnew','duelgo','duelcancel','pvpfind','szoom','admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
+const FREE=['autonext','mgems','duelnew','duelgo','duelcancel','pvpfind','szoom','admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;

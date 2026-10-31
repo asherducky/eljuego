@@ -348,3 +348,24 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   - Thunderhead: 5 lightning strikes that stun.
 - [x] **Renames:** tier 5 is now Abyssal, and its materials are Abyssal Ore, Siren Scale, Storm Pearl and Leviathan Heart. The uniques are Tidebreaker and Stormcaller Rod. The Lighthouse Keeper replaces the Star Seer quest-giver.
 - [x] **Mythic Crystals:** every 10th new best Spire floor from 30 on gives one (30, 40, 50…).
+
+## Round 13 — Gems, HP and alloys (done)
+- [x] **Gems:**
+  - Ruby is now % damage (physical and spell), and Emerald is % max HP.
+  - You can wear only one gem of each type, and you choose Slot 1, 2 or 3.
+  - Perfect gems are Legendary.
+- [x] **Inventory:**
+  - Drag items from the bag onto the equipped slots.
+  - Bulk salvage leaves gems out unless "Gems: On" is set.
+- [x] **Duels:** Riposte and Thorns hit back.
+- [x] **Auto-continue:** Spire and dungeon floors continue on their own, with a toggle in Settings.
+- [x] **HP:**
+  - Player HP grows +2.5% per level past 8, up to +60%.
+  - Stormsea monsters have 3× HP.
+  - Staves get +1 base attack, and the Storm Rod gets +2.
+- [x] **Alloys:** one per region.
+  - Bloodforged (region 2), now nerfed to +15% damage, +8% lifesteal and −20% HP.
+  - Emberforged (region 3).
+  - Soulforged (region 4): ignores 35% of defense, and kills heal 8% HP.
+  - Stormforged (region 5): storm damage that arcs to another enemy. It uses a Leviathan Heart as its reagent.
+- [x] **Supplements:** Crowned is down to +20% crit damage, and you can use only one boss-material effect per item.
