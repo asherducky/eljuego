@@ -1646,6 +1646,8 @@ const ELSND={phys:'hit',fire:'fire',frost:'frost',storm:'zap',venom:'venom'};
 function sfx(n){if(OPT.mute||!SND[n])return;if(!au())return;try{SND[n]();}catch(e){}}
 
 /* ============ derived stats ============ */
+const ENCHG={keen:'+12% crit, crits deal +37.5%',vampiric:'7.5% lifesteal',verdant:'Regenerate 3% HP each turn',bulwark:'Take 15% less damage',fortune:'+30% gold, +15% XP',swift:'+6 SPD',thorns:'Reflect 37.5% of damage taken',warding:'45% chance to resist status effects',
+  venomous:'45% chance per hit to add Poison',frostbite:'30% of damage as frost, 30% chance to Chill',tempest:'30% of damage as storm, 25% chance to arc to another enemy',solar:'30% of damage as fire, 30% chance to add a flame stack'};
 const ENCHBASE={keen:{crit:8,critd:.25},vampiric:{ls:5},verdant:{regen:2},bulwark:{dr:10},fortune:{gold:20,xp:10},swift:{spd:4},thorns:{thorns:25},warding:{resist:30}};
 // stat-named bonuses on gear (old items, gems) turn into the matching % bonus instead of stat points
 const GEARMAP={str:['pdmg',1],int:['sdmg',1],dex:['critd',.01],vit:['hpPct',1],luk:['gold',1],spd:['spd',1]};
@@ -1803,7 +1805,7 @@ function hit(e,mult,o={}){if(!e)return 0;
     if(E.el==='fire'&&chance(30))burn(e,1);if(E.el==='frost'&&chance(30)&&e.hp>0)chill(e,1);
     if(E.el==='storm'&&chance(25)){const o2=alive().filter(x=>x!==e);if(o2.length){const x=pick(o2);const ar=Math.max(1,Math.round(base*.3*elMult(x,'storm')));x.hp=Math.max(0,x.hp-ar);fx('num',{t:c.enemies.indexOf(x),txt:ar,cls:'storm'});if(x.hp<=0){log(`${x.n} falls.`,'kill');onKill(x);}}}}
   if(proc&&d.fx.includes('ember')&&(e.hp>0||duel)){const ex=Math.max(1,Math.round(base*.1*elMult(e,'fire')));e.hp=Math.max(0,e.hp-ex);logHit({d:ex,el:'fire'});fx('num',{t:i,txt:ex,cls:'fire'});}
-  if(proc&&(e.hp>0||duel)){if(d.fx.includes('rot'))poison(e,1);if(d.fx.includes('wrath'))burn(e,2);if(d.fx.includes('reaver')&&!e.st.bleed)bleed(e,2);if(d.fx.includes('venom')&&chance(25))poison(e,1);if(d.fx.includes('jagged')&&chance(20))bleed(e,2);if(d.ench.some(x=>x.id==='venomous')&&chance(30))poison(e,1);if(d.fx.includes('tyrant'))burn(e,1);if(hasP('static'))shock(e,1);
+  if(proc&&(e.hp>0||duel)){if(d.fx.includes('rot'))poison(e,1);if(d.fx.includes('wrath'))burn(e,2);if(d.fx.includes('reaver')&&!e.st.bleed)bleed(e,2);if(d.fx.includes('venom')&&chance(25))poison(e,1);if(d.fx.includes('jagged')&&chance(20))bleed(e,2);if(d.ench.some(x=>x.id==='venomous')&&chance(d.ench.some(x=>x.id==='venomous'&&x.g)?45:30))poison(e,1);if(d.fx.includes('tyrant'))burn(e,1);if(hasP('static'))shock(e,1);
     const W=S.gear.weapon&&WT[S.gear.weapon.type];if(W&&W.stun&&!e.boss&&chance(W.stun))stun(e);if(W&&W.bleed&&chance(W.bleed))bleed(e,2);if(W&&W.poison&&chance(W.poison))poison(e,1);if(d.fx.includes('emberblade')&&el==='fire')burn(e,1);}
   if(d.ls&&dmg>0){const h=Math.max(1,Math.round(dmg*d.ls/100));S.hp=Math.min(d.maxHp,S.hp+h);}
   fx('hp',{t:i,hp:e.hp,max:e.max});
@@ -2439,7 +2441,7 @@ const fmtRow=r=>!r?'—':r.g!==undefined?`<span class="grd g${r.g}">${GR[r.g]}</
 function extrasHTML(it){if(!it)return '';const n=enchSlots(it);const TW=it.slot==='weapon'&&WT[it.type];
   const st=false&&SETSLOTS.includes(it.slot)&&SETS[it.tier||0]?(()=>{const B=SETS[it.tier||0],n=setCounts()[it.tier||0]||0;return `<div class="xl">◈ ${B.n} (${n}/4 worn): 2 · ${B.d2} — 4 · ${B.d4}</div>`;})():'';
   return st+(TW&&TW.tr?`<div class="xl">▸ ${TW.trn}: ${TW.tr}</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${f==='heart'?`Regenerate ${heartPct(it.tier||0)}% HP each turn`:FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
-   +Array.from({length:n},(_,i)=>{const e=it.ench[i];if(!e)return '<div class="xl dim">· empty enchant slot</div>';const E=ENCH[e.id];return `<div class="xl arc" style="color:${ENCHCOL[E.el]||'var(--arc)'}">◆ ${e.g?'Greater ':''}${E.n}: ${E.d}</div>`;}).join('');}
+   +Array.from({length:n},(_,i)=>{const e=it.ench[i];if(!e)return '<div class="xl dim">· empty enchant slot</div>';const E=ENCH[e.id];return `<div class="xl arc" style="color:${ENCHCOL[E.el]||'var(--arc)'}">◆ ${e.g?'Greater ':''}${E.n}: ${e.g&&ENCHG[e.id]||E.d}</div>`;}).join('');}
 function headHTML(it){const W=it.slot==='weapon'?WT[it.type]:null;return `<div class="ih"><span class="icbox">${itemImg(it,3)}</span><div><div class="iname">${it.plus?`+${it.plus} `:''}${esc(it.name)}</div>
   <div class="rar">${it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
 function itemCard(it,actions,equipped){const rows=statRows(it);const W=it.slot==='weapon'?WT[it.type]:null;
