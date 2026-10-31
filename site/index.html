@@ -230,6 +230,8 @@ img.spr{max-width:none}
 .pick span{display:flex;flex-direction:column;font-size:.9rem;line-height:1.2}.pick small{font-size:.74rem;color:var(--dim)}
 .pick.on{box-shadow:inset 0 0 0 3px var(--gold);background:#3a2f1a}.pick:disabled{color:var(--mute);cursor:not-allowed;background:#1a1527}.pick:hover:not(:disabled){background:#3a3152}
 .pick.sm{min-height:44px}
+.parts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}.parts li{display:flex;justify-content:space-between;gap:10px;font-size:.8rem}.parts li span{color:var(--dim)}.parts li b{text-align:right;font-weight:normal}
+.pick.off{opacity:.45;cursor:default}
 .forgegrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px;align-items:start}
 .mg{align-items:center;text-align:center;padding:20px}
 .mgbar{position:relative;width:min(560px,100%);height:34px;background:#0a0812;box-shadow:inset 0 0 0 3px var(--edge);margin:10px 0}
@@ -784,6 +786,12 @@ SPR['siren@2']=["................................","............................
 SPR['unmaker@2']=["................................................................",".............................k..k...............................","............................kCkkpk....kk........................","...................kk......kCCCppk...kvvk.......................","..................kvvk.k...kCWCppk..kvvvkk.....k................","..................kvvkkpk...kCkpppk..kvWkpk...kvk...............","..................kvWkppk....kppppk..kvkppk..kvvvk..............","...........kk......kvkppk....kppppk...kkppk..kvvWk..............","..........kvvk......kkpppk...kpppppk...kpppk..kvk...............","..........kvvvk.....kppppk..kppppppk..kppppk..kvk.....k.........","..........kvWk......kppppk.kkkkkpkkkkkkppppk...k.....kCk........","...........kvk......kpppppkpppppppppppkpppppk.......kCCCk.......","......k.....k......kppppppppppppppppKKppppppk.......kCCWk.......",".....kCk...........kkYkkppppppppdppKKKKKKkkYkk.......kCk........","....kCCCk.........kYYKyyppppdddpdpWddKKKKYYKyyk.......k.........","....kCWCk.........kyyKyyppdpdddddddddddKKyyKyyk............k....",".....kCk..........kyyyoopdddddpddddmmdWWKyyyook...........kvk...","......k............kpopppdpmmpWWddppdddddKKoKk...........kvvvk..","...k...............kpppdddpmdpWdWdddmpdWddKKKk...........kvWvk..","..kvk.............kppppdppddWWWWWWYYYdddddKKKWk...........kvk...","..kvk.............kpppdddmdWWWWWRYYYYYpdWdpKKKk............k....",".kvvvk...........kppppddpdWWWWRRKrrYYYYWddpKKKKk................",".kvWk............kpppddddWWWWRWKKKrrYYYYddddKKKk............kk..","..kvk............kpppddpdWWYYRrKKKrrYYYYddpmKKWk...........kCCk.","...k.............kpppdddWYYYRrrKKKrrhYYoodmdKWKk...........kCCk.","...k.............kpppddddYYYYrrKKKrhYoooddddKKKk...........kCWk.","..kCk............kppKddddYYYYrrKKKhhoooodpddKKKk...........kvvk.","..kCk...........kppKddddpdYYYYrrKhhooooddmddWKKKk...........kk..",".kCCCk...........kKKKddddddYYYYYhooooodWddddKKKk...........k....",".kCWk............kKKKddpddddYYooooooodddmdpWKKKk..........kCk...","..kCk............kKKKddddmddWddmodWWdpddddmdKWKk..........kCk...","...k.............kKKKpdmddWddddddddddpdddppdKKKk.........kCCCk..","......k..........kKKWddppddddddddddddppddmpdWKKk.........kCWCk..",".....kvk.........kKKYKdddddddddddddpdppdmpdWYKKk..........kCk...","....kvvvk........kYYKyydWddpddpmddWdddddddYYKyyk...........k....","....kvvWk........kyyKyydddddddpdpWddpdpddpyyKyyk......kk........",".....kvk.........kyyyoopddWdddddddddddpdddyyyook.....kvvk.......","......k.....k.....kkoKKKddpmdmWdYdddmddWpKKKokk......kvvk.......","...........kvk...kkkkKKKKWdddpYYKyydWdddKKKKkkk......kvWk.......","...........kvk..kppppkKKKKdppdyyKyyddpdKKKKppppk.....kvk........","..........kvvvkkpppppkpKWKKKdpyyyooddWKKKKkppppkk.....k.........","..........kvWk.kppppppppKKWKKKKWoWKWKKKKKpppppppvk..............","...........kvkkppppppppppKKKKKKKKKKKKKKKppppppppppkk............","............kkpppppppppppppKKKKKKKKKKKppppppppppppppk...........","............kpppppppppppppppppkkKkpppppppppppppppppppk..........","..........kkppppppppppppppppCCCkk.kpppppppppppppppppppk.........","........kkppppppppppppppppkkCCWk...kpppppppppppppppppppk........","......kkpppppppppppppppppk..kCk.....kpppppppppppppppppppk.......",".....kppppppppppppppppkkk....k.......kkkkppppppppppppppppk......",".....kpppppkppppkppppk...................kkpppppppppkppppk......",".....kvvpkkvvppkvvppk......................kkpvvkppvvkppvvkk....","...kkvvvkkvvvkvvvvkk.........................kvvvvkvvvkkvvvvkk..","..kvvvvkvvvvvvvvkk............................kkvvvkvvvvkkvvvvk.",".kvvvkvvvvvvvvkk................................kvvvkkvvvvkkvvvk",".kvvkkvvkkvvkk...................................kvvk.kkvvk.kkvk","..kk..kk..kk......................................kk....kk....k."];
 SPR['queen@2']=["...............................kk...............................","..............kk..........k.kkkmmkkk..k.........kk..............",".............kCCk........kWkmmkmmkmmkkWk.......kCCk.............",".............kCWk........kkkmmkmmkmmkkk........kCWk.............","...k..........kk.......kkCCkmmkmmkmmkCWk.k......kk.........kk...","..kWk.................kWkCCkmmkmmkmmkCCkkWk...............kcWk..","..kcck...............kCCkCCkmmkmmkmmkCCkCCk..............kcck...","..kcCckk.............kCCkCCkmmkmmkmmkCCkCCk............kkccCk...",".kcccCcck............kCCkCCkmmkmmkmmkCCkCCk...........kcccccck..",".kccccCCck...........kCmmWmmmmmmmmmmmmmmmmk..........kccCCcWck..",".kccccccCck...........kmmmmmmmmmmmmmmmmmmmk.........kccCcccWck..",".kcccccccWckk..........kkkkkkkWWWwwkkkkkkk........kkccCcccWcck..",".kccccccccCcck..............kWWWwwwwk............kcccCccccWcck..",".kcccccccccCCck............kWWWwwwwwwk..........kccCCccccWccck..",".kcccccccccccCckk..........kWWwwwwwwwk........kkccCccccccWccck..","kcccccccccccccWcck.........kWWmwwwWmwk.......kcccCccccccWccccck.","kccccccccccccccCcck.......kWwmmwwwmmwak.....kcccCcccccccWccccck.","kcccccccccccccccCCck.......kwwwwwwwwak.....kccCCcccccccWcccccck.",".kccccccccccccccccCckk.....kwwwwwwaaak...kkccCcccccccccWccccck..","..kccccccccccccccccCcck....kwwwwwaaaak..kcccCcccccccccWccccck...","...kkcccccccccccccccCcck...kkwwrrraakk.kcccCccccccccccWccckk....",".....kcccccccccccccccCCck.kCCCCCCCCCCCkccCCccccccccccWccck......","......kccccccccccccccccCckWCCCCCCCCCCCccCccccccccccccWcck.......",".....kccccccccccccccccccCkCCCWCCCCCCWCcCccccccccccccWcccck......",".....kccccccccccccccccccckCWCCCmmCCCCCCCccccccccccccWcccck......","....kcccccccccccccccccCCCCCCCCmmWmCCCCCCCCcccccccccWcccccck.....","....kccccccccccccCWCCCccCCCCCCmmmmCCCCkCCCCCCCCccccWccccccck....","...kccccccccWCCCCccccccCCCCCCCCmmCCCCCkcCCCccccCCcWcccccccck....","..kccccCCCCCccccccccccCCCkCCCCCCCCCCCCkccCCCccccccWcCCCCCccck...","..kcCCCcccccccccccccCCCCCCCCCCCCCCCCCCCCCcCWCccccWcccccccCCCk...",".kccccckkkkkcccccwwwCCCCCCCCWCCCCCCCCCCCCCcCCWcccWckkkkkccccck..",".kWkkkk...kccccccwwwCCCCCCWcCcCCcCCcCcCCCCCcCwwcWccck...kkkkkWk.","..k.......kccccccwwwWCCCCCcCCcCCcCCcCCcCCCCccwccWccck........k..",".........kcccccCCcccCCCCCCcCcCCCcCCCcCcCCCCmmmmmmmmcck..........",".........kccccWcckcCCCCCWcCCcCCCcCWCcCCcCCCmmmmmmmmcck..........","........kccccCckk.kCCCCCcCCCcCCmmWCCcCCCcCCCCkkkccCccck.........",".......kccccCck..kCCCCCCcCWcCCCmmCCCCcCCcCCCCCk.kccCccck........",".......kccCCkk..kCCCCCCcCCCcCCWCcCCCCcCWCcCCCCCk.kkcCCck........","......kccWkk....kCCCCCCcCmmCCCCCcWCCWCcCCcCCCCCk...kkcCck.......","......kcCk.....kCCCCCCcCCmmCCCCCcCCCCCcCCCcCCCCCk....kcCk.......",".....kckk.....kCWCCCCcCCWCcCCCCCcCCCCWcCCCCcCCCCCk....kkck......",".....kWk......kCCCCCCcCCCcWCCCCWcWCWCCCcCCCcCCCCCCk.....kWk.....","......k......kCCCCCCcCCWCcCCCCCCcCCCCCCcCCCCmmCCCCk......k......","............kCCCCWCcCCCCCcCCCCCCcCCCCCCcCCCCmmCCCCCk............","...........kCCCWCCmmCCCCcCCCCCCCcCCCCWCCcCCCCcCCCCCCk...........","..........kkCCCCCCmmCCCCcCCCCCCCcCCCCCCCcCCCCCcCCCCCkkk.........",".........kCCCCCCCcCCCCCCcCCCCCCCcCCCCCCCcCCCCCWcCCCCCCCk........",".........kCWCCCCCcCCCCCcCCCCCCCCcCCWCmmCCcCCCCCcCCCCCCWk........",".........kCCCWCCcCCWCCCcCCCCCCCCcCWCCmmCCcCCCCCCcCWCCCk.........","........kCCCCCCCcCCCCCcCCCCCCCCCcCCCCCCCCCcCCCCCcCCCCCCk........",".......kCCCCCCCcCWCCCCcCCCCCCCCCcCCCCCCCCCcCCCCCCcCCCCCCk.......","......kmmCCmmCcmmCCmmCcmmCCmmCCmmCCmmCCmmCcmmCCmmCcmmCCmmk......","......kmmCCmmCcmmCCmmcCmmCCmmCCmmCCmmCCmmCCmmCCmmCcmmCCmmk......",".....kmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmk.....","......kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk......","................................................................"];
 SPR['hking@2']=[".........................kk.kk..kk..kk.kk.........kkkkk.........","........................kygkggkkggkkggkygk.......kyyyyyk........","........................kggkggkkggkkggkggk.......kyyyyyk........","........................kggkggkkggkkggkggk........kbbbk.........","........................kggkggkkggkkggkggk....k...kbbbk.........",".......................kGGGGGGGGGGGGGGGGGk...kik..kbbbk.........","..................k....kggggrgggigggrggggk....k...kbbbk.........",".................kik...kgggggggggggggggggk........kbbbk.........","..................k.....kkkkkWWWWjjjkkkkk.....kkkkkbbbkkkkk.....","...........................kWWWWjjjjjk.......kYYYYYYYYYYYYYk....","..........................kWWWWjjjjjjjk......kyyyyyyyyyyyyyk....","..........................kWWKKjjjKKjjk.......kkGGGGWwkkkkk.....","..........................kWKiKKjKiKKjk........kGGGGWwk.........",".........................kWjKKKKjKKKKjak......kgGGGGWGk.........","..........................kjjKKjjjKKaak.......kgGGGGWGk.........","....................kkkkkkkjjjjjKjjaaakkkkkk.kggggkwWGk.........","...................kdddddddjjjjjjjaaaapdddddkgggggkwWGk.........","..................kdrddhhhhhjWWWWWWWahhhhdddrggggkkwWGk.........",".......k..........kdrddhhhhhhKWKWKWKhhhhhdddggggk.kwWGk.........","......kik........kdrGdhhhhhhhhaaaaahhhhhhhdgggggk.kwWGk.........",".......k.......kkGGGjggghhhhhhhhhhhhhhhhhGGgggggkkkwWGk.........","..............kGGGGjjjgggghhhhhhhhhhhhhGGGggggggggkwWGk.........","..............kGGgjKjKjggghhhhhhhhhhhhhGGgggggjgggkwWGk..k......",".............kGggggjjjgggggggggggggggggggggggjggggKwWGk.kik.....","..............kgggggjggggGGGGGGGGGGGGGGgggggjgggKKkwWGk..k......","..............kgggggggggggggggggggggggggggggggKKKKkwWGk.........","..............kdrggKgggggggggggjjggggggggggKKKKKrkkwWGk.........","..............kdrKdgggggggjjjjjjjjjjjjgghhhhKddKrkkwWGk.........",".............kdrKdggggghgggggggjjggggggghhhhddddKrkwWGk.........",".............kdrKggggghhgggggggjWggggggghhhhhdddKrkwWGk.........",".............krdggggghhhggjjjjWWiiijjjgghhhhhpddKdrwWGk.........","............kdrggggghhhhggggggWiWiigggggKhhhhdddKdrwWGk.........","...........kkrggggghhhhhgggggWiiiiiUggggKhhhhhddKddwWGk.........","..........kWWWgggghhhhhhggjjjjiiiiUjjjggKhhhhhdddKdwWGk.........",".........kWWiiiggdhhhhhhggggggiiUUUgggggKhhhhhdddKdwWGk.........","........kWWiWiiiddhhhhhhgggggggjUgggggggKhhhhhdddKdwWGk.........","........kWiiiiiUdhhhhhhhggjjjjjjjjjjjjggKhhhhhhddKdwWGk.........","........kiiiiiUUdhhhhhhhgggggggjjgggggggKhhhhhhddKdwWGk.........",".........kiiiUUddhhhhhhhgggggggjjgggggggKhhhhhhdddKwWGk.........","........kdrUUUKdhhhhhhhhggggggggggggggggKhhhhhhhddKwWGrk........","........kdrdddKdhhhhhhhhggggggggggggggggKhhhhhhhddKwWGrk........","........krdpddKdhhhhhhhKyyyyyyyiiyyyyyyyhKhhhhhhddKwWGdrk.......",".......kdrddddKdhhhhhhhKyyyyyyyiiyyyyyyyhKhhhhhhhdKwWGdrk.......",".......krddddKdhhhhhhhhKyyyyyyyiiyyyyyyyhKhhhhhhhddwWGddrk......","......kdrddddKdhhhhhhhhKhhhhhhhhhhhhhhhhhKhhhhhhhddwWGpdrk......","......kdridddKdhhhhhhhhKhhhhhhhhhhhhhhhhhKhhhhhhhddwWGddrk......",".....kdrdddddKhhhhhhhhhKhhhhhhhhhhhhhhhhhKhhhhhhhhdwWGdddrk.....",".....kdrdddpdKhhhhhhhhhKhhhhhhhhhhhhhhhhhKhhhhhhhhdwWGpddrk.....","....kdrdddddKphhhhhhhhhKhhhhhhhhhhhhhhhhhKhhhhhhhhpwWGdddprk....","....kdrdddddKhhhhhhhhhhKhhhhhhhhhhhhhhhhhKhhhhhhhhhwWwddddrk....","....krddddddKhhhhhhhhhhKhhhhhhhhhhhhhhhhhKhhhhhhhhhdKddddddrk...","....krddddkdKdddkdddddkKddddkdddddkdddddkKddddkdddddKdddddkrk...","...krddkdddddkdddddkdddddkdddddkdddddkdddddkdddddkdddddkddddrk..","...krdkddkddkddkddkddkddkddkddkddkddkddkddkddkddkddkddkddkddrk..","....kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kk.kkk...","................................................................"];
+// staves: a twig with a spark at Tier 1, up to a crowned orb at Tier 5
+SPR.stf0=["............k...","...........kvk..","..........kPkvk.","...........kCk..","..........k.kPk.",".........kBk.k..","......k.kBk.....",".....kBkbk......",".....kbBk.......",".....kBk........","....kbk.........","...kBk..........","..kBk...........",".kbk............","kBk.............",".k.............."];
+SPR.stf1=["................","............k...",".........k.kvk..","........kbkCvvk.",".........kbvPk..",".........kybk...","........kykkbk..",".......kbk..k...","......kBk.......",".....kbk........","....kBk.........","...kbk..........","..kBk...........",".kbk............","kBk.............",".k.............."];
+SPR.stf2=["...........k....","..........kyk...",".........kykvk..",".........kyvwvk.",".........kkvvPyk","........kYkPPkyk","........kYYkkyk.",".......kBkk..k..","......kyk.......",".....kBk........","....kBk.........","...kyk..........","..kBk...........",".kBk............","kyk.............",".k.............."];
+SPR.stf3=["..............Ck","..........kkkkkC","......k..kPCwPkk",".....kYk.kvCCvk.","......kykkvPvvk.",".......kykPvvPk.","........kbkkkk..",".......kPkyk....","......kbk.kyk...",".....kvk...kYk..","....kbk.....k...","...kPk..........","..kvk...........",".kPk............","kbk.............",".k.............."];
+SPR.stf4=[".......kYkkYkkYC",".......CkyPvPyk.","........kPwCvPk.",".......kYvCwCvYk","......k.kPvCvPk.",".....kyk.kPvPk..","....kykyk.kkk..C",".....k.kbk......","......kYk.......",".....kbkyk......","....kYk.kyk.....","...kbk..kyk.....","..kYk....k......",".kbk............","kYk.............","bk.............."];
 /* cloak icon */
 Object.assign(SPR,{
   i_cape:["................","...kkkkkkkkkk...","..kyyyRRRRyyyk..","..kRRRRRRRRRRk..","..kRrRRRRRRrRk..",".kRRrRRRRRRrRRk.",".kRrRRRRRRRRrRk.",".kRrRRRRRRRRrRk.","kRRrRRRRRRRRrRRk","kRrRRRRRRRRRRrRk","kRrRRRRRRRRRRrRk","kRrRRRRRRRRRRrRk","kRRkRRrkkRrRkRRk",".kk.kRk..kRk.kk.",".....k....k.....","................"]
@@ -835,7 +843,7 @@ TPALB.push(TPALB_A);
 const APAL=[{},{W:'#e8fbff',w:'#9cc8ff',G:'#3a5ea8',y:'#c9c2d6',Y:'#f4efe4'},{W:'#e0c8ff',w:'#7a3fb0',G:'#3b1f5a',y:'#c08cff',Y:'#e0c8ff'},{W:'#fff8ec',w:'#d8ccb4',G:'#6e6680',y:'#9cc8ff',Y:'#e8fbff'}];
 APAL.push({W:'#c4ecff',w:'#3a4ab0',G:'#1d1838',y:'#f2c14e',Y:'#fff1a8'});
 const TPALS=(p,t)=>t===4?{B:'#2b2f5a',b:'#141433',Q:'#c4ecff',V:'#f2c14e'}:[{},{B:'#8f88a8',Q:'#c4ecff'},{B:'#3b3450',Q:'#e05aa8',X:p.v},{B:'#d8ccb4',b:'#6e6680',Q:'#9cc8ff',V:'#9cc8ff'}][t];
-function tierSprite(base,tier,uq,fr=0){const key=base+'~'+tier+(uq?'u':'')+(fr?'f':'');if(SPR[key])return key;const rows=SPR[base]||[];const staff=/staff|wand|rod/.test(base);
+function tierSprite(base,tier,uq,fr=0){if(/staff|wand|rod/.test(base))return 'stf'+Math.min(4,tier||0);const key=base+'~'+tier+(uq?'u':'')+(fr?'f':'');if(SPR[key])return key;const rows=SPR[base]||[];const staff=/staff|wand|rod/.test(base);
   const W=Math.max(...rows.map(r=>r.length))+2;const g=[Array(W).fill('.'),...rows.map(r=>['.',...r.padEnd(W-2,'.'),'.']),Array(W).fill('.')];const H=g.length;
   const at=(x,y)=>y>=0&&y<H&&x>=0&&x<W?g[y][x]:'.';const blade=staff?'vC':'WwG',guard=staff?'B':'yY';
   if(tier>=1){const gs=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(guard.includes(g[y][x]))gs.push([x,y]);if(gs.length){const [x,y]=staff?gs[0]:gs[gs.length>>1];g[y][x]='Q';}}
@@ -1014,7 +1022,7 @@ function heroImg(scale,wt,at){const P=heroParts(wt,at),n=(P.ck||P.aura.length)&&
   for(let i=0;i<n;i++){const [k,c]=heroCanvas(P,i);urls.push(canvasURL(k,c));if(!i)k0=k;}
   const u=artPx(scale);
   return `<img class="spr idle"${n>1?` data-fr="${frameKey(k0,urls)}"`:''} src="${urls[0]}" width="${64*u}" height="${48*u}" style="--bob:${u}px" alt="">`;}
-const MATICON={astral:['m_chunk','#c4ecff','#3a4ab0','#1d1838'],voidsilk:['m_leaf','#c08cff','#3b1f5a','#1f1a2b'],starshard:['m_gem','#ffffff','#fff1a8','#f2c14e'],riftcore:['m_gem','#ffd0f4','#e05aa8','#3b1f5a'],cshard:['m_gem','#f4efe4','#c9c2d6','#8f88a8'],crys2:['m_gem','#fff1a8','#f2c14e','#a8702a'],crys3:['m_gem','#e0c8ff','#c08cff','#7a3fb0'],crys4:['m_gem','#ffd2b0','#ff8b45','#c43c3c'],crys5:['m_gem','#ffd0f4','#ff4fd8','#7a1f6b'],moss:['m_leaf','#b6e36a','#6aa84f','#2f6b3a'],scrap:['m_chunk','#c9c2d6','#5d5672','#3b3450'],wing:['m_wing','#c08cff','#7a3fb0','#3b1f5a'],
+const MATICON={emberflux:['m_gem','#fff1a8','#e2782a','#c43c3c'],bloodflux:['m_gem','#ffb3a8','#c43c3c','#5d1f1f'],astral:['m_chunk','#c4ecff','#3a4ab0','#1d1838'],voidsilk:['m_leaf','#c08cff','#3b1f5a','#1f1a2b'],starshard:['m_gem','#ffffff','#fff1a8','#f2c14e'],riftcore:['m_gem','#ffd0f4','#e05aa8','#3b1f5a'],cshard:['m_gem','#f4efe4','#c9c2d6','#8f88a8'],crys2:['m_gem','#fff1a8','#f2c14e','#a8702a'],crys3:['m_gem','#e0c8ff','#c08cff','#7a3fb0'],crys4:['m_gem','#ffd2b0','#ff8b45','#c43c3c'],crys5:['m_gem','#ffd0f4','#ff4fd8','#7a1f6b'],moss:['m_leaf','#b6e36a','#6aa84f','#2f6b3a'],scrap:['m_chunk','#c9c2d6','#5d5672','#3b3450'],wing:['m_wing','#c08cff','#7a3fb0','#3b1f5a'],
   wardenheart:['m_heart','#b6e36a','#2f6b3a','#1d3b2a'],shard:['m_gem','#c4ecff','#6fb7e8','#3a5ea8'],venom:['m_vial','#b6e36a','#6aa84f','#2f6b3a'],
   silk:['m_leaf','#f4efe4','#e8b796','#a8703f'],crown:['m_gem','#ffc4ec','#e05aa8','#7a3fb0'],ember:['m_flame','#fff1a8','#e2782a','#c43c3c'],
   scale:['m_gem','#e2782a','#5d5672','#3b3450'],steel:['m_chunk','#ffffff','#8f88a8','#3b3450'],hollow:['m_chunk','#fff8ec','#d8ccb4','#6e6680'],shroud:['m_leaf','#c08cff','#7a3fb0','#3b1f5a'],gargstone:['m_chunk','#8f88a8','#3b3450','#1f1a2b'],kingsoul:['m_gem','#e8fbff','#9cc8ff','#3a5ea8'],obsidian:['m_chunk','#7a3fb0','#2e2742','#1f1a2b'],flame:['m_flame','#fff1a8','#f2c14e','#c43c3c'],
@@ -1025,7 +1033,7 @@ const coinImg=(s=2)=>sprImg('coin',s);
 const ITEMSPR={firestaff:['i_firestaff',STAFFPAL.firestaff],frostwand:['i_frostwand',STAFFPAL.frostwand],stormrod:['i_stormrod',STAFFPAL.stormrod],band:['i_ring',{y:'#c9c2d6',Y:'#f4efe4',c:'#6aa84f',C:'#b6e36a'}],mantle:['i_cape',{R:'#3a5ea8',r:'#1d2b52',y:'#f4efe4'}],shroud:['i_cape',{R:'#7a3fb0',r:'#3b1f5a',y:'#c08cff'}]};
 const itemImg=(it,s=3)=>{if(it.slot==='gem'){const p=(GEMS[it.type]||GEMS.ruby).pal;return sprImg('gem'+(it.g||0),s,'',{1:p[0],2:p[1],3:p[2]});}
   const m=ITEMSPR[it.type];const base=m?m[0]:'i_'+it.type,pal=m?m[1]:undefined;const t=it.tier||0;
-  if(it.slot==='weapon'){const au=wepAura(it);if(!(t||it.uq||it.al||au.length))return sprImg(base,s,'',pal);const P=wepPal(base,t,it.uq,pal,it.al),ts=tierSprite(base,t,it.uq);if(!au.length||RM)return sprImg(ts,s,'',P);
+  if(it.slot==='weapon'){const au=wepAura(it);if(!(t||it.uq||it.al||au.length||/staff|wand|rod/.test(base)))return sprImg(base,s,'',pal);const P=wepPal(base,t,it.uq,pal,it.al),ts=tierSprite(base,t,it.uq);if(!au.length||RM)return sprImg(ts,s,'',P);
     const fk='wi:'+pkey(ts,P)+au.join(),urls=[];for(let i=0;i<NF;i++){const k=fk+':'+i;if(!SC[k]){const f=wepFrame(ts,P,au,i),c=document.createElement('canvas');c.width=f.width-AM*2;c.height=f.height-AM*2;const x=c.getContext&&c.getContext('2d');if(x)x.drawImage(f,-AM,-AM);SC[k]=c;}urls.push(canvasURL(k,SC[k]));}
     const [w,hh]=sprSize(ts);return `<img class="spr" data-fr="${frameKey(fk,urls)}" src="${urls[0]}" width="${w*s}" height="${hh*s}" alt="">`;}
   if(it.slot&&it.slot!=='weapon')return sprImg(base,s,'',gearPal(it)||pal);return sprImg(base,s,'',pal);};
@@ -1038,7 +1046,7 @@ const PS=()=>innerWidth>=1080?4:innerWidth>=800?3:2;
 
 /* ============ data ============ */
 const CRYS={crys2:{r:2},crys3:{r:3},crys4:{r:4},crys5:{r:5}};
-const MATS={astral:'Astral Ore',voidsilk:'Void Silk',starshard:'Star Shard',riftcore:'Rift Core',cshard:'Crystal Shard',crys2:'Rare Crystal',crys3:'Epic Crystal',crys4:'Legendary Crystal',crys5:'Mythic Crystal',moss:'Moss Fiber',scrap:'Goblin Scrap',wing:'Bat Wing',wardenheart:"Warden's Heart",shard:'Glass Shard',steel:'Steel Fragment',hollow:'Hollow Iron',shroud:'Court Shroud',gargstone:'Gargoyle Stone',kingsoul:"King's Soul",venom:'Scorpion Venom',silk:'Wraith Silk',crown:'Shard Crown',ember:'Ember Core',scale:'Drake Scale',obsidian:'Obsidian Chunk',flame:'Tyrant Flame',essence:'Arcane Essence'};
+const MATS={emberflux:'Ember Flux',bloodflux:'Blood Flux',astral:'Astral Ore',voidsilk:'Void Silk',starshard:'Star Shard',riftcore:'Rift Core',cshard:'Crystal Shard',crys2:'Rare Crystal',crys3:'Epic Crystal',crys4:'Legendary Crystal',crys5:'Mythic Crystal',moss:'Moss Fiber',scrap:'Goblin Scrap',wing:'Bat Wing',wardenheart:"Warden's Heart",shard:'Glass Shard',steel:'Steel Fragment',hollow:'Hollow Iron',shroud:'Court Shroud',gargstone:'Gargoyle Stone',kingsoul:"King's Soul",venom:'Scorpion Venom',silk:'Wraith Silk',crown:'Shard Crown',ember:'Ember Core',scale:'Drake Scale',obsidian:'Obsidian Chunk',flame:'Tyrant Flame',essence:'Arcane Essence'};
 const AREA_MATS=[['moss','scrap','wing'],['steel','shard','venom','silk'],['ember','scale','obsidian'],['hollow','shroud','gargstone'],['astral','voidsilk','starshard']];
 const EL={phys:{n:'Physical',c:'#c9c2d6'},fire:{n:'Fire',c:'#e2782a'},frost:{n:'Frost',c:'#6fb7e8'},storm:{n:'Storm',c:'#f2c14e'},venom:{n:'Venom',c:'#b6e36a'}};
 /* Enemy numbers are per-unit; mkEnemy scales them by level. */
@@ -1077,17 +1085,17 @@ const AREAS=[
 const GR=['F','E','D','C','B','A','S','SS','SSS'];
 const GC=[0,.12,.24,.36,.5,.65,.8,1,1.25];
 const WT={
-  greatsword:{n:'Greatsword',sub:'heavy',atk:6,g:{str:5,dex:1},crit:2},
-  greataxe:{n:'Greataxe',sub:'heavy',atk:7,g:{str:6},crit:-2},
-  warhammer:{n:'Warhammer',sub:'heavy',atk:8,g:{str:5},crit:-4},
-  sword:{n:'Longsword',sub:'medium',atk:5,g:{str:4,dex:4},crit:3},
-  katana:{n:'Katana',sub:'medium',atk:5,g:{str:3,dex:5},crit:6},
-  scimitar:{n:'Scimitar',sub:'medium',atk:5,g:{str:4,dex:3},crit:3},
-  rapier:{n:'Rapier',sub:'light',atk:5,g:{dex:6},crit:8},
-  dagger:{n:'Dagger',sub:'light',atk:4,g:{dex:5},crit:12},
-  firestaff:{n:'Ember Staff',sub:'fire',atk:5,g:{int:7},el:'fire'},
-  frostwand:{n:'Icicle Wand',sub:'frost',atk:5,g:{int:6},el:'frost',crit:3},
-  stormrod:{n:'Storm Rod',sub:'storm',atk:5,g:{int:6,dex:2},el:'storm'},
+  greatsword:{n:'Greatsword',sub:'heavy',atk:6,g:{str:5,dex:1},crit:2,ft:0,cleave:30,trn:'Cleave',tr:'Every hit also deals 30% damage to another enemy'},
+  greataxe:{n:'Greataxe',sub:'heavy',atk:7,g:{str:6},crit:-2,ft:1,bleed:35,trn:'Rend',tr:'35% chance per hit to make the enemy Bleed'},
+  warhammer:{n:'Warhammer',sub:'heavy',atk:8,g:{str:5},crit:-4,spd:-2,ft:2,stun:15,trn:'Crush',tr:'15% chance per hit to Stun (not bosses). −2 SPD'},
+  sword:{n:'Longsword',sub:'medium',atk:5,g:{str:4,dex:4},crit:3,ft:0,parry:15,trn:'Parry',tr:'15% chance to block an enemy attack completely'},
+  katana:{n:'Katana',sub:'medium',atk:5,g:{str:3,dex:5},crit:6,ft:2,critd:.35,trn:'Iaido',tr:'Crits deal +35% damage'},
+  scimitar:{n:'Scimitar',sub:'medium',atk:4.5,g:{str:4,dex:3},crit:3,spd:1,ft:1,twice:30,trn:'Flurry',tr:'30% chance to strike again for 60%. +1 SPD'},
+  rapier:{n:'Rapier',sub:'light',atk:5.5,g:{dex:6},crit:8,spd:1,ft:1,riposte:25,trn:'Riposte',tr:'25% chance to counter for 70% when an enemy hits you. +1 SPD'},
+  dagger:{n:'Dagger',sub:'light',atk:4.5,g:{dex:5},crit:12,spd:2,ft:0,poison:30,trn:'Envenom',tr:'30% chance per hit to Poison. +2 SPD'},
+  firestaff:{n:'Ember Staff',sub:'fire',atk:5,g:{int:7},el:'fire',ft:0},
+  frostwand:{n:'Icicle Wand',sub:'frost',atk:5,g:{int:6},el:'frost',crit:3,ft:0},
+  stormrod:{n:'Storm Rod',sub:'storm',atk:5,g:{int:6,dex:2},el:'storm',ft:0},
 };
 const AT={robe:{n:'Robe',def:1,mp:6},leather:{n:'Tunic',def:2,dodge:3},plate:{n:'Chestplate',def:3.5,spd:-2}};
 const HT={cap:{n:'Cap',def:.5,hp:5},helm:{n:'Helm',def:1.5},hood:{n:'Hood',def:.5,crit:3}};
@@ -1228,24 +1236,15 @@ const SK={
 /* forge & sanctum */
 const BASEMAT=[{m:'scrap',q:4,g:10},{m:'steel',q:4,g:50},{m:'obsidian',q:4,g:150},{m:'hollow',q:4,g:320},{m:'astral',q:4,g:600}];
 const SUP={
-  moss:{q:2,aff:{hp:6},d:'+Max HP'},
-  wing:{q:2,aff:{dodge:4},d:'+4% dodge'},
-  scrap:{q:3,aff:{def:1.5},d:'+Defense'},
-  shard:{q:2,aff:{atk:2},fx:'jagged',d:'+Attack; hits have a 20% chance to Bleed'},
-  silk:{q:2,aff:{spd:3},d:'+3 SPD'},
-  venom:{q:2,fx:'venom',d:'Hits: 25% chance to poison'},
-  scale:{q:2,aff:{def:3},d:'+Defense'},
-  ember:{q:2,fx:'ember',d:'Hits deal +10% as fire'},
-  essence:{q:3,aff:{mp:8},d:'+Max MP'},
-  wardenheart:{q:1,fx:'heart',d:'Regenerate 3% HP each turn'},
-  crown:{q:1,fx:'crown',d:'Crits deal +40% damage'},
-  flame:{q:1,fx:'tyrant',d:'Every hit adds a flame stack'},
-  shroud:{q:2,aff:{dodge:5},d:'+5% dodge'},
-  gargstone:{q:2,aff:{def:4},d:'+Defense'},
-  kingsoul:{q:1,fx:'soul',d:'Kills restore 10% HP'},
-  starshard:{q:2,aff:{crit:3},d:'+3% crit'},
-  voidsilk:{q:2,aff:{dodge:4},d:'+4% dodge'},
+  moss:{q:2,aff:{hp:10}}, wing:{q:2,aff:{dodge:3}}, scrap:{q:3,aff:{def:2}}, shard:{q:2,aff:{crit:3}}, silk:{q:2,aff:{spd:2}},
+  venom:{q:2,fx:'venom',d:'Hits have a 25% chance to Poison'}, scale:{q:2,aff:{def:3}}, ember:{q:2,fx:'ember',d:'Each hit deals +10% extra fire damage'},
+  essence:{q:3,aff:{mp:10}}, wardenheart:{q:1,fx:'heart',d:'Regenerate 3% HP each turn'}, crown:{q:1,fx:'crown',d:'Crits deal +40% damage'},
+  flame:{q:1,fx:'tyrant',d:'Every hit adds a flame stack'}, shroud:{q:2,aff:{dodge:4}}, gargstone:{q:2,aff:{def:4}},
+  kingsoul:{q:1,fx:'soul',d:'Kills restore 10% HP'}, starshard:{q:2,aff:{crit:4}}, voidsilk:{q:2,aff:{ls:2}},
 };
+// flat stats grow like the tier's base stats; percent stats gain 50% per tier
+const supVal=(k,v,t)=>SCALED.includes(k)?Math.round(v*TMA[t||0]):Math.round(v*(1+(t||0)*.5));
+function supLine(m,t){const X=SUP[m];if(!X)return '';if(X.fx)return X.d;return Object.entries(X.aff).map(([k,v])=>`+${supVal(k,v,t)}${PCT.includes(k)?'%':''} ${LAB[k]}`).join(', ');}
 /* alloys: a base metal plus one reagent becomes a named metal with its own bonus and colours */
 const METAL={scrap:0,steel:1,obsidian:2,hollow:3,astral:4};
 const ALLOYS={
@@ -1271,7 +1270,10 @@ const ALLOYS={
 Object.assign(ALLOYS,{starsteel:{n:'Starsteel',base:'astral',r:'starshard',q:2,aff:{crit:8},d:'+8% crit',pal:{W:'#ffffff',w:'#7f8fe8',G:'#2b2f5a'}},
   voidsteel:{n:'Voidsteel',base:'astral',r:'voidsilk',q:2,aff:{dodge:5,ls:2},d:'+Dodge, +Lifesteal',pal:{W:'#c08cff',w:'#3b1f5a',G:'#1f1a2b'}},
   riftforged:{n:'Riftforged',base:'astral',r:'riftcore',q:1,fx:'erupt',aff:{atk:3},d:'Crits erupt for 50% to all foes',pal:{W:'#fff1a8',w:'#e05aa8',G:'#3b1f5a'}}});
-const ALLOYOF={};for(const k in ALLOYS)ALLOYOF[ALLOYS[k].base+'+'+ALLOYS[k].r]=k;
+// the old alloys stay only so items made with them keep their names and colours
+Object.assign(ALLOYS,{emberforged:{n:'Emberforged',r:'emberflux',q:1,fx:'emberblade',short:'Hits deal fire damage and add flame stacks',pal:{W:'#ffd36a',w:'#e2782a',G:'#c43c3c'}},
+  bloodforged:{n:'Bloodforged',r:'bloodflux',q:1,fx:'bloodblade',short:'+30% damage, +15% lifesteal, −25% max HP',pal:{W:'#ffb3a8',w:'#c43c3c',G:'#5d1f1f'}}});
+const ALLOYOF={emberflux:'emberforged',bloodflux:'bloodforged'};
 const UNIQ={
   mirrorfang:{n:'Mirrorfang',type:'rapier',tier:2,from:'queen',fx:'mirror',col:'#c4ecff',a:'Reflection',d:'30% chance to strike again for 60%',affs:{dex:4,crit:4}},
   shardcrown:{n:'Shardcrown Wand',type:'frostwand',tier:2,from:'queen',fx:'prism',col:'#e05aa8',a:'Prism',d:'Elemental hits split onto another enemy for 40%',affs:{int:4,mp:10}},
@@ -1283,8 +1285,9 @@ const UNIQ={
   gmaul:{n:'Gargoyle Maul',type:'warhammer',tier:3,from:'gargoyle',fx:'stoneskin',col:'#8f88a8',a:'Stoneskin',d:'Take 15% less damage',affs:{str:4,vit:4}},
   obsidianedge:{n:'Obsidian Edge',type:'katana',tier:2,from:'golem',fx:'sever',col:'#7a3fb0',a:'Sever',d:'Ignore 30% of enemy defense',affs:{dex:4,str:3}},
 };
-const FXD={};
-const FXN={jagged:'Jagged',soul:'Soulbound',venom:'Venomed',ember:'Smouldering',heart:"Warden's Heart",crown:'Crowned',tyrant:"Tyrant's Flame"};
+const FXD={emberblade:'Your hits deal fire damage instead of physical (physical damage bonuses still count). Each hit adds a flame stack.',
+  bloodblade:'+30% damage and +15% lifesteal, but −25% max HP.',jagged:'Hits have a 20% chance to Bleed'};
+const FXN={emberblade:'Emberforged',bloodblade:'Bloodforged',jagged:'Jagged',soul:'Soulbound',venom:'Venomed',ember:'Smouldering',heart:"Warden's Heart",crown:'Crowned',tyrant:"Tyrant's Flame"};
 const CATS={weapon:'Weapon',armor:'Armor',helm:'Helm',boots:'Boots',cloak:'Cloak'};
 const ENCH={
   keen:{n:'Keen',slots:['weapon'],d:'+8% crit, crits deal +25%',cost:{essence:4,scrap:3},area:0},
@@ -1306,11 +1309,13 @@ const RFS={sharp:{n:'Sharp',w:1,s:{crit:3,atk:1}},fierce:{n:'Fierce',w:1,s:{atk:
   wise:{n:'Wise',s:{mp:10}},sturdy:{n:'Sturdy',s:{def:2}},hardy:{n:'Hardy',s:{hp:8,def:1}},titanic:{n:'Titanic',s:{hp:14}},nimble:{n:'Nimble',s:{dodge:4}},
   mighty:{n:'Mighty',s:{hp:6,atk:1}},fortunate:{n:'Fortunate',s:{gold:8}},bold:{n:'Bold',s:{atk:1,crit:2}},breezy:{n:'Breezy',s:{dodge:3,crit:1}}};
 const RFM=[.6,1,1.4,1.9,2.5,3.3],RFP=['crit','dodge','ls','gold','spd'];
-const rollRf=(slot,ex)=>pick(Object.keys(RFS).filter(k=>!!RFS[k].w===(slot==='weapon')&&k!==ex));
-function rfStats(it){const R=it.rf&&RFS[it.rf];if(!R)return {};const m=RFM[it.rar||0]*(1+(it.slot==='weapon'?0:(it.plus||0)*.1)),t=it.tier||0,o={};
-  for(const k in R.s){const v=RFP.includes(k)?R.s[k]*m*(1+t*.3):R.s[k]*m*TMA[t];o[k]=k==='def'?Math.round(v*10)/10:Math.round(v)||Math.sign(v);}return o;}
-function migrateRf(s){for(const it of [...Object.values(s.gear).filter(Boolean),...(s.bag||[])]){if(it.slot==='gem'||it.rfv)continue;const had=(it.affixes||[]).some(a=>a.r);
-  it.affixes=(it.affixes||[]).filter(a=>!a.r);if(!it.rf&&(had||it.rar>0))it.rf=rollRf(it.slot);it.rfv=1;it.name=itemName(it);}}
+const rollRf=()=>null;
+function rfStats(){return {};}
+function migrateRf(s){if(s.rfGone)return;let n=0,ess=0,gold=0;
+  for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])]){if(it.slot==='gem')continue;it.affixes=(it.affixes||[]).filter(a=>!a.r);
+    if(it.rf){n++;ess+=4+(it.rar||0)*3;gold+=40*((it.tier||0)+1);}delete it.rf;delete it.rfv;if(!it.uq)it.name=itemName(it);}
+  s.rfGone=1;if(n){s.mats=s.mats||{};s.mats.essence=(s.mats.essence||0)+ess;s.gold=(s.gold||0)+gold;
+    s.rfComp=`Sorry, reforges are gone! You had ${n} reforged item${n>1?'s':''}, so here are ${ess} essence and ${gold} gold.`;}}
 const ENCHCOL={venom:'#b6e36a',frost:'#6fb7e8',storm:'#f2c14e',fire:'#e2782a'};
 const enchCost=it=>4+it.tier*3+it.rar,enchPool=it=>Object.keys(ENCH).filter(k=>ENCH[k].slots.includes(it.slot)&&ENCH[k].area<S.unlocked);
 const enchSlots=it=>it.slot==='gem'?0:it.rar>=3?2:1;
@@ -1318,6 +1323,8 @@ const SUPPLY=[
   {id:'potion',n:'Healing Potion ×2',cost:{moss:2},g:0,out:'potion',q:2,d:'Restores 40% HP'},
   {id:'ether',n:'Ether',cost:{wing:2},g:5,out:'ether',q:1,d:'Restores 40% MP'},
   {id:'salve',n:'Cleansing Salve',cost:{moss:1,wing:1},g:5,out:'salve',q:1,d:'Cleanse + 15% HP'},
+  {id:'ef',n:'Ember Flux',cost:{essence:6,moss:3},g:80,out:'emberflux',q:1,d:'Alloy reagent: Emberforged',mat:1},
+  {id:'bf',n:'Blood Flux',cost:{essence:6,wing:3},g:80,out:'bloodflux',q:1,d:'Alloy reagent: Bloodforged',mat:1},
   {id:'c2',n:'Rare Crystal',cost:{cshard:6},g:50,out:'crys2',q:1,d:'Forge an item at Rare',mat:1},
   {id:'c3',n:'Epic Crystal',cost:{crys2:3},g:200,out:'crys3',q:1,d:'Forge an item at Epic',mat:1},
   {id:'c4',n:'Legendary Crystal',cost:{crys3:3},g:800,out:'crys4',q:1,d:'Forge an item at Legendary',mat:1},
@@ -1329,7 +1336,7 @@ const CONSD={potion:'Restores 40% of max HP. Uses your turn in battle.',ether:'R
 
 /* ============ items ============ */
 function rollAff(id,tier){const a=AFF[id];return {id,v:Math.max(1,Math.round((a.lo+Math.random()*(a.hi-a.lo))*TMA[Math.min(4,tier)])),r:1};}
-function itemName(it){if(it.slot==='gem')return it.name;const T=TYPES[it.slot][it.type].n,rf=it.rf&&RFS[it.rf]?RFS[it.rf].n+' ':'';if(it.uq&&UNIQ[it.uq])return rf+UNIQ[it.uq].n;
+function itemName(it){if(it.slot==='gem')return it.name;const T=TYPES[it.slot][it.type].n,rf='';if(it.uq&&UNIQ[it.uq])return rf+UNIQ[it.uq].n;
   return `${rf}${it.al&&ALLOYS[it.al]?ALLOYS[it.al].n:TIERN[it.tier]} ${T}`;}
 function mkItem(slot,type,tier,rar,affixes,extra){const it={uid:uid(),slot,type,tier,rar,plus:0,q:1,qn:'Standard',affixes,ench:[],fx:[],...(extra||{})};it.name=itemName(it);return it;}
 function pickType(slot){return pick(Object.keys(TYPES[slot]));}
@@ -1343,7 +1350,7 @@ function genItem(tier,minRar=0,slot,maxRar){
   const r=Math.random();let rar=r<.6?0:r<.87?1:r<.97?2:3;rar=Math.min(hi,Math.max(lo,rar));if(rar<hi&&S&&S.named&&chance(derive().luck))rar++;
   const affs=[];
   const qi=chance(15)?0:chance(70)?1:chance(70)?2:3;
-  return mkItem(slot,type,tier,rar,affs,{q:QUAL[qi][1],qn:QUAL[qi][0],rf:rar===0&&chance(50)?null:rollRf(slot),rfv:1});
+  return mkItem(slot,type,tier,rar,affs,{q:QUAL[qi][1],qn:QUAL[qi][0]});
 }
 const affVal=(it,a)=>Math.round(a.v*(1+(it.slot==='weapon'?0:it.plus*.1)));
 function itemBase(it){const T=TYPES[it.slot][it.type];const m=TM[it.tier]*(it.q||1)*(1+it.plus*(it.slot==='weapon'?.05:.1));const o={};
@@ -1598,14 +1605,14 @@ function derive(){
   for(const id in (S.brews||{})){const X=BREWS[id];if(X&&S.brews[id]>0)for(const k in X.b)b[k]=(b[k]||0)+X.b[k];}
   
   if(hasP('surge'))b.crit+=10;if(hasP('unyield')){b.hpPct+=15;b.dr+=8;}if(hasP('jugg')){b.hpPct+=30;b.spd-=3;}
-  let atk=3;let el='phys';
-  if(w){const W=WT[w.type];const base=itemBase(w).atk||0;const sv=t[wepStat(w.type)];atk=Math.round(base*(1+sv*GRP[wepGrade(w)]/100)+sv*.25+(itemStats(w).atk-base||0));el=W.el||'phys';}
+  let atk=3;let el='phys';if(fx.includes('bloodblade'))b.ls+=15;
+  if(w){const W=WT[w.type];const base=itemBase(w).atk||0;const sv=t[wepStat(w.type)];atk=Math.round(base*(1+sv*GRP[wepGrade(w)]/100)+sv*.25+(itemStats(w).atk-base||0));el=W.el||'phys';}if(fx.includes('emberblade'))el='fire';
   atk+=Math.round(b.atk||0);
-  let hpM=(1+(t.vit+b.hpPct)/100)*(hasP('wayblade')?.85:1)*(hasP('inferno')?.8:1);
+  let hpM=(1+(t.vit+b.hpPct)/100)*(hasP('wayblade')?.85:1)*(hasP('inferno')?.8:1)*(fx.includes('bloodblade')?.75:1);const bb=fx.includes('bloodblade')?1.3:1;
   return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)*(hasP('static')?.8:1)),
-    def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(75,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd,
+    def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(75,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
     dodge:Math.min(40,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
-    regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:1+(t.str+b.pdmg)/100,sm:1+(t.int+b.sdmg)/100,wel:w&&WT[w.type].el||null};
+    regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:(1+(t.str+b.pdmg)/100)*bb,sm:(1+(t.int+b.sdmg)/100)*bb,wel:w&&WT[w.type].el||null,mel:!w||!WT[w.type].el};
 }
 function fullRest(){const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;}
 function clampVitals(){const d=derive();S.hp=Math.min(S.hp,d.maxHp);S.mp=Math.min(S.mp,d.maxMp);}
@@ -1699,7 +1706,7 @@ function hit(e,mult,o={}){
   const d=derive(),c=C(),i=c.enemies.indexOf(e);if(e.hp<=0)return 0;
   const el=o.el||d.el;c.hits=(c.hits||0)+1;
   const crit=o.crit!==undefined?o.crit:(hasP('wayblade')&&c.hits%3===0)||chance(d.crit+(o.critBonus||0));
-  let bonus=(el==='phys'?d.pm:d.sm)*(d.wel&&el===d.wel?1.15:1)*(1+bestBon(e.id));if(hasP('brute')&&(e.st.stun||e.st.brk))bonus*=1.2;if(hasP('inferno')&&el==='fire')bonus*=1.35;if(hasP('zero'))bonus*=.85;if(d.fx.includes('wrath')&&e.st.burn)bonus*=1.2;if(d.fx.includes('edict')&&e.hp<e.max*.3)bonus*=1.5;
+  let bonus=(el==='phys'||(d.mel&&el===d.el)?d.pm:d.sm)*(d.wel&&el===d.wel?1.15:1)*(1+bestBon(e.id));if(hasP('brute')&&(e.st.stun||e.st.brk))bonus*=1.2;if(hasP('inferno')&&el==='fire')bonus*=1.35;if(hasP('zero'))bonus*=.85;if(d.fx.includes('wrath')&&e.st.burn)bonus*=1.2;if(d.fx.includes('edict')&&e.hp<e.max*.3)bonus*=1.5;
   const sh=e.st.shock?e.st.shock.s*(hasP('conduct')?.08:.05):0;
   const base=calc(d.atk*mult*bonus*skM,effDef(e)*(d.fx.includes('sever')?.7:1))*(1+sh);
   let dmg=base*elMult(e,el);if(crit)dmg*=d.critd;dmg=Math.max(1,Math.round(dmg));
@@ -1715,12 +1722,14 @@ function hit(e,mult,o={}){
     if(E.el==='storm'&&chance(25)){const o2=alive().filter(x=>x!==e);if(o2.length){const x=pick(o2);const ar=Math.max(1,Math.round(base*.3*elMult(x,'storm')));x.hp=Math.max(0,x.hp-ar);fx('num',{t:c.enemies.indexOf(x),txt:ar,cls:'storm'});if(x.hp<=0){log(`${x.n} falls.`,'kill');onKill(x);}}}}
   if(proc&&d.fx.includes('ember')&&e.hp>0){const ex=Math.max(1,Math.round(base*.1*elMult(e,'fire')));e.hp=Math.max(0,e.hp-ex);fx('num',{t:i,txt:ex,cls:'fire'});}
   if(proc&&e.hp>0){if(d.fx.includes('rot'))poison(e,1);if(d.fx.includes('wrath'))burn(e,2);if(d.fx.includes('reaver')&&!e.st.bleed)bleed(e,2);if(d.fx.includes('venom')&&chance(25))poison(e,1);if(d.fx.includes('jagged')&&chance(20))bleed(e,2);if(d.ench.some(x=>x.id==='venomous')&&chance(30))poison(e,1);if(d.fx.includes('tyrant'))burn(e,1);if(hasP('static'))shock(e,1);
-    const W=S.gear.weapon&&WT[S.gear.weapon.type];if(W&&W.stun&&!e.boss&&chance(W.stun))stun(e);if(W&&W.bleed&&chance(W.bleed))bleed(e,2);}
+    const W=S.gear.weapon&&WT[S.gear.weapon.type];if(W&&W.stun&&!e.boss&&chance(W.stun))stun(e);if(W&&W.bleed&&chance(W.bleed))bleed(e,2);if(W&&W.poison&&chance(W.poison))poison(e,1);if(d.fx.includes('emberblade')&&el==='fire')burn(e,1);}
   if(d.ls&&dmg>0){const h=Math.max(1,Math.round(dmg*d.ls/100));S.hp=Math.min(d.maxHp,S.hp+h);}
   fx('hp',{t:i,hp:e.hp,max:e.max});
   if(e.hp<=0){log(`${e.n} falls.`,'kill');onKill(e);}
   fxAt+=110;
-  if(!o.echo&&proc){const others=alive().filter(z=>z!==e);
+  if(!o.echo&&proc){const others=alive().filter(z=>z!==e);const W1=S.gear.weapon&&WT[S.gear.weapon.type];
+    if(W1&&W1.twice&&e.hp>0&&chance(W1.twice))hit(e,mult*.6,{...o,echo:1,crit:undefined,label:'Flurry hits'});
+    if(W1&&W1.cleave&&others.length)hit(pick(others),mult*.3,{...o,echo:1,crit:false,label:'Cleave hits'});
     if(d.fx.includes('mirror')&&e.hp>0&&chance(30))hit(e,mult*.6,{...o,echo:1,crit:undefined,label:'Mirrorfang hits'});
     if(d.fx.includes('prism')&&el!=='phys'&&others.length)hit(pick(others),mult*.4,{...o,el,echo:1,crit:false,label:'The prism hits'});
     if(d.fx.includes('erupt')&&crit)others.forEach(x=>hit(x,mult*.5,{el:'fire',echo:1,crit:false,label:'Eruption hits'}));}
@@ -1749,6 +1758,7 @@ function enemyAct(c,e){
   if(ab==='shield'){e.st.ward=(e.st.ward||0)+Math.round(e.max*.12);log(`${e.n} raises a ward.`,'hurt');fx('burst',{t:i,col:['#c4ecff','#f4efe4'],n:22});return;}
   if(c.ps.evade){delete c.ps.evade;log(`You slip past ${e.n}.`,'buff');fx('num',{t:'p',txt:'Evade',cls:'miss'});return;}
   if(chance(d.dodge+(c.ps.veil?40:0))){log(`You dodge ${e.n}.`,'buff');fx('num',{t:'p',txt:'Dodge',cls:'miss'});return;}
+  const WP=S.gear.weapon&&WT[S.gear.weapon.type];if(WP&&WP.parry&&chance(WP.parry)){log(`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:'Parry',cls:'miss'});return;}
   const chillRed=e.st.chill&&hasP('bite')?1-.1*e.st.chill.s:1;
   let dmg=calc(e.atk*(ab==='heavy'?1.6:1)*chillRed,d.def)*(1-d.dr/100);dmg=Math.max(1,Math.round(dmg));
   const n=multi?multi[1]:1,el={burn:'fire',poison:'venom'}[ab]||'phys';let total=0,absorbed=0;
@@ -1767,6 +1777,7 @@ function enemyAct(c,e){
   if(d.thorns&&dmg>0){const r=Math.max(1,Math.round(dmg*d.thorns/100));e.hp=Math.max(0,e.hp-r);fx('num',{t:i,txt:r,cls:'dmg'});log(`Thorns deal ${r} back.`,'buff');fx('hp',{t:i,hp:e.hp,max:e.max});if(e.hp<=0){log(`${e.n} falls.`,'kill');onKill(e);return;}}
   if(c.ps.emberward&&e.hp>0)burn(e,1);
   if(c.ps.riposte&&S.hp>0&&e.hp>0){fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});}
+  else if(WP&&WP.riposte&&dmg>0&&S.hp>0&&e.hp>0&&chance(WP.riposte)){fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});}
 }
 function enemyPhase(){const c=C();fxAt+=380;
   for(const e of c.enemies.slice()){if(e.hp<=0)continue;if(e.called){delete e.called;continue;}const i=c.enemies.indexOf(e);
@@ -1838,14 +1849,15 @@ const matPrice=i=>8*(i+1);
 const hasMats=cost=>Object.entries(cost).every(([m,q])=>(S.mats[m]||0)>=q);
 const payMats=cost=>{for(const m in cost)S.mats[m]-=cost[m];};
 function forgeSpec(){const f=S.fg;const [cat,type]=(f.type||'').split(':');const base=f.metal&&METAL[f.metal]!==undefined?f.metal:null;const tier=base?METAL[base]:0;
-  const al=base&&f.alloy?ALLOYOF[base+'+'+f.alloy]||null:null;const sup=(f.sups||[]).filter(m=>SUP[m]&&m!==base&&m!==f.alloy).slice(0,2);const cr=f.crystal&&CRYS[f.crystal]?f.crystal:null;
+  const al=base&&cat==='weapon'&&f.alloy?ALLOYOF[f.alloy]||null:null;const sup=(f.sups||[]).filter(m=>SUP[m]&&m!==base).slice(0,2);const cr=f.crystal&&CRYS[f.crystal]?f.crystal:null;
   const cost={};const add=(m,q)=>{cost[m]=(cost[m]||0)+q;};if(base)add(base,4);if(al)add(f.alloy,ALLOYS[al].q);for(const s of sup)add(s,SUP[s].q);if(cr)add(cr,1);
-  return {cat:cat||null,type:type||null,tier,base,al,sup,cr,cost,g:base?BASEMAT[tier].g:0};}
+  const ok=!!(cat&&type&&TYPES[cat]&&TYPES[cat][type]&&(cat!=='weapon'||(WT[type].ft||0)<=tier));
+  return {cat:cat||null,type:ok?type:null,tier,base,al,sup,cr,cost,g:base?BASEMAT[tier].g:0};}
 function canForge(sp){return !!(sp.cat&&sp.type&&TYPES[sp.cat]&&TYPES[sp.cat][sp.type]&&sp.base&&sp.tier<S.unlocked&&S.gold>=sp.g&&hasMats(sp.cost));}
-function forgedItem(sp,qi){const affs=[];const fxs=[];const add=a=>{for(const k in a){const v=SCALED.includes(k)?Math.round(a[k]*TMA[sp.tier]):a[k];const ex=affs.find(x=>x.id===k);if(ex)ex.v+=v;else affs.push({id:k,v});}};
+function forgedItem(sp,qi){const affs=[];const fxs=[];const add=a=>{for(const k in a){const v=supVal(k,a[k],sp.tier);const ex=affs.find(x=>x.id===k);if(ex)ex.v+=v;else affs.push({id:k,v});}};
   const A=sp.al&&ALLOYS[sp.al];if(A){if(A.aff)add(A.aff);if(A.fx)fxs.push(A.fx);}for(const s of sp.sup){const X=SUP[s];if(X.fx)fxs.push(X.fx);if(X.aff)add(X.aff);}
   const rar=Math.max(sp.cr?CRYS[sp.cr].r:0,Math.min(2,(sp.sup.length?1:0)+(A?1:0)+(qi>=4?1:0)));
-  return mkItem(sp.cat,sp.type,sp.tier,rar,affs,{q:QUAL[qi][1],qn:QUAL[qi][0],fx:[...new Set(fxs)],forged:1,rf:rollRf(sp.cat),rfv:1,...(sp.al?{al:sp.al}:{})});}
+  return mkItem(sp.cat,sp.type,sp.tier,rar,affs,{q:QUAL[qi][1],qn:QUAL[qi][0],fx:[...new Set(fxs)],forged:1,...(sp.al?{al:sp.al}:{})});}
 
 /* ============ actions ============ */
 const FEAT=[['char',()=>S.lvl>=2,'Character'],['skills',()=>S.wins>=1,'Stars'],['inv',()=>S.kills>=1,'Inventory'],['town',()=>S.wins>=3||S.unlocked>1,'Town'],['beast',()=>(S.kills||0)>=3,'Bestiary'],['online',()=>!!S.unl.town,'Online']];
@@ -1962,8 +1974,8 @@ const ACT={
   fgtab:v=>{S.fg.tab=v;S.fsel=null;},
   fgcat:v=>{if(S.fg.cat!==v){S.fg.cat=v;S.fg.type=null;}},
   fgtype:v=>{S.fg.type=S.fg.type===v?null:v;},
-  fgmetal:v=>{S.fg.metal=S.fg.metal===v?null:v;S.fg.alloy=null;S.fg.sups=(S.fg.sups||[]).filter(m=>m!==S.fg.metal);},
-  fgalloy:v=>{S.fg.alloy=S.fg.alloy===v?null:v;S.fg.sups=(S.fg.sups||[]).filter(m=>m!==S.fg.alloy);},
+  fgmetal:v=>{const f=S.fg;f.metal=f.metal===v?null:v;f.sups=(f.sups||[]).filter(m=>m!==f.metal);const [c,t]=(f.type||'').split(':');if(c==='weapon'&&WT[t]&&(WT[t].ft||0)>(f.metal?METAL[f.metal]:0))f.type=null;},
+  fgalloy:v=>{S.fg.alloy=S.fg.alloy===v?null:v;},
   fgsup:v=>{const m=S.fg.sups||[];S.fg.sups=m.includes(v)?m.filter(x=>x!==v):m.length<2?[...m,v]:m;},
   fgcrys:v=>{S.fg.crystal=S.fg.crystal===v?null:v;},
   fgclear:()=>{Object.assign(S.fg,{type:null,metal:null,alloy:null,sups:[],crystal:null});},
@@ -1971,7 +1983,7 @@ const ACT={
     S.gold-=FUSEG[g];S.bag=S.bag.filter(it=>!pile.includes(it));const out=mkGem(t,g+1);addToBag([out]);fx('strike',{perfect:true});busyUntil=Date.now()+600;fx('forge',{item:out.uid,delay:400});},
   forge:()=>{const sp=forgeSpec();if(!canForge(sp))return;if(S.bag.length>=bagMax()){toast('Your bag is full');return;}payMats(sp.cost);S.gold-=sp.g;sp.equip=null;const f=S.fg,has=m=>(S.mats[m]||0)>0;
     f.sups=(f.sups||[]).filter(has);if(f.crystal&&!has(f.crystal))f.crystal=null;if(f.alloy&&!has(f.alloy))f.alloy=null;clampVitals();Object.assign(MG,{active:true,pos:0,dir:1,speed:.9+sp.tier*.25,strikes:[],spec:sp,last:null});},
-  strike:()=>{if(!MG.active)return;const zone=[14,11,8,6][MG.spec.tier];const off=Math.abs(MG.pos-50);const acc=Math.max(0,1-off/(zone*2.6));
+  strike:()=>{if(!MG.active)return;const zone=[14,11,8,6,6][MG.spec.tier];const off=Math.abs(MG.pos-50);const acc=Math.max(0,1-off/(zone*2.6));
     MG.strikes.push(acc);MG.last=off<=zone*.35?'Perfect!':off<=zone?'Good':acc>0?'Off':'Miss';fx('strike',{perfect:off<=zone*.35});
     if(MG.strikes.length>=3){const avg=MG.strikes.reduce((a,b)=>a+b,0)/3;const qi=avg>=.9?4:avg>=.75?3:avg>=.55?2:avg>=.3?1:0;
       const it=forgedItem(MG.spec,qi);if(qi===4)S.flags.master=true;if(MG.spec.equip){S.gear[MG.spec.equip]=it;clampVitals();}else addToBag([it]);
@@ -2303,9 +2315,9 @@ function statRows(it){if(!it)return [];const rows=[];const W=it.slot==='weapon'?
   const st=itemStats(it),rf=rfStats(it);for(const k of ['def','hp','mp','crit','dodge','spd','str','dex','int','vit','luk','atk','ls','gold']){if(W&&k==='atk')continue;if(st[k])rows.push({k,l:LAB[k],v:st[k],pct:PCT.includes(k),rfv:rf[k]});}
   return rows;}
 const fmtRow=r=>!r?'—':r.g!==undefined?`<span class="grd g${r.g}">${GR[r.g]}</span>`:(r.v>0&&!['atk','def','hp','mp'].includes(r.k)?'+':'')+r.v+(r.pct?'%':'');
-function extrasHTML(it){if(!it)return '';const n=enchSlots(it);
+function extrasHTML(it){if(!it)return '';const n=enchSlots(it);const TW=it.slot==='weapon'&&WT[it.type];
   const st=false&&SETSLOTS.includes(it.slot)&&SETS[it.tier||0]?(()=>{const B=SETS[it.tier||0],n=setCounts()[it.tier||0]||0;return `<div class="xl">◈ ${B.n} (${n}/4 worn): 2 · ${B.d2} — 4 · ${B.d4}</div>`;})():'';
-  return st+(it.rf&&RFS[it.rf]?`<div class="xl gold">⚒ ${RFS[it.rf].n} reforge</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
+  return st+(TW&&TW.tr?`<div class="xl">▸ ${TW.trn}: ${TW.tr}</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
    +Array.from({length:n},(_,i)=>{const e=it.ench[i];if(!e)return '<div class="xl dim">· empty enchant slot</div>';const E=ENCH[e.id];return `<div class="xl arc" style="color:${ENCHCOL[E.el]||'var(--arc)'}">◆ ${e.g?'Greater ':''}${E.n}: ${E.d}</div>`;}).join('');}
 function headHTML(it){const W=it.slot==='weapon'?WT[it.type]:null;return `<div class="ih"><span class="icbox">${itemImg(it,3)}</span><div><div class="iname">${it.plus?`+${it.plus} `:''}${esc(it.name)}</div>
   <div class="rar">${it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
@@ -2329,7 +2341,7 @@ const tipEl=document.createElement('div');tipEl.className='tip';tipEl.hidden=tru
 function tipHTML(key){const [k,v]=[key.slice(0,key.indexOf(':')),key.slice(key.indexOf(':')+1)];
   if(key==='hero'){const d=derive();return `<b>${esc(S.name)}</b><div class="dim small">Lv ${S.lvl}</div><div class="tg">ATK <b>${d.atk}</b> DEF <b>${d.def}</b> SPD <b>${d.spd}</b> Crit <b>${d.crit}%</b> Dodge <b>${d.dodge}%</b></div>`;}
   if(k==='txt')return esc(v);
-  if(k==='item'){const it=findAny(v);return it?itemCard(it,'',isWorn(it)):'';}
+  if(k==='item'){const it=findAny(v);return it?itemTip(it):'';}
   if(k==='st')return STDESC[v]||'';
   if(k==='cons')return `<b>${CONSN[v]}</b> <span class="tag num">×${S.cons[v]||0}</span><div class="small">${CONSD[v]}</div>`;
   if(k==='mat')return matTip(v);
@@ -2340,9 +2352,15 @@ function tipHTML(key){const [k,v]=[key.slice(0,key.indexOf(':')),key.slice(key.i
     <div class="small">Next: ${INTN[e.intent]||'—'}</div><div class="small">Weak: ${kn?(e.weak?`<span style="color:${EL[e.weak].c}">${EL[e.weak].n}</span>`:'none'):'? (Analyze)'} · Resists: ${kn?(e.res?`<span style="color:${EL[e.res].c}">${EL[e.res].n}</span>`:'none'):'?'}</div>
     ${Object.keys(e.st).map(s=>STDESC[s]?`<div class="small dim">${STDESC[s]}</div>`:'').join('')}`;}
   return '';}
-function matTip(m){const src=Object.values(MOB).filter(x=>x.drops.some(d=>d[0]===m)).map(x=>x.n);const uses=[];const bi=BASEMAT.findIndex(b=>b.m===m);if(bi>=0)uses.push(`Forge base material, Tier ${bi+1}`);if(SUP[m])uses.push(`Forge addition: ${SUP[m].d}`);
-  const en=Object.values(ENCH).filter(E=>E.cost[m]).map(E=>E.n);if(en.length)uses.push(`Enchants: ${en.join(', ')}`);const sp=SUPPLY.filter(x=>x.cost[m]).map(x=>x.n);if(sp.length)uses.push(`Supplies: ${sp.join(', ')}`);
-  return `<b>${MATS[m]}</b> <span class="tag num">×${S.mats[m]||0}</span>${src.length?`<div class="small dim">Dropped by ${src.join(', ')}</div>`:''}${m==='essence'?'<div class="small dim">From salvaging, bounties, bosses and rare drops</div>':''}${uses.map(u=>`<div class="small">${u}</div>`).join('')}`;}
+function matTip(m){const role=[];const bi=BASEMAT.findIndex(b=>b.m===m);if(bi>=0)role.push(`Core metal · Tier ${bi+1}`);
+  if(ALLOYOF[m])role.push(`Alloy reagent · ${ALLOYS[ALLOYOF[m]].n}`);if(SUP[m])role.push(`Supplement · ${supLine(m,tierNow())}`);if(CRYS[m])role.push(`Forges an item at ${RAR[CRYS[m].r].n}`);
+  if(m==='essence')role.push('Tempering, enchanting and crafting');
+  const src=Object.values(MOB).filter(x=>x.drops.some(d=>d[0]===m)).map(x=>x.n).slice(0,2);
+  return `<b>${MATS[m]}</b> <span class="tag num">×${S.mats[m]||0}</span>${role.map(u=>`<div class="small">${u}</div>`).join('')}${src.length?`<div class="small dim">From ${src.join(', ')}</div>`:''}`;}
+// hovering an item shows the short version; the full card is where you click it
+function itemTip(it){const W=it.slot==='weapon'?WT[it.type]:null;const rows=statRows(it).filter(r=>r.g===undefined);
+  const fxn=[W&&W.trn,...(it.fx||[]).map(f=>FXN[f]),...(it.ench||[]).map(e=>ENCH[e.id]&&ENCH[e.id].n)].filter(Boolean);
+  return `${headHTML(it)}<div class="small">${rows.map(r=>`${r.l} <b class="num">${fmtRow(r)}</b>`).join(' · ')}</div>${fxn.length?`<div class="small gold">${fxn.join(' · ')}</div>`:''}`;}
 function posTip(x,y){const r=tipEl.getBoundingClientRect();let px=x+16,py=y+16;if(px+r.width>innerWidth-8)px=Math.max(8,x-r.width-16);if(py+r.height>innerHeight-8)py=Math.max(8,innerHeight-r.height-8);tipEl.style.left=px+'px';tipEl.style.top=py+'px';}
 let tipFor=null;
 function hideTip(){tipEl.hidden=true;tipFor=null;}
@@ -2461,41 +2479,43 @@ function vInn(){const cost=innCost();ensureCtr();S.q=S.q||{};
   </div><h3>Quests</h3><div class="quests">${quests}</div></section>`;}
 function needTag(m,q){const h=S.mats[m]||0;return `<span class="need ${h>=q?'ok':'no'}" data-tip="mat:${m}">${matImg(m,2)}<span class="num">${h}/${q}</span></span>`;}
 const goldTag=g=>g?`<span class="need ${S.gold>=g?'ok':'no'}">${coinImg(2)}<span class="num">${g}</span></span>`:'';
-function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;
+function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const tier=sp.base?sp.tier:0;
   const step=(n,t)=>`<h3><span class="tag gold">${n}</span> ${t}</h3>`;
-  const catB=(c,n)=>`<button class="btn ${cat===c?'primary':''}" data-a="fgcat" data-v="${c}">${n}</button>`;
-  const tpB=(sl,k,n)=>{const v=sl+':'+k,m=ITEMSPR[k],base=m?m[0]:'i_'+k;const pal=sl==='weapon'?(m?m[1]:undefined):gearPal({type:k,tier:0})||(m?m[1]:undefined);
-    return `<button class="pick ${f.type===v?'on':''}" data-a="fgtype" data-v="${v}">${sprImg(base,2,'',pal)}<span>${n}</span></button>`;};
-  const types=cat==='weapon'?Object.entries(WT).map(([k,W])=>tpB('weapon',k,W.n)).join(''):cat==='armor'?[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].map(([sl,T])=>Object.entries(T).map(([k,X])=>tpB(sl,k,X.n)).join('')).join(''):'';
   const mB=(act,m,on,q,sub)=>{const have=S.mats[m]||0;return `<button class="pick sm ${on?'on':''} ${have<q?'short':''}" data-a="${act}" data-v="${m}" data-tip="mat:${m}">${matImg(m,2)}<span>${MATS[m]}<small class="num">${have}/${q} · ${esc(sub)}</small></span></button>`;};
   const metals=Object.keys(METAL).filter(m=>METAL[m]<S.unlocked).map(m=>mB('fgmetal',m,f.metal===m,4,`${TIERN[METAL[m]]} · Tier ${METAL[m]+1}`)).join('');
-  const reag=f.metal?Object.entries(ALLOYS).filter(([,A])=>A.base===f.metal).map(([k,A])=>mB('fgalloy',A.r,f.alloy===A.r,A.q,S.disc.includes(k)?A.n:'???')).join(''):'';
-  const sups=Object.keys(SUP).filter(m=>(S.mats[m]||0)>0&&m!==f.metal&&m!==f.alloy).map(m=>mB('fgsup',m,(f.sups||[]).includes(m),SUP[m].q,SUP[m].d)).join('');
+  const catB=(c,n)=>`<button class="btn ${cat===c?'primary':''}" data-a="fgcat" data-v="${c}">${n}</button>`;
+  const tpB=(sl,k,n)=>{const v=sl+':'+k,m=ITEMSPR[k],base=m?m[0]:'i_'+k,W=sl==='weapon'?WT[k]:null;
+    const img=W?sprImg(tierSprite(base,tier,null),2,'',wepPal(base,tier,null,m?m[1]:undefined)):sprImg(base,2,'',gearPal({type:k,tier})||(m?m[1]:undefined));
+    if(W&&(W.ft||0)>tier)return `<button class="pick off" disabled>${img}<span>${n}<small>Needs ${TIERN[W.ft]}</small></span></button>`;
+    return `<button class="pick ${f.type===v?'on':''}" data-a="fgtype" data-v="${v}">${img}<span>${n}${W?`<small>${W.trn||EL[W.el].n}</small>`:''}</span></button>`;};
+  const types=cat==='weapon'?Object.entries(WT).map(([k,W])=>tpB('weapon',k,W.n)).join(''):cat==='armor'?[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].map(([sl,T])=>Object.entries(T).map(([k,X])=>tpB(sl,k,X.n)).join('')).join(''):'';
+  const alloys=Object.entries(ALLOYOF).map(([r,k])=>{const A=ALLOYS[k],have=S.mats[r]||0;
+    return `<button class="pick ${f.alloy===r?'on':''} ${have<A.q?'short':''}" data-a="fgalloy" data-v="${r}">${matImg(r,2)}<span>${A.n}<small class="num">${have}/${A.q} ${MATS[r]}</small><small>${A.short}</small></span></button>`;}).join('');
+  const sups=Object.keys(SUP).filter(m=>(S.mats[m]||0)>0&&m!==f.metal).map(m=>mB('fgsup',m,(f.sups||[]).includes(m),SUP[m].q,supLine(m,tier))).join('');
   const crys=Object.keys(CRYS).filter(m=>(S.mats[m]||0)>0).map(m=>mB('fgcrys',m,f.crystal===m,1,'Makes it '+RAR[CRYS[m].r].n)).join('');
-  let prev=null;if(sp.cat&&sp.type&&sp.base&&TYPES[sp.cat]&&TYPES[sp.cat][sp.type]){prev=forgedItem(sp,1);prev.rf=null;prev.qn='Quality: your strikes';prev.name=`${sp.al?ALLOYS[sp.al].n:TIERN[prev.tier]} ${TYPES[prev.slot][prev.type].n}`;}
-  const need=!cat?'Choose weapons or armor.':!sp.type?'Choose what to make.':!sp.base?'Add a catalyst metal; it sets the tier.':sp.tier>=S.unlocked?'You can\'t work this metal yet.':'';
-  const codex=Object.entries(ALLOYS).filter(([,A])=>METAL[A.base]<S.unlocked).map(([k,A])=>{const got=S.disc.includes(k);
-    return `<div class="cx ${got?'got':''}">${matImg(A.base,2)}<span>${got?`<b>${A.n}</b> · ${MATS[A.base]} + ${MATS[A.r]}<small>${A.d}</small>`:`<b>???</b> · ${MATS[A.base]} + ???`}</span></div>`;}).join('');
+  let prev=null;if(sp.cat&&sp.type&&sp.base){prev=forgedItem(sp,1);prev.qn='Quality: your strikes';prev.name=`${sp.al?ALLOYS[sp.al].n:TIERN[prev.tier]} ${TYPES[prev.slot][prev.type].n}`;}
+  const need=!sp.base?'Choose a core metal. It sets the tier.':!cat?'Choose weapons or armor.':!sp.type?'Choose what to make.':'';
+  const parts=sp.base?[[MATS[sp.base],`Tier ${tier+1} base stats`],sp.al?[ALLOYS[sp.al].n,ALLOYS[sp.al].short]:null,...sp.sup.map(s=>[MATS[s],supLine(s,tier)]),sp.cr?[MATS[sp.cr],RAR[CRYS[sp.cr].r].n+' rarity']:null,['Your 3 strikes','Quality: 0.85× to 1.35× base stats']].filter(Boolean):[];
   return `<div class="forgegrid"><div style="display:flex;flex-direction:column;gap:10px;min-width:0">
-    ${step(1,'Weapons or armor')}<div class="row">${catB('weapon','Weapons')}${catB('armor','Armor')}</div>
-    ${cat?`${step(2,'What to make')}<div class="picks">${types}</div>`:''}
-    ${sp.type?`${step(3,'Catalyst metal')}<div class="picks">${metals||'<p class="empty-s">No metals yet.</p>'}</div>
-      ${f.metal?`<h3>Alloy reagent <span class="dim small">optional</span></h3><div class="picks">${reag||'<p class="empty-s">Nothing alloys with this metal.</p>'}</div>`:''}
-      <h3>Supplements <span class="dim small">up to 2</span></h3><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
-      ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}`:''}
-    <h3>Discoveries · ${S.disc.filter(k=>ALLOYS[k]).length}/${Object.keys(ALLOYS).length}</h3><div class="codex">${codex}</div></div>
+    ${step(1,'Core metal')}<div class="picks">${metals||'<p class="empty-s">No metals yet.</p>'}</div>
+    ${sp.base?`${step(2,'Weapons or armor')}<div class="row">${catB('weapon','Weapons')}${catB('armor','Armor')}</div>`:''}
+    ${sp.base&&cat?`${step(3,'What to make')}<div class="picks">${types}</div>`:''}
+    ${sp.type?`${cat==='weapon'?`${step(4,'Alloy')} <span class="dim small">optional · changes how the weapon fights</span><div class="picks">${alloys}</div>`:''}
+      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">up to 2 · stronger at higher tiers</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
+      ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}`:''}</div>
     <div class="sub anvil"><div class="row" style="justify-content:space-between"><h3>The anvil</h3>${sp.type||f.metal?'<button class="btn sm" data-a="fgclear">Clear</button>':''}</div>
       ${prev?itemCard(prev,''):`<p class="empty-s">${need}</p>`}
-      ${prev?`<div class="cost">${Object.entries(sp.cost).map(([m,q])=>needTag(m,q)).join('')}${goldTag(sp.g)}</div>${need?`<p class="small" style="color:var(--bad)">${need}</p>`:''}`:''}
+      ${parts.length?`<h3>What each part adds</h3><ul class="parts">${parts.map(([a,b])=>`<li><span>${a}</span><b>${b}</b></li>`).join('')}</ul>`:''}
+      ${prev?`<div class="cost">${Object.entries(sp.cost).map(([m,q])=>needTag(m,q)).join('')}${goldTag(sp.g)}</div>`:''}
       <button class="btn primary" data-a="forge" ${canForge(sp)?'':'disabled'}>Begin forging ▸</button></div></div>`;}
 
-function vMinigame(){const zone=[14,11,8,6][MG.spec.tier];return `<div class="sub mg"><b>Strike ${Math.min(3,MG.strikes.length+1)} of 3</b><span class="dim small">Strike when the marker is in the gold zone. Bright gold is perfect. Space works too.</span>
+function vMinigame(){const zone=[14,11,8,6,6][MG.spec.tier];return `<div class="sub mg"><b>Strike ${Math.min(3,MG.strikes.length+1)} of 3</b><span class="dim small">Strike when the marker is in the gold zone. Bright gold is perfect. Space works too.</span>
   <div class="mgbar"><i class="mgzone" style="left:${50-zone}%;width:${zone*2}%"></i><i class="mgperf" style="left:${50-zone*.35}%;width:${zone*.7}%"></i><i class="mgmark" id="mgmark" style="left:${MG.pos}%"></i></div>
   <div class="row">${MG.strikes.map(a=>`<span class="tag ${a>=.85?'gold':a>=.5?'good':'bad'} num">${Math.round(a*100)}%</span>`).join('')}${MG.last?`<b class="mglast">${MG.last}</b>`:''}</div>
   <button class="btn primary" data-a="strike" id="strikebtn">Strike!</button></div>`;}
 function itemPicker(act,sel,filter){const list=allItems().filter(filter||(()=>true));return `<div class="bag">${list.map(it=>`<button class="cell r${it.rar} ${it.uid===sel?'sel':''}" data-a="${act}" data-v="${it.uid}" data-tip="item:${it.uid}" aria-label="${esc(it.name)}">${itemImg(it,3)}${it.plus?`<b class="pl">+${it.plus}</b>`:''}</button>`).join('')||'<p class="empty-s">No items.</p>'}</div>`;}
 function vForge(){const f=S.fg;
-  const tabs=[['craft','Craft'],['gems','Gems'],['supplies','Supplies'],['temper','Temper'],['reforge','Reforge']].map(([t,n])=>`<button class="btn sm ${f.tab===t?'tab on':''}" data-a="fgtab" data-v="${t}" ${MG.active?'disabled':''}>${n}</button>`).join('');
+  const tabs=[['craft','Craft'],['gems','Gems'],['supplies','Supplies'],['temper','Temper']].map(([t,n])=>`<button class="btn sm ${f.tab===t?'tab on':''}" data-a="fgtab" data-v="${t}" ${MG.active?'disabled':''}>${n}</button>`).join('');
   let body;
   if(MG.active)body=vMinigame();
   else if(f.tab==='craft')body=vCraft();
@@ -2992,9 +3012,10 @@ function banner(txt,sub,cls){const d=document.createElement('div');d.className='
 
 /* ============ render ============ */
 let toastT;
+function notice(t){toast(t);clearTimeout(toastT);toastT=setTimeout(()=>document.getElementById('toast').hidden=true,9000);}
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2600);}
 function mode(){if(S.combat||S.tab==='explore')return String(S.area);if(S.tab==='town')return ({inn:'inn',forge:'forge',sanctum:'sanctum',sealed:'sanctum'}[S.loc])||'town';return 'dust';}
-function render(quiet){hideTip();
+function render(quiet){hideTip();if(S&&S.rfComp){const m=S.rfComp;delete S.rfComp;S.note=m;setTimeout(()=>notice(m),600);}
   if(!S.named){UI.set=false;IMP=null;document.getElementById('ovl').innerHTML='';document.getElementById('top').innerHTML='';document.getElementById('tabs').innerHTML='';document.getElementById('main').innerHTML=vIntro();
     document.querySelectorAll('canvas.scene').forEach(cv=>{try{drawScene(cv,performance.now());}catch(e){}});setAmb('0');const nm=document.getElementById('nm');if(nm&&!quiet)nm.focus();return;}
   checkUnlocks();if(!S.combat||S.combat.over)checkAch();

@@ -312,3 +312,28 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   - Numbers on the same target spread apart.
   - Statuses are bordered chips that show ×stacks and turns.
 - [x] **Stat text:** "+79% spell damage, +79% MP"; "Your weapon scales with this" is on its own line.
+
+## Round 11 — Forge rework (done)
+- [x] **Core metal first:** the core metal picks the tier and what you can make. Iron: Longsword, Greatsword, Dagger and the three staves. Steel adds Scimitar, Greataxe and Rapier. Obsidian adds Katana and Warhammer.
+- [x] **Weapon traits:**
+
+  | Weapon | Trait |
+  |---|---|
+  | Greatsword | Cleave |
+  | Greataxe | Rend (bleed) |
+  | Warhammer | Crush (stun) |
+  | Longsword | Parry |
+  | Katana | Iaido (crit damage) |
+  | Scimitar | Flurry (second strike) |
+  | Rapier | Riposte |
+  | Dagger | Envenom |
+
+  Some also change SPD.
+- [x] **Two alloys, each with its own flux** (crafted under Supplies):
+  - Emberforged: fire damage plus flame stacks, and it still uses physical damage bonuses.
+  - Bloodforged: +30% damage and +15% lifesteal, but −25% HP.
+- [x] **Supplements:** each one does one stated thing, and stat supplements scale with the core tier.
+- [x] **Reforges removed:** old saves get essence and gold back once, with a message.
+- [x] **Staves:** each tier has its own look, from a twig with a spark up to a crowned orb.
+- [x] **Short tooltips:** materials and items show a compact summary on hover. The anvil lists what each part adds.
+- [x] **Fixes:** the forging minigame had no zone size for Astral.
