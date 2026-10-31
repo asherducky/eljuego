@@ -1761,7 +1761,7 @@ function startCombat(list,ctx){if(ctx!=='tower'&&ctx!=='duel'&&ctx!=='pvp')for(c
   S.combat={enemies:list,log:[],target:0,ps:{},ctx,over:null,menu:'main',hits:0,cd:ctx==='dungeon'&&S.dungeon&&S.dungeon.cd?{...S.dungeon.cd}:ctx==='tower'&&S.tower&&S.tower.cd?{...S.tower.cd}:{}};
   log(`${list.map(e=>e.n).join(', ')} ${list.length>1?'close in':'appears'}!`,'sys');
   const boss=list.find(e=>e.boss);if(boss){log(`${boss.n} blocks the way.`,'boss');fx('boss',{n:boss.n});busyUntil=Date.now()+1400;}
-  if(ctx==='first')S.combat.ctx='wild';else if(ctx==='wild'&&maxESpd()>=derive().spd+4&&chance(35)){log('Ambushed! They move first.','hurt');fxAt=600;enemyPhase();if(S.hp<=0)lose();}
+  if(ctx==='first')S.combat.ctx='wild';
 }
 function calc(raw,def){raw=Math.max(.5,raw);return raw*raw/(raw+Math.max(0,def))*(.9+Math.random()*.2);}
 function elMult(e,el){return e.weak===el?1.5:e.res===el?.65:1;}
