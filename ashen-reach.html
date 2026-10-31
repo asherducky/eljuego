@@ -1307,10 +1307,10 @@ const alloyOpen=k=>S.unlocked>(ALLOYS[k].ar||0);
 const UNIQ={
   mirrorfang:{n:'Mirrorfang',type:'rapier',tier:2,from:'queen',fx:'mirror',col:'#c4ecff',a:'Reflection',d:'30% chance to strike again for 60%',affs:{dex:4,crit:4}},
   shardcrown:{n:'Shardcrown Wand',type:'frostwand',tier:2,from:'queen',fx:'prism',col:'#e05aa8',a:'Prism',d:'Elemental hits split onto another enemy for 40%',affs:{int:4,mp:10}},
-  cinderbrand:{n:'Cinderbrand',type:'greatsword',tier:2,from:'tyrant',fx:'wrath',col:'#e2782a',a:"Tyrant's Wrath",d:'Hits add 2 flame stacks; +20% damage to burning enemies',affs:{str:4,atk:3}},
+  cinderbrand:{n:'Cinderbrand',type:'greatsword',tier:2,from:'tyrant',fx:'wrath',col:'#e2782a',a:"Tyrant's Wrath",d:'Hits add 2 flame stacks; +20% damage to burning enemies',affs:{str:4,dex:2}},
   edict:{n:'Hollow Edict',type:'sword',tier:3,from:'hking',fx:'edict',col:'#9cc8ff',a:'Edict',d:'+50% damage to enemies under 30% HP',affs:{str:4,dex:3}},
   sceptre:{n:'Sceptre of Ash',type:'firestaff',tier:3,from:'hking',fx:'siphon',col:'#c08cff',a:'Siphon',d:'Kills restore 15% HP and 10 MP',affs:{int:5,mp:10}},
-  starbreaker:{n:'Tidebreaker',type:'greatsword',tier:4,from:'unmaker',fx:'erupt',col:'#5ec4b0',a:'Tidal Wave',d:'Crits erupt for 50% damage to all other enemies',affs:{crit:6,atk:3}},
+  starbreaker:{n:'Tidebreaker',type:'greatsword',tier:4,from:'unmaker',fx:'erupt',col:'#5ec4b0',a:'Tidal Wave',d:'Crits erupt for 50% damage to all other enemies',affs:{crit:6,str:3}},
   riftwand:{n:'Stormcaller Rod',type:'stormrod',tier:4,from:'siren',fx:'prism',col:'#5ec4b0',a:'Prism',d:'Elemental hits split onto another enemy for 40%',affs:{mp:12,crit:4}},
   gmaul:{n:'Gargoyle Maul',type:'warhammer',tier:3,from:'gargoyle',fx:'stoneskin',col:'#8f88a8',a:'Stoneskin',d:'Take 15% less damage',affs:{str:4,vit:4}},
   obsidianedge:{n:'Obsidian Edge',type:'katana',tier:2,from:'golem',fx:'sever',col:'#7a3fb0',a:'Sever',d:'Ignore 30% of enemy defense',affs:{dex:4,str:3}},
@@ -1432,7 +1432,7 @@ function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(
   for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.uq&&!UNIQ[it.uq]){it.uq=null;it.rar=3;it.name=itemName(it);}
   if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&(s.combat.ctx==='duel'||s.combat.ctx==='pvp'))s.combat=null;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
-  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);return s;}
+  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);if(!s.atkGone){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.affixes)it.affixes=it.affixes.filter(a=>a.id!=='atk');s.atkGone=1;}return s;}
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();pvpPost();}}
 /* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
 // The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
@@ -1880,7 +1880,7 @@ function startTurn(){const d=derive();const cc=C();if(cc&&cc.cd)for(const k in c
 function xpFor(e){const diff=S.lvl-e.L;return diff>0?Math.max(.1,1-.25*diff):1+.1*Math.min(5,-diff);}
 function win(){
   const c=C();if(c.ctx==='duel'){c.over={win:true,loot:{xp:0,gold:0,mats:{},items:[],pvp:true}};pvpResult(true);fxAt+=200;fx('win',{});return;}const d=derive();const tw=c.ctx==='tower'&&S.tower;const tier=Math.min(4,tw?Math.min(S.unlocked-1,Math.floor((S.tower.floor-1)/10)):S.area);const addMat=(m,q)=>{loot.mats[m]=(loot.mats[m]||0)+q;};const loot={xp:0,gold:0,mats:{},items:[]};const hard=S.diff==='hard';
-  if(!S.wins){const sb=SUBS[wepFam()];const w=S.gear.weapon;loot.items.push(mkItem('weapon',w?w.type:sb.weapons[0],0,1,[{id:'atk',v:2,r:1}],{q:QUAL[2][1],qn:QUAL[2][0]}));}
+  if(!S.wins){const sb=SUBS[wepFam()];const w=S.gear.weapon;loot.items.push(mkItem('weapon',w?w.type:sb.weapons[0],0,1,[],{q:QUAL[2][1],qn:QUAL[2][0]}));}
   for(const e of c.enemies){loot.xp+=Math.round(e.xp*xpFor(e)*(1+d.xp/100));loot.gold+=Math.round(R(e.gold[0],e.gold[1])*(1+d.gold/100));
     for(const [m,p] of e.drops)if(chance(p)){const q=m==='essence'?R(3,5):(chance(25)?2:1);loot.mats[m]=(loot.mats[m]||0)+q;}
     if(!e.boss&&chance(6))loot.mats.essence=(loot.mats.essence||0)+1;
