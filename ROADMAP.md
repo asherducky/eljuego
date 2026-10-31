@@ -414,3 +414,4 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   | Fire | Immolate, Cauterize |
   | Frost | Glacial Spike, Winter's Embrace |
   | Storm | Ball Lightning, Static Shield |
+- [x] **Dimension Cut:** a Swords ultimate one star past the keystone (Lv 16). It spends all your MP and deals 10% to every enemy per 5% of max MP spent (200% from a full bar). 5-turn cooldown. The screen goes dark, long slashes cut across it, then everything breaks open at once.

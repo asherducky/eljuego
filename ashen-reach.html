@@ -1169,7 +1169,7 @@ const wepTree=()=>treeOf(wepFam());
 const styleCol=()=>SUBS[wepFam()].col;
 const CD={};
 const SKFAM={};for(const f in SUBS)SUBS[f].skills.forEach((s,i)=>{SKFAM[s]=f;CD[s]=[0,1,2,3,4][i];});for(const s of ['ironskin','riposte','emberward','icebarrier','stormstep','veil'])CD[s]=3;
-Object.assign(CD,{warcry:4,guillotine:2,crimson:2,thousand:3,fan:2,hemorrhage:2,immolate:2,cauterize:4,glacial:3,winter:4,ball:2,staticshield:4});
+SKFAM.dimcut='medium';Object.assign(CD,{dimcut:5,warcry:4,guillotine:2,crimson:2,thousand:3,fan:2,hemorrhage:2,immolate:2,cauterize:4,glacial:3,winter:4,ball:2,staticshield:4});
 const skMult=id=>SKFAM[id]&&treeOf(SKFAM[id])!==wepTree()?.5:1;
 const STARTS=['greatsword','sword','dagger','firestaff','frostwand','stormrod'];
 const BASESTATS={str:4,dex:4,int:4,vit:4,spd:3,luk:3};
@@ -1198,7 +1198,8 @@ function buildChart(){STARS={};LINKS=[];
         STARS[id(k)]=n;}
       LINKS.push([p+'O',id('e')]);for(const [a,b] of BRL)LINKS.push([id(a),id(b)]);});
     for(const [hb,x,y,st,lv,a,b] of [['hA',87,128,'vit',2,'0k2','1s1'],['hB',169,128,'spd',2,'1k2','2s1'],['hC',87,76,'hp',6,'0k4','1st'],['hD',169,76,tree==='melee'?'crit':'mp',6,'1k4','2st']]){
-      const P1=STARS[p+a],P2=STARS[p+b];const n={x:Math.round((P1.x+P2.x)*.4),y:Math.round((P1.y+P2.y)*.4),k:'stat',lv,c:'o',tree};statNode(n,st);STARS[p+hb]=n;LINKS.push([p+hb,p+a],[p+hb,p+b]);}}}
+      const P1=STARS[p+a],P2=STARS[p+b];const n={x:Math.round((P1.x+P2.x)*.4),y:Math.round((P1.y+P2.y)*.4),k:'stat',lv,c:'o',tree};statNode(n,st);STARS[p+hb]=n;LINKS.push([p+hb,p+a],[p+hb,p+b]);}
+    if(tree==='melee'){const K=STARS[p+'1ky'];STARS[p+'Dc']={x:Math.round(K.x*1.17),y:Math.round(K.y*1.17),k:'skill',lv:16,c:'medium',tree,fam:'medium',n:SK.dimcut.n,d:SK.dimcut.d,skill:'dimcut'};LINKS.push([p+'1ky',p+'Dc']);}}}
 const has=id=>!!(S&&S.stars&&S.stars.includes(id));
 const hasP=pid=>!!(S&&S.stars&&S.stars.some(id=>STARS[id]&&STARS[id].pid===pid));
 const nbrs=id=>LINKS.filter(l=>l.includes(id)).map(l=>l[0]===id?l[1]:l[0]);
@@ -1257,6 +1258,8 @@ const SK={
   winter:{n:"Winter's Embrace",mp:7,vfx:'shield',d:'Heal 15% max HP and gain a shield of 100% ATK',use:(e,d)=>{heal(d.maxHp*.15);shield(d.atk);}},
   ball:{n:'Ball Lightning',mp:7,bolt:['#fff1a8','#f2c14e','#c08cff'],d:'4 bolts of 60% storm on random enemies, each adds Shock',use:()=>{for(let k=0;k<4;k++){const a=alive();if(!a.length)break;const x=pick(a);hit(x,.6,{el:'storm',proc:k===0});if(x.hp>0)shock(x,1);}}},
   staticshield:{n:'Static Shield',mp:6,vfx:'shield',d:'Shield of 150% ATK; enemies that hit you get Shocked',use:(e,d)=>{shield(d.atk*1.5);C().ps.staticward=3;}},
+  dimcut:{n:'Dimension Cut',mp:1,d:'Spend all your MP: 10% damage to every enemy per 5% of your max MP spent (200% from a full bar)',
+    use:(e,d)=>{const spent=S.mp+1;S.mp=0;const m=Math.round(2*Math.min(1,spent/d.maxMp)*100)/100;log(`You tear the air apart (${Math.round(m*100)}%).`,'you');alive().forEach((x,k)=>hit(x,m,{proc:k===0}));}},
   thunderclap:{n:'Thunderclap',mp:12,vfx:'nova',d:'90% storm to all, 25% stun',use:()=>alive().forEach(x=>{hit(x,.9,{el:'storm'});if(x.hp>0&&!x.boss&&chance(25))stun(x);})},
 };
 
@@ -2142,7 +2145,7 @@ const SKFX={
   frostlance:{ic:1},blizzard:{snow:1},frostnova:{spikes:1},shatter:{encase:1,big:1},
   spark:{p:'zap'},chain:{chain:1},overload:{implode:1},thunderclap:{sky:1,all:1,big:1},
   ironskin:{aura:['#c9c2d6','#f4efe4']},riposte:{aura:['#f2c14e','#f4efe4']},emberward:{aura:['#e2782a','#f2c14e']},icebarrier:{aura:['#6fb7e8','#c4ecff']},
-  stormstep:{aura:['#f2c14e','#c08cff'],zap:1},veil:{smoke:1},
+  stormstep:{aura:['#f2c14e','#c08cff'],zap:1},veil:{smoke:1},dimcut:{dimcut:1,big:1,imp:'iaido'},
   warcry:{aura:['#c43c3c','#f2c14e']},guillotine:{m:'leap',imp:'execute'},crimson:{m:'center',imp:'sweep'},thousand:{m:'iaido',imp:'twin'},
   fan:{m:'center',imp:'thrust'},hemorrhage:{m:'dash',imp:'execute'},immolate:{pillar:1},cauterize:{aura:['#e2782a','#fff1a8']},
   glacial:{ic:1},winter:{aura:['#6fb7e8','#c4ecff']},ball:{chain:1},staticshield:{aura:['#f2c14e','#fff1a8'],zap:1},
@@ -2170,6 +2173,7 @@ function perform(cfg,e,run){const c=C();const ti=c.enemies.indexOf(e);const al=a
   else if(cfg.chain){fx('chain',{ts:[ti,...al.filter(x=>x!==ti)]});fxAt+=90;}
   else if(cfg.at){fx('freeze',{t:ti});fxAt+=220;}
   else if(cfg.aura){fx('aura',{col:cfg.aura,zap:cfg.zap});fxAt+=200;}
+  else if(cfg.dimcut){fx('dimcut',{});fxAt+=1050;}
   else if(cfg.smoke){fx('smoke',{t:'p'});fxAt+=150;}
   run();curStyle=null;}
 const respecCost=()=>40*S.lvl;
@@ -3083,6 +3087,11 @@ const PLAY={
   back:e=>{if(!HERO.off)return;const from=HERO.off;HERO.off=null;
     if(e.m==='blink'||e.m==='behind'||e.m==='iaido')heroTo([{transform:from,opacity:1},{transform:from,opacity:0,offset:.35},{transform:'translate(0px,0px)',opacity:0,offset:.65},{transform:'translate(0px,0px)',opacity:1}],BACK_T);
     else heroTo([{transform:from},{transform:'translate(0px,-14px)',offset:.6},{transform:'translate(0px,0px)'}],BACK_T);},
+  dimcut:e=>{const st=document.querySelector('.stage');if(!st)return;const R0=st.getBoundingClientRect(),cx=R0.left+R0.width/2,cy=R0.top+R0.height/2,L=Math.hypot(R0.width,R0.height)*.6;sfx('dark');
+    const hh=heroEl();if(hh&&!RM)hh.animate([{opacity:1},{opacity:0,offset:.1},{opacity:0,offset:.9},{opacity:1}],{duration:TS(1000),easing:'steps(4)'});
+    for(let k=0;k<11;k++)setTimeout(()=>{const a=Math.random()*Math.PI,ox=(Math.random()-.5)*R0.width*.5,oy=(Math.random()-.5)*R0.height*.4,dx=Math.cos(a)*L,dy=Math.sin(a)*L;
+      streakFx(cx+ox-dx,cy+oy-dy,cx+ox+dx,cy+oy+dy,k%2?['#c08cff','#ffffff']:['#e0c8ff','#ffffff'],420,k%3?1:2);sfx('swing');},TS(k*55));
+    setTimeout(()=>{flash('#ffffff',160);shake(10);for(const f of document.querySelectorAll('.foe:not(.dead)')){const s=sprEl(f),c=ctr(s);burst(c.x,c.y,{n:24,col:['#ffffff','#c08cff','#7a3fb0'],spd:6,life:28});}},TS(820));},
   bcharge:e=>{const f=sprEl(elFor(e.t));if(!f)return;const B=ctr(f),col=(e.col||'#f4efe4,#fff1a8').split(','),r=Math.max(B.r.width,B.r.height)*.8;sfx('shield');
     ringFx(B.x,B.y,r,6,col,420,.4);for(let k=0;k<16;k++){const a=k/16*6.283;setTimeout(()=>streakFx(B.x+Math.cos(a)*r,B.y+Math.sin(a)*r*.7,B.x+Math.cos(a)*8,B.y+Math.sin(a)*6,col,260,0),TS(k*14));}
     if(!RM)f.animate([{transform:'translateX(0)'},{transform:'translateX(14px) translateY(-4px)',offset:.75},{transform:'translateX(0)'}],{duration:TS(460),easing:'steps(5)'});},
