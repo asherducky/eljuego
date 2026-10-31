@@ -1686,7 +1686,7 @@ function derive(){
   atk+=Math.round(b.atk||0);
   let hpM=(1+(t.vit+b.hpPct)/100)*(fx.includes('bloodblade')?.8:1);const bb=fx.includes('bloodblade')?1.15:1;
   return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM*(1+Math.min(.6,Math.max(0,S.lvl-8)*.025))),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)),
-    def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(60,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
+    def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(100,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
     dodge:Math.min(30,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
     regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:(1+(t.str+b.pdmg)/100)*bb,sm:(1+(t.int+b.sdmg)/100)*bb,wel:w&&WT[w.type].el||null,mel:!w||!WT[w.type].el};
 }
@@ -2625,7 +2625,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
     ${sp.base?`${step(2,'Weapons or armor')}<div class="row">${catB('weapon','Weapons')}${catB('armor','Armor')}</div>`:''}
     ${sp.base&&cat?`${step(3,'What to make')}<div class="picks">${types}</div>`:''}
     ${sp.type?`${cat==='weapon'?`${step(4,'Alloy')} <span class="dim small">optional · changes how the weapon fights</span><div class="picks">${alloys}</div>`:''}
-      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">up to 2 · stronger at higher tiers · only one with a special effect · dodge caps at 30%, crit at 60%</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
+      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">up to 2 · stronger at higher tiers · only one with a special effect · dodge caps at 30%</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
       ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}`:''}</div>
     <div class="sub anvil"><div class="row" style="justify-content:space-between"><h3>The anvil</h3>${sp.type||f.metal?'<button class="btn sm" data-a="fgclear">Clear</button>':''}</div>
       ${prev?itemCard(prev,''):`<p class="empty-s">${need}</p>`}
