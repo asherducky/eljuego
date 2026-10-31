@@ -1227,7 +1227,7 @@ const SK={
   riposte:{n:'Riposte',mp:5,vfx:'shield',d:'For 2 turns, counter every attack for 70%',use:()=>{C().ps.riposte=2;log('You take a riposte stance.','buff');}},
   whirl:{n:'Whirlwind',mp:8,d:'2 sweeps of 50% to all',use:()=>{for(let k=0;k<2;k++)alive().forEach(x=>hit(x,.5,{proc:k===0}));}},
   bladestorm:{n:'Bladestorm',mp:12,d:'5 strikes of 40% on random enemies',use:()=>{for(let k=0;k<5;k++){const a=alive();if(!a.length)break;hit(pick(a),.4,{proc:k===0});}}},
-  venom:{n:'Lacerate',mp:4,d:'90% damage + Bleed for 3 turns. Against a bleeding enemy: 4 quick cuts of 30% instead',use:e=>{if(e.st.bleed){for(let k=0;k<4&&(e.hp>0||C().ctx==='duel');k++)hit(e,.3,{proc:k===0});}else{hit(e,.9);if(e.hp>0)bleed(e,3);}}},
+  venom:{n:'Lacerate',mp:4,d:'90% damage + Bleed for 3 turns. Against a bleeding enemy: 4 quick cuts of 30% instead',use:e=>{if(e.st.bleed){for(let k=0;k<4&&(e.hp>0||C().ctx==='duel');k++)hit(e,.3,{proc:k===0});}else{const st0=curStyle;curStyle='rip';hit(e,.9);curStyle=st0;if(e.hp>0)bleed(e,3);}}},
   flurry:{n:'Flurry',mp:5,d:'3 hits of 40%, +10% crit each',use:e=>{FLX.i=3;for(let k=0;k<3&&e.hp>0;k++)hit(e,.4,{critBonus:10,proc:k===0});}},
   veil:{n:'Smoke Veil',mp:5,vfx:'smoke',d:'+40% dodge for 2 enemy turns',use:()=>{C().ps.veil=2;log('You vanish into smoke.','buff');}},
   shadowstep:{n:'Shadowstep',mp:6,d:'120% damage; the next attack on you misses',use:e=>{hit(e,1.2);C().ps.evade=1;}},
@@ -2967,6 +2967,9 @@ function slashFor(st,c,w,hg,col,core,crit){const th=crit?3:2;
     case 'blast':ringFx(c.x,c.y,8,w*.9,['#fff1a8','#e2782a'],320);burst(c.x,c.y,{n:46,col:['#c43c3c','#e2782a','#f2c14e','#fff1a8'],spd:7,life:36});shake(6);return 'boom';
     case 'shatter':for(let k=0;k<8;k++){const a=k/8*6.283;streakFx(c.x,c.y,c.x+Math.cos(a)*w*.8,c.y+Math.sin(a)*w*.8,['#6fb7e8','#ffffff'],260,1);}burst(c.x,c.y,{n:40,col:['#c4ecff','#f4efe4','#6fb7e8'],spd:7,life:34});return 'shatter';
     case 'cut':arcFx(c.x,c.y,Math.max(w,hg)*.55,-2.3,.7,[col,core],250,th,.85);return 'hit';
+    case 'rip':{const a=-R(32,48)*Math.PI/180,L=Math.max(w,hg)*1.05,dx=Math.cos(a)*L,dy=Math.sin(a)*L,x0=c.x-dx,y0=c.y-dy;
+      fxo(420,t=>{const g=Math.min(1,t*2.4),fade=t>.6?1-(t-.6)/.4:1,x1=x0+dx*2*g,y1=y0+dy*2*g;px.globalAlpha=fade;pline(x0,y0,x1,y1,'#4a1020',GU*5);pline(x0,y0,x1,y1,'#c43c3c',GU*3);pline(x0,y0,x1,y1,'#ffd0d0',GP);px.globalAlpha=1;});
+      for(let k=0;k<5;k++)setTimeout(()=>{const f=(k+1)/6;burst(x0+dx*2*f,y0+dy*2*f,{n:7,col:['#c43c3c','#7a1f2b','#e0455a'],spd:2.5,grav:.35,life:30});},TS(k*30));shake(crit?6:4);return 'heavy';}
     case 'flurry':{const a=flurryAngle(),L=Math.max(w,hg)*.85,dx=Math.cos(a)*L,dy=Math.sin(a)*L;streakFx(c.x-dx,c.y-dy,c.x+dx,c.y+dy,['#7a1f2b','#ffffff'],230,crit?3:2);
       setTimeout(()=>streakFx(c.x-dx*.9,c.y-dy*.9+3,c.x+dx*.9,c.y+dy*.9+3,['#e0455a','#ffd0d0'],180,1),TS(40));burst(c.x+dx*.6,c.y+dy*.6,{n:8,col:['#ffffff','#e0455a'],spd:3,life:16});return 'stab';}
     case 'lacerate':{const a=Math.random()*Math.PI,r=Math.max(w,hg)*.6,cx=Math.cos(a)*r,cy=Math.sin(a)*r;streakFx(c.x+cx,c.y+cy,c.x-cx,c.y-cy,['#7a1f2b','#ff6b5e'],200,2);
