@@ -1471,18 +1471,22 @@ function duelSync(){duelSend({t:'sync',...duelMe()});}
 function stPack(st){const o={};for(const k of ['burn','poison','bleed'])if(st&&st[k])o[k]={...st[k]};if(st&&st.stun)o.stun=1;return o;}
 function stUnE(o){const st={};for(const k of ['burn','poison','bleed'])if(o[k])st[k]={...o[k]};if(o.stun)st.stun={t:1};return st;}
 function stUnP(c,o){for(const k of ['burn','poison','bleed']){if(o[k])c.ps[k]={...o[k]};else delete c.ps[k];}if(o.stun)c.ps.stun=1;}
-function duelSnap(){const d=derive();return {name:pname().slice(0,16),lvl:S.lvl,hp:d.maxHp,atk:d.atk,def:d.def,spd:d.spd,el:d.el,parts:heroParts(),rating:(NET.pvpMe||{}).rating||1000};}
+function duelSnap(){const d=derive();return {v:DUELV,name:pname().slice(0,16),lvl:S.lvl,hp:d.maxHp,atk:d.atk,def:d.def,spd:d.spd,el:d.el,parts:heroParts(),rating:(NET.pvpMe||{}).rating||1000};}
 function duelSend(p){const D=NET.duel;if(D&&D.ch)D.ch.send({type:'broadcast',event:'m',payload:p});}
-function duelClose(){const D=NET.duel;if(D&&D.ch&&NET.sb){try{NET.sb.removeChannel(D.ch);}catch(e){}}NET.duel=null;}
+const DUELV=4;
+function duelClose(){const D=NET.duel;if(D&&D.beat)clearInterval(D.beat);if(D&&D.retry)clearInterval(D.retry);if(D&&D.ch&&NET.sb){try{NET.sb.removeChannel(D.ch);}catch(e){}}NET.duel=null;}
 async function duelOpen(code,host){const sb=await net();if(!sb||!NET.user||!/^[A-Z0-9]{4}$/.test(code))return;duelClose();if(!NET.pvpMe)pvpMe();
   const ch=sb.channel('duel-'+code,{config:{broadcast:{self:false}}});NET.duel={code,host,ch,opp:null,started:false};
-  ch.on('broadcast',{event:'m'},({payload})=>duelMsg(payload)).subscribe(st=>{if(st==='SUBSCRIBED')duelSend({t:'hello',snap:duelSnap()});});render(true);}
+  ch.on('broadcast',{event:'m'},({payload})=>duelMsg(payload)).subscribe(st=>{if(st==='SUBSCRIBED'){duelSend({t:'hello',snap:duelSnap()});const D=NET.duel;if(D&&!D.retry)D.retry=setInterval(()=>{if(NET.duel!==D||D.started){clearInterval(D.retry);return;}duelSend({t:'hello',snap:duelSnap()});},2000);}});render(true);}
 function duelFoe(o){return {id:'pvp',n:o.name,L:o.lvl,hp:o.hp,max:o.hp,atk:o.atk,def:o.def,spd:o.spd,xp:0,gold:[0,0],drops:[],ab:[['atk',100]],boss:false,weak:null,res:null,st:{},pvp:true,parts:o.parts,intent:'atk'};}
-function duelBegin(first){const D=NET.duel;fullRest();S.tab='explore';NET.pvpLast=D.opp.rating||1000;startCombat([duelFoe(D.opp)],'duel');const c=C();c.myTurn=first;
+function duelBegin(first){const D=NET.duel;fullRest();if(D.beat)clearInterval(D.beat);D.beat=setInterval(()=>{const c=C();if(NET.duel===D&&c&&c.ctx==='duel'&&!c.over)duelSync();},2500);S.tab='explore';NET.pvpLast=D.opp.rating||1000;startCombat([duelFoe(D.opp)],'duel');const c=C();c.myTurn=first;
   log(first?'You move first.':`${D.opp.name} moves first.`,'sys');if(first)startTurn();render(true);}
 function duelMsg(p){const D=NET.duel;if(!D||!p)return;
-  if(p.t==='hello'){if(!D.opp){D.opp=p.snap;duelSend({t:'hello',snap:duelSnap()});}
-    if(D.host&&!D.started&&D.opp){D.started=true;const first=duelSnap().spd>=D.opp.spd;duelSend({t:'start',first:first?'host':'guest'});duelBegin(first);}render(true);return;}
+  if(p.t==='old'){toast('Your opponent is on a newer version of the game. Refresh the page, then try again.');duelClose();render(true);return;}
+  if(p.t==='hello'){if(!p.snap||p.snap.v!==DUELV){duelSend({t:'old'});toast(p.snap&&p.snap.v>DUELV?'Your opponent is on a newer version. Refresh the page, then try again.':'Your opponent is on an older version. They need to refresh the page.');duelClose();render(true);return;}
+    if(!D.opp){D.opp=p.snap;duelSend({t:'hello',snap:duelSnap()});}
+    if(D.host&&D.started&&D.firstWho)duelSend({t:'start',first:D.firstWho});
+    if(D.host&&!D.started&&D.opp){D.started=true;const first=duelSnap().spd>=D.opp.spd;D.firstWho=first?'host':'guest';duelSend({t:'start',first:D.firstWho});duelBegin(first);}render(true);return;}
   if(p.t==='start'){if(!D.started&&D.opp){D.started=true;duelBegin(p.first==='guest');}return;}
   const c=C();if(!c||c.ctx!=='duel'||c.over)return;const e=c.enemies[0];fxAt=0;
   if(p.t==='act'){duelThem(e,p);const d=derive();const hits=Array.isArray(p.hits)?p.hits.slice(0,40):[];
@@ -1511,7 +1515,7 @@ function duelMsg(p){const D=NET.duel;if(!D||!p)return;
         log(`${e.n}'s ${x.k||'counter'} hits you for ${dmg}${ab?` (your shield absorbs ${ab})`:''}.`,'hurt');}
       if(S.hp<=0){duelSend({t:'dead'});lose();}else duelSync();}
     fx('sync');runFx();render(true);return;}
-  if(p.t==='sync'){duelThem(e,p);fx('hp',{t:0,hp:e.hp,max:e.max});fx('sync');runFx();render(true);return;}
+  if(p.t==='sync'){const was=JSON.stringify([e.hp,e.max,e.st]);duelThem(e,p);if(JSON.stringify([e.hp,e.max,e.st])!==was&&!PRE)render(true);return;}
   if(p.t==='dead'){e.hp=0;fx('hp',{t:0,hp:0,max:e.max});fx('die',{t:0});win();fx('sync');runFx();render(true);return;}
   if(p.t==='end'){log(`${e.n} forfeits.`,'sys');e.hp=0;win();fx('sync');runFx();render(true);}}
 function vArena(){if(!SUPA.url||!SUPA.key)return '';
