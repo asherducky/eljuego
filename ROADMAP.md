@@ -337,3 +337,14 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
 - [x] **Staves:** each tier has its own look, from a twig with a spark up to a crowned orb.
 - [x] **Short tooltips:** materials and items show a compact summary on hover. The anvil lists what each part adds.
 - [x] **Fixes:** the forging minigame had no zone size for Astral.
+
+## Round 12 — The Stormsea (done)
+- [x] **Region 5 is now the Stormsea:** a storm-ocean shore with a lighthouse, rolling waves, rain and lightning.
+  - Monsters: Storm Eel, Drowned Knight and Tide Siren.
+  - Boss: the Leviathan, at the end of the Drowned Lighthouse.
+- [x] **Leviathan moves:**
+  - Tidal Crush: a wave crashes over you.
+  - Undertow: a whirlpool drain.
+  - Thunderhead: 5 lightning strikes that stun.
+- [x] **Renames:** tier 5 is now Abyssal, and its materials are Abyssal Ore, Siren Scale, Storm Pearl and Leviathan Heart. The uniques are Tidebreaker and Stormcaller Rod. The Lighthouse Keeper replaces the Star Seer quest-giver.
+- [x] **Mythic Crystals:** every 10th new best Spire floor from 30 on gives one (30, 40, 50…).
