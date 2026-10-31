@@ -396,3 +396,21 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   - The enraged red outline is gone; "Enraged" shows next to the name instead.
 - [x] **Attack effects:** each weapon has its own basic attack (cleave, chop, twin cut, thrust, iaido…). Tidebreaker rides a wave; Cinderbrand and Emberforged blades cut with fire; Obsidian Edge does a void cut.
 - [x] **Auto battle:** its own button next to Wander. It repeats one move you pick (Attack or one equipped skill), falling back to Attack when that skill can't be used. It only unlocks where you've beaten the area boss. It runs dungeons too, never the Spire or duels, and any loss stops it.
+
+## Round 15 — Skill tree (done)
+- [x] **Daggers bleed instead of poison:**
+  - Venom Edge is now Lacerate, and the dagger trait (Serrated) causes Bleed.
+  - Bloodletter: Bleeds deal 30% more.
+  - Open Wounds (keystone): Bleeds you cause never wear off.
+  - Assassinate auto-crits on bleeding targets.
+- [x] **Keystones have no drawbacks** anymore: Juggernaut, Way of the Blade, Inferno, Absolute Zero and Static Field.
+- [x] **Two new skills per family**, on side stars that don't cross any lines:
+
+  | Family | New skills |
+  |---|---|
+  | Heavy | War Cry, Guillotine |
+  | Swords | Crimson Arc, Thousand Cuts |
+  | Daggers | Fan of Knives, Hemorrhage |
+  | Fire | Immolate, Cauterize |
+  | Frost | Glacial Spike, Winter's Embrace |
+  | Storm | Ball Lightning, Static Shield |

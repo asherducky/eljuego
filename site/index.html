@@ -1052,7 +1052,7 @@ const itemImg=(it,s=3)=>{if(it.slot==='gem'){const p=(GEMS[it.type]||GEMS.ruby).
     const [w,hh]=sprSize(ts);return `<img class="spr" data-fr="${frameKey(fk,urls)}" src="${urls[0]}" width="${w*s}" height="${hh*s}" alt="">`;}
   if(it.slot&&it.slot!=='weapon')return sprImg(base,s,'',gearPal(it)||pal);return sprImg(base,s,'',pal);};
 
-function stIcons(st){return Object.entries(st).map(([k,v])=>{const ic={burn:'st_burn',poison:'st_poison',bleed:'st_bleed',stun:'st_stun',shield:'st_shield',veil:'st_veil',chill:'st_chill',shock:'st_shock',brk:'st_brk',riposte:'st_riposte',evade:'st_veil',emberward:'st_burn',ward:'st_shield',haste:'int_atk'}[k];if(!ic)return '';
+function stIcons(st){return Object.entries(st).map(([k,v])=>{const ic={burn:'st_burn',poison:'st_poison',bleed:'st_bleed',stun:'st_stun',shield:'st_shield',veil:'st_veil',chill:'st_chill',shock:'st_shock',brk:'st_brk',riposte:'st_riposte',evade:'st_veil',emberward:'st_burn',ward:'st_shield',haste:'int_atk',rage:'st_rage',staticward:'st_shock'}[k];if(!ic)return '';
   const s=typeof v==='object'&&v.s>1?v.s:0,t=typeof v==='number'?v:(v.t||'');const col=STCOL[k]||'#c8c0d8';
   return `<span class="st" data-tip="st:${k}" style="border-color:${col}">${sprImg(ic,2)}${s?`<b style="color:${col}">×${s}</b>`:''}${t!==''?`<span class="num">${t===99?'∞':t}</span>`:''}</span>`;}).join('');}
 const STCOL={burn:'#e2782a',emberward:'#e2782a',poison:'#6aa84f',bleed:'#c43c3c',stun:'#f2c14e',shield:'#9cc8ff',ward:'#9cc8ff',veil:'#c08cff',evade:'#c08cff',chill:'#6fb7e8',shock:'#f2e14e',brk:'#a89c86',riposte:'#e8e0cc',haste:'#f2c14e'};
@@ -1106,7 +1106,7 @@ const WT={
   katana:{n:'Katana',sub:'medium',atk:5,g:{str:3,dex:5},crit:6,ft:2,critd:.35,trn:'Iaido',tr:'Crits deal +35% damage'},
   scimitar:{n:'Scimitar',sub:'medium',atk:4.5,g:{str:4,dex:3},crit:3,spd:1,ft:1,twice:30,trn:'Flurry',tr:'30% chance to strike again for 60%. +1 SPD'},
   rapier:{n:'Rapier',sub:'light',atk:5.5,g:{dex:6},crit:8,spd:1,ft:1,riposte:25,trn:'Riposte',tr:'25% chance to counter for 70% when an enemy hits you. +1 SPD'},
-  dagger:{n:'Dagger',sub:'light',atk:4.5,g:{dex:5},crit:12,spd:2,ft:0,poison:30,trn:'Envenom',tr:'30% chance per hit to Poison. +2 SPD'},
+  dagger:{n:'Dagger',sub:'light',atk:4.5,g:{dex:5},crit:12,spd:2,ft:0,bleed:30,trn:'Serrated',tr:'30% chance per hit to make the enemy Bleed. +2 SPD'},
   firestaff:{n:'Ember Staff',sub:'fire',atk:6,g:{int:7},el:'fire',ft:0},
   frostwand:{n:'Icicle Wand',sub:'frost',atk:6,g:{int:6},el:'frost',crit:3,ft:0},
   stormrod:{n:'Storm Rod',sub:'storm',atk:7,g:{int:6,dex:2},el:'storm',ft:0},
@@ -1149,17 +1149,17 @@ const STATD={str:'+1% physical damage',dex:'+1% crit damage, +0.5% crit chance',
 /* weapon families: each one is a branch of the Melee or Magic star chart */
 const SUBS={
   heavy:{n:'Heavy Weapons',cls:'warrior',d:'Greatswords, axes, hammers. Stuns and armor breaks.',weapons:['greatsword','greataxe','warhammer'],armor:'plate',stats:{str:7,dex:3,int:1,vit:6,spd:2,luk:2},A:'str',B:'vit',
-    skills:['crush','cleave','ironskin','sunder','earthsplit'],p1:['brute','Brute Force','+20% damage to stunned or sundered enemies'],p2:['unyield','Unyielding','+15% max HP, take 8% less damage'],key:['jugg','Juggernaut','+30% max HP, shields 50% stronger, −3 SPD'],col:'#ffb98a'},
+    skills:['crush','cleave','ironskin','sunder','earthsplit','warcry','guillotine'],p1:['brute','Brute Force','+20% damage to stunned or sundered enemies'],p2:['unyield','Unyielding','+15% max HP, take 8% less damage'],key:['jugg','Juggernaut','+30% max HP, shields 50% stronger'],col:'#ffb98a'},
   medium:{n:'Swords',cls:'warrior',d:'Longswords, katanas, scimitars. Bleeds and counters.',weapons:['sword','katana','scimitar'],armor:'leather',stats:{str:5,dex:5,int:1,vit:5,spd:3,luk:2},A:'str',B:'dex',
-    skills:['rend','iaido','riposte','whirl','bladestorm'],p1:['deepw','Deep Wounds','Bleeds last 1 turn longer and deal 25% more'],p2:['flow','Flow','Crits restore 2 MP'],key:['wayblade','Way of the Blade','Every 3rd hit is a guaranteed crit; −15% max HP'],col:'#f4efe4'},
-  light:{n:'Daggers',cls:'warrior',d:'Rapiers and daggers. Poison, speed, dodging.',weapons:['rapier','dagger'],armor:'leather',stats:{str:2,dex:7,int:2,vit:4,spd:5,luk:3},A:'dex',B:'spd',
-    skills:['venom','flurry','veil','shadowstep','assassinate'],p1:['swift','Swift','+10% quick-turn chance'],p2:['toxic','Toxicology','Poison deals 30% more'],key:['linger','Lingering Venom','Poison never wears off, but deals half damage'],col:'#b6e36a'},
+    skills:['rend','iaido','riposte','whirl','bladestorm','crimson','thousand'],p1:['deepw','Deep Wounds','Bleeds last 1 turn longer and deal 25% more'],p2:['flow','Flow','Crits restore 2 MP'],key:['wayblade','Way of the Blade','Every 3rd hit is a guaranteed crit'],col:'#f4efe4'},
+  light:{n:'Daggers',cls:'warrior',d:'Rapiers and daggers. Bleeds, speed, dodging.',weapons:['rapier','dagger'],armor:'leather',stats:{str:2,dex:7,int:2,vit:4,spd:5,luk:3},A:'dex',B:'spd',
+    skills:['venom','flurry','veil','shadowstep','assassinate','fan','hemorrhage'],p1:['swift','Swift','+10% quick-turn chance'],p2:['toxic','Bloodletter','Your Bleeds deal 30% more'],key:['linger','Open Wounds','Bleeds you cause never wear off'],col:'#b6e36a'},
   fire:{n:'Pyromancer',cls:'mage',d:'Ember staff. Flame stacks that you detonate.',weapons:['firestaff'],armor:'robe',stats:{str:1,dex:3,int:7,vit:4,spd:3,luk:3},A:'int',B:'luk',
-    skills:['firebolt','flamewave','kindle','emberward','meteor'],p1:['heat','Searing Heat','Flame stacks deal 30% more'],p2:['pyre','Funeral Pyre','Kills spread their flame stacks to other enemies'],key:['inferno','Inferno','+35% fire damage, −20% max HP'],col:'#e2782a'},
+    skills:['firebolt','flamewave','kindle','emberward','meteor','immolate','cauterize'],p1:['heat','Searing Heat','Flame stacks deal 30% more'],p2:['pyre','Funeral Pyre','Kills spread their flame stacks to other enemies'],key:['inferno','Inferno','+35% fire damage'],col:'#e2782a'},
   frost:{n:'Cryomancer',cls:'mage',d:'Icicle wand. Chill, freeze, shatter.',weapons:['frostwand'],armor:'robe',stats:{str:1,dex:2,int:7,vit:5,spd:3,luk:3},A:'int',B:'vit',
-    skills:['frostlance','icebarrier','blizzard','frostnova','shatter'],p1:['bite','Frostbite','Each Chill stack lowers enemy damage 10%'],p2:['permafrost','Permafrost','Frozen enemies stay frozen 1 extra turn'],key:['zero','Absolute Zero','Freeze at 2 Chill instead of 3; −15% damage'],col:'#6fb7e8'},
+    skills:['frostlance','icebarrier','blizzard','frostnova','shatter','glacial','winter'],p1:['bite','Frostbite','Each Chill stack lowers enemy damage 10%'],p2:['permafrost','Permafrost','Frozen enemies stay frozen 1 extra turn'],key:['zero','Absolute Zero','Freeze at 2 Chill instead of 3'],col:'#6fb7e8'},
   storm:{n:'Stormcaller',cls:'mage',d:'Storm rod. Shock, chains, extra turns.',weapons:['stormrod'],armor:'robe',stats:{str:1,dex:4,int:6,vit:3,spd:5,luk:2},A:'int',B:'spd',
-    skills:['spark','chain','overload','stormstep','thunderclap'],p1:['conduct','Conductor','Shock stacks to 8, each adds 8% damage taken'],p2:['surge','Surge','+10% crit chance'],key:['static','Static Field','Every hit adds Shock; −20% max MP'],col:'#f2c14e'},
+    skills:['spark','chain','overload','stormstep','thunderclap','ball','staticshield'],p1:['conduct','Conductor','Shock stacks to 8, each adds 8% damage taken'],p2:['surge','Surge','+10% crit chance'],key:['static','Static Field','Every hit adds Shock'],col:'#f2c14e'},
 };
 const TREES={melee:{n:'Melee',fams:['heavy','medium','light']},magic:{n:'Magic',fams:['fire','frost','storm']}};
 const famOf=t=>WT[t]?WT[t].sub:'medium';
@@ -1169,14 +1169,15 @@ const wepTree=()=>treeOf(wepFam());
 const styleCol=()=>SUBS[wepFam()].col;
 const CD={};
 const SKFAM={};for(const f in SUBS)SUBS[f].skills.forEach((s,i)=>{SKFAM[s]=f;CD[s]=[0,1,2,3,4][i];});for(const s of ['ironskin','riposte','emberward','icebarrier','stormstep','veil'])CD[s]=3;
+Object.assign(CD,{warcry:4,guillotine:2,crimson:2,thousand:3,fan:2,hemorrhage:2,immolate:2,cauterize:4,glacial:3,winter:4,ball:2,staticshield:4});
 const skMult=id=>SKFAM[id]&&treeOf(SKFAM[id])!==wepTree()?.5:1;
 const STARTS=['greatsword','sword','dagger','firestaff','frostwand','stormrod'];
 const BASESTATS={str:4,dex:4,int:4,vit:4,spd:3,luk:3};
 
 /* star charts: one per tree, a branch per family, joined by shared stat stars */
 const BR=[['e',0,158,'skill','sk0',1],['s1',-18,140,'stat','A',1],['k2',14,134,'skill','sk1',2],['p1',-14,116,'passive','p1',3],['k3',16,108,'skill','sk2',4],
-  ['st',-20,92,'stat','B',5],['k4',8,84,'skill','sk3',6],['p2',-10,64,'passive','p2',7],['k5',14,52,'skill','sk4',9],['ky',0,28,'key','key',11]];
-const BRL=[['e','s1'],['e','k2'],['s1','p1'],['k2','p1'],['k2','k3'],['p1','st'],['k3','st'],['k3','k4'],['st','p2'],['k4','p2'],['k4','k5'],['p2','ky'],['k5','ky']];
+  ['st',-20,92,'stat','B',5],['k4',8,84,'skill','sk3',6],['p2',-10,64,'passive','p2',7],['k5',14,52,'skill','sk4',9],['ky',0,28,'key','key',11],['k6',22,120,'skill','sk5',5],['k7',-34,60,'skill','sk6',8]];
+const BRL=[['e','s1'],['e','k2'],['s1','p1'],['k2','p1'],['k2','k3'],['p1','st'],['k3','st'],['k3','k4'],['st','p2'],['k4','p2'],['k4','k5'],['p2','ky'],['k5','ky'],['k2','k6'],['k3','k6'],['st','k7'],['p2','k7']];
 const BX=[46,128,210];
 const STATNODE={str:['Might','+6% physical damage',{pdmg:6}],dex:['Finesse','+10% crit damage',{critd:.1}],int:['Insight','+6% spell damage',{sdmg:6}],vit:['Vigor','+8% max HP',{hpPct:8}],spd:['Haste','+2 speed',{spd:2}],luk:['Fortune','+10% gold',{gold:10}],
   hp:['Endurance','+10% max HP',{hpPct:10}],crit:['Precision','+5% crit',{crit:5}],mp:['Wellspring','+10 max MP',{mp:10}]};
@@ -1225,11 +1226,11 @@ const SK={
   riposte:{n:'Riposte',mp:5,vfx:'shield',d:'For 2 turns, counter every attack for 70%',use:()=>{C().ps.riposte=2;log('You take a riposte stance.','buff');}},
   whirl:{n:'Whirlwind',mp:8,d:'2 sweeps of 50% to all',use:()=>{for(let k=0;k<2;k++)alive().forEach(x=>hit(x,.5,{proc:k===0}));}},
   bladestorm:{n:'Bladestorm',mp:12,d:'5 strikes of 40% on random enemies',use:()=>{for(let k=0;k<5;k++){const a=alive();if(!a.length)break;hit(pick(a),.4,{proc:k===0});}}},
-  venom:{n:'Venom Edge',mp:4,d:'80% venom damage + 2 Poison',use:e=>{hit(e,.8,{el:'venom'});if(e.hp>0)poison(e,2);}},
+  venom:{n:'Lacerate',mp:4,d:'90% damage + Bleed for 3 turns',use:e=>{hit(e,.9);if(e.hp>0)bleed(e,3);}},
   flurry:{n:'Flurry',mp:5,d:'3 hits of 40%, +10% crit each',use:e=>{for(let k=0;k<3&&e.hp>0;k++)hit(e,.4,{critBonus:10,proc:k===0});}},
   veil:{n:'Smoke Veil',mp:5,vfx:'smoke',d:'+40% dodge for 2 enemy turns',use:()=>{C().ps.veil=2;log('You vanish into smoke.','buff');}},
   shadowstep:{n:'Shadowstep',mp:6,d:'120% damage; the next attack on you misses',use:e=>{hit(e,1.2);C().ps.evade=1;}},
-  assassinate:{n:'Assassinate',mp:10,d:'300% damage, auto-crit on poisoned targets',use:e=>hit(e,3,{crit:e.st.poison?true:undefined})},
+  assassinate:{n:'Assassinate',mp:10,d:'300% damage, auto-crit on bleeding targets',use:e=>hit(e,3,{crit:e.st.bleed||e.st.poison?true:undefined})},
   firebolt:{n:'Firebolt',mp:4,bolt:['#e2782a','#fff1a8','#c43c3c'],d:'140% fire + 1 flame stack',use:e=>{hit(e,1.4,{el:'fire'});if(e.hp>0)burn(e,1);}},
   flamewave:{n:'Flame Wave',mp:7,vfx:'nova',d:'70% fire to all + 1 flame stack each',use:()=>alive().forEach(x=>{hit(x,.7,{el:'fire'});if(x.hp>0)burn(x,1);})},
   kindle:{n:'Kindle',mp:6,bolt:['#fff1a8','#e2782a','#c43c3c'],d:'Detonate flame stacks: 80% + 50% per stack',use:e=>{const s=e.st.burn?e.st.burn.s:0;delete e.st.burn;hit(e,.8+.5*s,{el:'fire'});}},
@@ -1244,6 +1245,18 @@ const SK={
   chain:{n:'Chain Lightning',mp:7,bolt:['#fff1a8','#f2c14e','#7a3fb0'],d:'110% storm to target, 45% to all others',use:e=>{hit(e,1.1,{el:'storm'});alive().filter(x=>x!==e).forEach(x=>hit(x,.45,{el:'storm'}));}},
   overload:{n:'Overload',mp:6,bolt:['#f2c14e','#f4efe4','#c08cff'],d:'Consume Shock: 80% + 40% per stack',use:e=>{const s=e.st.shock?e.st.shock.s:0;hit(e,.8+.4*s,{el:'storm'});delete e.st.shock;}},
   stormstep:{n:'Storm Step',mp:5,vfx:'shield',d:'Your next 2 turns are guaranteed quick turns',use:()=>{C().ps.haste=2;log('Lightning quickens your step.','buff');}},
+  warcry:{n:'War Cry',mp:6,vfx:'shield',d:'+30% damage for 3 turns and heal 10% max HP',use:(e,d)=>{C().ps.rage=3;heal(d.maxHp*.1);log('You roar a war cry.','buff');}},
+  guillotine:{n:'Guillotine',mp:8,d:'130% damage, 260% to enemies under 40% HP',use:e=>hit(e,e.hp<e.max*.4?2.6:1.3)},
+  crimson:{n:'Crimson Arc',mp:7,d:'80% to all enemies and they all Bleed',use:()=>alive().forEach(x=>{hit(x,.8);if(x.hp>0)bleed(x,3);})},
+  thousand:{n:'Thousand Cuts',mp:10,d:'6 strikes of 30% on one enemy, +15% crit each',use:e=>{for(let k=0;k<6&&(e.hp>0||C().ctx==='duel');k++)hit(e,.3,{critBonus:15,proc:k===0});}},
+  fan:{n:'Fan of Knives',mp:6,d:'60% to all enemies, 50% chance each to Bleed',use:()=>alive().forEach(x=>{hit(x,.6);if(x.hp>0&&chance(50))bleed(x,3);})},
+  hemorrhage:{n:'Hemorrhage',mp:7,d:'Rip the wound open: 60% + 50% per turn of Bleed left (up to 6), then the Bleed ends',use:e=>{const b=e.st.bleed;const n=b?Math.min(6,b.t):0;if(b)delete e.st.bleed;hit(e,.6+.5*n);}},
+  immolate:{n:'Immolate',mp:8,bolt:['#fff1a8','#e2782a','#c43c3c'],d:'180% fire + 3 flame stacks',use:e=>{hit(e,1.8,{el:'fire'});if(e.hp>0)burn(e,3);}},
+  cauterize:{n:'Cauterize',mp:6,vfx:'shield',d:'Heal 25% max HP and clear your burns, poisons and bleeds',use:(e,d)=>{const c=C();for(const k of ['burn','poison','bleed'])delete c.ps[k];heal(d.maxHp*.25);}},
+  glacial:{n:'Glacial Spike',mp:9,bolt:['#c4ecff','#ffffff','#6fb7e8'],d:'250% frost to one enemy + 1 Chill',use:e=>{hit(e,2.5,{el:'frost'});if(e.hp>0)chill(e,1);}},
+  winter:{n:"Winter's Embrace",mp:7,vfx:'shield',d:'Heal 15% max HP and gain a shield of 100% ATK',use:(e,d)=>{heal(d.maxHp*.15);shield(d.atk);}},
+  ball:{n:'Ball Lightning',mp:7,bolt:['#fff1a8','#f2c14e','#c08cff'],d:'4 bolts of 60% storm on random enemies, each adds Shock',use:()=>{for(let k=0;k<4;k++){const a=alive();if(!a.length)break;const x=pick(a);hit(x,.6,{el:'storm',proc:k===0});if(x.hp>0)shock(x,1);}}},
+  staticshield:{n:'Static Shield',mp:6,vfx:'shield',d:'Shield of 150% ATK; enemies that hit you get Shocked',use:(e,d)=>{shield(d.atk*1.5);C().ps.staticward=3;}},
   thunderclap:{n:'Thunderclap',mp:12,vfx:'nova',d:'90% storm to all, 25% stun',use:()=>alive().forEach(x=>{hit(x,.9,{el:'storm'});if(x.hp>0&&!x.boss&&chance(25))stun(x);})},
 };
 
@@ -1519,7 +1532,7 @@ function duelMsg(p){const D=NET.duel;if(!D||!p)return;
       if(hits.length)log(`${e.n} hits you ${hits.length>1?hits.length+' times ':''}for ${tot}.`,'hurt');stUnP(c,p.st||{});
       if(tot>0&&S.hp>0){if(d.thorns){const r=Math.max(1,Math.round(tot*d.thorns/100));counter.push({d:r,el:'phys',k:'Thorns'});fx('num',{t:0,txt:r,cls:'dmg'});log(`Thorns deal ${r} back.`,'buff');}
         if(c.ps.riposte||(WP&&WP.riposte&&chance(WP.riposte))){c.duelHits=[];fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});counter.push(...c.duelHits.map(x=>({...x,k:'Riposte'})));c.duelHits=[];}}}
-    for(const k of ['veil','riposte'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];
+    for(const k of ['veil','riposte','rage','staticward'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];
     if(S.hp>0)tickDots(c.ps,'You',dd=>{if(!S.flags.god)S.hp=Math.max(0,S.hp-dd);},'p');
     if(S.hp>0){c.myTurn=true;startTurn();}
     duelSend({t:'hp',counter:counter.slice(0,10),...duelMe()});
@@ -1661,12 +1674,12 @@ function derive(){
   if(fx.includes('heart'))b.regen+=3;if(fx.includes('overgrow'))b.regen+=4;if(fx.includes('stoneskin'))b.dr+=15;if(fx.includes('leech'))b.ls+=8;if(fx.includes('crown'))b.critd+=.2;
   for(const id in (S.brews||{})){const X=BREWS[id];if(X&&S.brews[id]>0)for(const k in X.b)b[k]=(b[k]||0)+X.b[k];}
   
-  if(hasP('surge'))b.crit+=10;if(hasP('unyield')){b.hpPct+=15;b.dr+=8;}if(hasP('jugg')){b.hpPct+=30;b.spd-=3;}
+  if(hasP('surge'))b.crit+=10;if(hasP('unyield')){b.hpPct+=15;b.dr+=8;}if(hasP('jugg'))b.hpPct+=30;
   let atk=3;let el='phys';if(fx.includes('bloodblade'))b.ls+=8;
   if(w){const W=WT[w.type];const base=itemBase(w).atk||0;const sv=t[wepStat(w.type)];atk=Math.round(base*(1+sv*GRP[wepGrade(w)]/100)+sv*.25+(itemStats(w).atk-base||0));el=W.el||'phys';}if(fx.includes('emberblade'))el='fire';if(fx.includes('stormblade'))el='storm';
   atk+=Math.round(b.atk||0);
-  let hpM=(1+(t.vit+b.hpPct)/100)*(hasP('wayblade')?.85:1)*(hasP('inferno')?.8:1)*(fx.includes('bloodblade')?.8:1);const bb=fx.includes('bloodblade')?1.15:1;
-  return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM*(1+Math.min(.6,Math.max(0,S.lvl-8)*.025))),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)*(hasP('static')?.8:1)),
+  let hpM=(1+(t.vit+b.hpPct)/100)*(fx.includes('bloodblade')?.8:1);const bb=fx.includes('bloodblade')?1.15:1;
+  return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM*(1+Math.min(.6,Math.max(0,S.lvl-8)*.025))),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)),
     def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(75,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
     dodge:Math.min(40,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
     regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:(1+(t.str+b.pdmg)/100)*bb,sm:(1+(t.int+b.sdmg)/100)*bb,wel:w&&WT[w.type].el||null,mel:!w||!WT[w.type].el};
@@ -1753,11 +1766,12 @@ function revealHint(e,el){const m=elMult(e,el);if(m!==1&&!S.known[e.id]){S.known
 function stun(e){e.st.stun={t:1};log(`${e.n} is stunned.`,'buff');}
 function freeze(e){e.st.stun={t:hasP('permafrost')?2:1,frz:1};delete e.st.chill;log(`${e.n} is frozen solid.`,'buff');fx('burst',{t:C().enemies.indexOf(e),col:['#c4ecff','#f4efe4','#6fb7e8'],n:20});}
 function burn(e,s){const d=derive();const cur=e.st.burn;e.st.burn={s:Math.min(10,(cur?cur.s:0)+s),p:Math.max(1,Math.round(d.atk*.15*(hasP('heat')?1.3:1)))};}
-function poison(e,s){const d=derive();const cur=e.st.poison;let p=Math.max(1,Math.round(d.atk*.12*(hasP('toxic')?1.3:1)));if(hasP('linger'))p=Math.max(1,Math.ceil(p/2));
-  e.st.poison={t:hasP('linger')?99:4,p:Math.max(p,cur?cur.p:0),s:Math.min(8,(cur?cur.s:0)+s)};}
-function bleed(e,t){const d=derive();e.st.bleed={t:t+(hasP('deepw')?1:0),p:Math.max(1,Math.round(d.atk*.25*(hasP('deepw')?1.25:1)))};}
+function poison(e,s){const d=derive();const cur=e.st.poison;let p=Math.max(1,Math.round(d.atk*.12));
+  e.st.poison={t:4,p:Math.max(p,cur?cur.p:0),s:Math.min(8,(cur?cur.s:0)+s)};}
+function bleed(e,t){const d=derive();e.st.bleed={t:hasP('linger')?99:t+(hasP('deepw')?1:0),p:Math.max(1,Math.round(d.atk*.25*(hasP('deepw')?1.25:1)*(hasP('toxic')?1.3:1)))};}
 function chill(e,s){const cur=e.st.chill;const n=(cur?cur.s:0)+s;if(n>=(hasP('zero')?2:3))freeze(e);else e.st.chill={s:n};}
 function shock(e,s){const mx=hasP('conduct')?8:5;const cur=e.st.shock;e.st.shock={s:Math.min(mx,(cur?cur.s:0)+s)};}
+function heal(v){const d=derive();v=Math.round(v);S.hp=Math.min(d.maxHp,S.hp+v);fx('num',{t:'p',txt:'+'+v,cls:'heal'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp});log(`You heal ${v}.`,'buff');}
 function shield(v){const c=C();v=Math.round(v*skM*(hasP('jugg')?1.5:1));c.ps.shield=(c.ps.shield||0)+v;log(`You gain a ${v}-point shield.`,'buff');}
 function onKill(e){S.kills++;const c=C();{const d=derive();let hp=0,mp=0;if(d.fx.includes('soul'))hp+=.1;if(d.fx.includes('soulblade'))hp+=.08;if(d.fx.includes('siphon')){hp+=.15;mp+=10;}if(hp||mp){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*hp));S.mp=Math.min(d.maxMp,S.mp+mp);fx('num',{t:'p',txt:'+'+Math.round(d.maxHp*hp),cls:'heal'});}}if(S.bounty&&S.bounty.mob===e.id&&S.bounty.have<S.bounty.need)S.bounty.have++;questHook('kill',e.id);ctrHook('kill',e.id);if(MOB[e.id]){S.kc=S.kc||{};const t0=bestTier(e.id);S.kc[e.id]=(S.kc[e.id]||0)+1;if(bestTier(e.id)>t0)toast(`Bestiary: ${MOB[e.id].n} milestone!`);}if(e.elite){questHook('elite',e.id);ctrHook('elite');}fx('die',{t:c.enemies.indexOf(e)});
   if(hasP('pyre')&&e.st.burn)alive().forEach(x=>burn(x,e.st.burn.s));}
@@ -1765,7 +1779,7 @@ function hit(e,mult,o={}){if(!e)return 0;
   const d=derive(),c=C(),i=c.enemies.indexOf(e);const duel=c.ctx==='duel';if(e.hp<=0&&!duel)return 0;const logHit=x=>{if(duel&&c.duelHits)c.duelHits.push(x);};
   const el=o.el||d.el;c.hits=(c.hits||0)+1;
   const crit=o.crit!==undefined?o.crit:(hasP('wayblade')&&c.hits%3===0)||chance(d.crit+(o.critBonus||0));
-  let bonus=(el==='phys'||(d.mel&&el===d.el)?d.pm:d.sm)*(d.wel&&el===d.wel?1.15:1)*(1+bestBon(e.id));if(hasP('brute')&&(e.st.stun||e.st.brk))bonus*=1.2;if(hasP('inferno')&&el==='fire')bonus*=1.35;if(hasP('zero'))bonus*=.85;if(d.fx.includes('wrath')&&e.st.burn)bonus*=1.2;if(d.fx.includes('edict')&&e.hp<e.max*.3)bonus*=1.5;
+  let bonus=(el==='phys'||(d.mel&&el===d.el)?d.pm:d.sm)*(d.wel&&el===d.wel?1.15:1)*(1+bestBon(e.id));if(hasP('brute')&&(e.st.stun||e.st.brk))bonus*=1.2;if(hasP('inferno')&&el==='fire')bonus*=1.35;if(c.ps&&c.ps.rage)bonus*=1.3;if(d.fx.includes('wrath')&&e.st.burn)bonus*=1.2;if(d.fx.includes('edict')&&e.hp<e.max*.3)bonus*=1.5;
   const sh=e.st.shock?e.st.shock.s*(hasP('conduct')?.08:.05):0;
   const base=calc(d.atk*mult*bonus*skM,effDef(e)*(d.fx.includes('sever')?.7:1)*(d.fx.includes('soulblade')?.65:1))*(1+sh);
   let dmg=base*elMult(e,el);if(crit)dmg*=d.critd;dmg=Math.max(1,Math.round(dmg));
@@ -1841,7 +1855,7 @@ function enemyAct(c,e){
   if(ab==='burn'&&!resist()){const cur=c.ps.burn;c.ps.burn={s:Math.min(5,(cur?cur.s:0)+2),p:Math.max(1,Math.round(e.atk*.15))};log('You catch fire.','hurt');fx('burst',{t:'p',col:['#e2782a','#fff1a8'],n:16});}
   if(ab==='stun'&&!resist()){c.ps.stun=1;log('You are stunned!','hurt');}
   if(d.thorns&&dmg>0){const r=Math.max(1,Math.round(dmg*d.thorns/100));e.hp=Math.max(0,e.hp-r);fx('num',{t:i,txt:r,cls:'dmg'});log(`Thorns deal ${r} back.`,'buff');fx('hp',{t:i,hp:e.hp,max:e.max});if(e.hp<=0){log(`${e.n} falls.`,'kill');onKill(e);return;}}
-  if(c.ps.emberward&&e.hp>0)burn(e,1);
+  if(c.ps.emberward&&e.hp>0)burn(e,1);if(c.ps.staticward&&e.hp>0)shock(e,1);
   if(c.ps.riposte&&S.hp>0&&e.hp>0){fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});}
   else if(WP&&WP.riposte&&dmg>0&&S.hp>0&&e.hp>0&&chance(WP.riposte)){fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});}
 }
@@ -1851,7 +1865,7 @@ function enemyPhase(){const c=C();fxAt+=380;
     if(e.hp<=0){log(`${e.n} succumbs.`,'kill');onKill(e);continue;}
     if(e.st.stun){const fr=e.st.stun.frz;if(--e.st.stun.t<=0)delete e.st.stun;log(`${e.n} is ${fr?'frozen':'stunned'} and can't act.`);fx('num',{t:i,txt:fr?'Frozen':'Stunned',cls:'miss'});continue;}
     enemyAct(c,e);fxAt+=300;if(S.hp<=0)return;}
-  for(const k of ['veil','riposte','emberward'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];}
+  for(const k of ['veil','riposte','emberward','rage','staticward'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];}
 function quickChance(){const d=derive();return Math.max(0,Math.min(40,(d.spd-maxESpd())*3+(hasP('swift')?10:0)));}
 function afterPlayer(){const c=C();
   if(c.ctx==='duel'){const e=c.enemies[0];c.myTurn=false;duelSend({t:'act',hits:(c.duelHits||[]).slice(0,40),name:c.lastAct||'Attack',st:stPack(e.st),...duelMe()});c.duelHits=[];c.lastAct=null;return;}
@@ -2123,12 +2137,15 @@ function turn(fn){const c=C();if(!c||c.over)return;if(c.ctx==='duel'&&!c.myTurn)
 const SKFX={
   crush:{m:'leap',imp:'smash'},cleave:{m:'center',imp:'sweep'},sunder:{m:'leap',imp:'smash'},earthsplit:{m:'leap',imp:'quake',big:1,center:1},
   rend:{m:'dash',imp:'claw'},iaido:{m:'iaido',imp:'iaido'},whirl:{m:'center',imp:'sweep'},bladestorm:{m:'center',imp:'stab',big:1},
-  venom:{m:'dash',imp:'stab'},flurry:{m:'blink',imp:'stab'},shadowstep:{m:'behind',imp:'cut'},assassinate:{m:'behind',imp:'execute',big:1},
+  venom:{m:'dash',imp:'claw'},flurry:{m:'blink',imp:'stab'},shadowstep:{m:'behind',imp:'cut'},assassinate:{m:'behind',imp:'execute',big:1},
   firebolt:{p:'fireball'},kindle:{pillar:1},flamewave:{w:'fire'},meteor:{rain:1,big:1,imp:'blast'},
   frostlance:{ic:1},blizzard:{snow:1},frostnova:{spikes:1},shatter:{encase:1,big:1},
   spark:{p:'zap'},chain:{chain:1},overload:{implode:1},thunderclap:{sky:1,all:1,big:1},
   ironskin:{aura:['#c9c2d6','#f4efe4']},riposte:{aura:['#f2c14e','#f4efe4']},emberward:{aura:['#e2782a','#f2c14e']},icebarrier:{aura:['#6fb7e8','#c4ecff']},
   stormstep:{aura:['#f2c14e','#c08cff'],zap:1},veil:{smoke:1},
+  warcry:{aura:['#c43c3c','#f2c14e']},guillotine:{m:'leap',imp:'execute'},crimson:{m:'center',imp:'sweep'},thousand:{m:'iaido',imp:'twin'},
+  fan:{m:'center',imp:'thrust'},hemorrhage:{m:'dash',imp:'execute'},immolate:{pillar:1},cauterize:{aura:['#e2782a','#fff1a8']},
+  glacial:{ic:1},winter:{aura:['#6fb7e8','#c4ecff']},ball:{chain:1},staticshield:{aura:['#f2c14e','#fff1a8'],zap:1},
 };
 const MOVE_T={dash:230,center:270,leap:400,blink:210,behind:230,iaido:250},BACK_T=250,PROJ_T=330;
 const WFX={greatsword:{m:'leap',imp:'cleave'},greataxe:{m:'leap',imp:'chop'},warhammer:{m:'leap',imp:'smash'},sword:{m:'dash',imp:'cut'},katana:{m:'iaido',imp:'iaido'},scimitar:{m:'dash',imp:'twin'},rapier:{m:'blink',imp:'thrust'},dagger:{m:'blink',imp:'stab'}};
@@ -2377,7 +2394,7 @@ function sceneLoop(t){if(t-lastScene>33){lastScene=t;document.querySelectorAll('
 const TABS=[['explore','Explore'],['town','Town'],['char','Character'],['skills','Stars'],['inv','Inventory'],['beast','Bestiary'],['online','Online'],['settings','Settings']];
 const LAB={def:'Defense',hp:'Max HP',mp:'Max MP',crit:'Crit',dodge:'Dodge',spd:'Speed',str:'Phys damage',dex:'Crit damage',int:'Spell damage',vit:'Max HP',luk:'Gold find',atk:'Attack',ls:'Lifesteal',gold:'Gold find'};
 const PCT=['crit','dodge','ls','gold','str','dex','int','vit','luk'];
-const STDESC={burn:'Flame stacks: damage every turn per stack, losing 1 stack each turn',poison:'Poison: damage every turn per stack',bleed:'Bleed: damage every turn',stun:'Stunned or frozen: skips its next turn',
+const STDESC={rage:'War Cry: +30% damage',staticward:'Static Shield: enemies that hit you get Shocked',burn:'Flame stacks: damage every turn per stack, losing 1 stack each turn',poison:'Poison: damage every turn per stack',bleed:'Bleed: damage every turn',stun:'Stunned or frozen: skips its next turn',
   shield:'Shield: absorbs damage',veil:'Veiled: +40% dodge',chill:'Chill: freezes at 3 stacks',shock:'Shock: takes extra damage per stack',brk:'Sundered: defense halved',riposte:'Riposte: counters every attack',
   evade:'The next attack on you misses',emberward:'Ember Ward: attackers catch fire',ward:'Ward: absorbs damage',haste:'Guaranteed quick turns',rage:'Enraged: hits 30% harder'};
 function bar(cls,v,m,label,hb){const p=Math.max(0,Math.min(100,v/m*100));return `<div class="bar ${cls}" ${hb?`data-hb="${hb}" data-l="${label}"`:''}><i style="width:${p}%"></i><span>${label} ${Math.round(v)}/${m}</span></div>`;}
