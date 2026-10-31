@@ -1457,6 +1457,9 @@ async function chatSend(){const sb=await net();const el=document.getElementById(
   NET.draft='';const el2=document.getElementById('chatin');if(el2)el2.value='';if(data&&NET.chat&&!NET.chat.some(x=>x.id===data.id)){NET.chat.push(data);chatPaint();}}
 /* duels: one player makes a code, the other joins it; each client runs its own turns and sends the damage it dealt.
    The defender rolls dodge, shields and damage reduction on their side and reports their HP back. Nothing is stored. */
+function stPack(st){const o={};for(const k of ['burn','poison','bleed'])if(st&&st[k])o[k]={...st[k]};if(st&&st.stun)o.stun=1;return o;}
+function stUnE(o){const st={};for(const k of ['burn','poison','bleed'])if(o[k])st[k]={...o[k]};if(o.stun)st.stun={t:1};return st;}
+function stUnP(c,o){for(const k of ['burn','poison','bleed']){if(o[k])c.ps[k]={...o[k]};else delete c.ps[k];}if(o.stun)c.ps.stun=1;}
 function duelSnap(){const d=derive();return {name:pname().slice(0,16),lvl:S.lvl,hp:d.maxHp,atk:d.atk,def:d.def,spd:d.spd,el:d.el,parts:heroParts(),rating:(NET.pvpMe||{}).rating||1000};}
 function duelSend(p){const D=NET.duel;if(D&&D.ch)D.ch.send({type:'broadcast',event:'m',payload:p});}
 function duelClose(){const D=NET.duel;if(D&&D.ch&&NET.sb){try{NET.sb.removeChannel(D.ch);}catch(e){}}NET.duel=null;}
@@ -1471,13 +1474,24 @@ function duelMsg(p){const D=NET.duel;if(!D||!p)return;
     if(D.host&&!D.started&&D.opp){D.started=true;const first=duelSnap().spd>=D.opp.spd;duelSend({t:'start',first:first?'host':'guest'});duelBegin(first);}render(true);return;}
   if(p.t==='start'){if(!D.started&&D.opp){D.started=true;duelBegin(p.first==='guest');}return;}
   const c=C();if(!c||c.ctx!=='duel'||c.over)return;const e=c.enemies[0];fxAt=0;
-  if(p.t==='act'){e.hp=Math.max(0,Math.min(e.max,p.hp));const d=derive();let dmg=Math.max(0,Math.round(p.dmg||0));log(`${e.n} uses ${p.name||'Attack'}.`,'hurt');fx('lunge',{t:0});fxAt+=220;
-    if(dmg>0&&chance(d.dodge+(c.ps.veil?40:0))){dmg=0;log(`You dodge ${e.n}.`,'buff');fx('num',{t:'p',txt:'Dodge',cls:'miss'});}
-    if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-d.dr/100)));if(c.ps.shield){const a=Math.min(c.ps.shield,dmg);c.ps.shield-=a;dmg-=a;if(!c.ps.shield)delete c.ps.shield;if(a)log(`Your shield absorbs ${a}.`,'buff');}
-      if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);fx('impact',{t:'p',el:'phys',st:'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:dmg,cls:'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});log(`${e.n} hits you for ${dmg}.`,'hurt');}
-    if(c.ps.veil)c.ps.veil--;duelSend({t:'hp',hp:S.hp});
-    if(S.hp<=0){lose();}else{c.myTurn=true;startTurn();}fx('sync');runFx();render(true);return;}
-  if(p.t==='hp'){e.hp=Math.max(0,p.hp);fx('hp',{t:0,hp:e.hp,max:e.max});if(e.hp<=0){fx('die',{t:0});win();}fx('sync');runFx();render(true);return;}
+  if(p.t==='act'){e.hp=Math.max(0,Math.min(e.max,+p.hp||0));e.st=stUnE(p.me||{});const d=derive();const hits=Array.isArray(p.hits)?p.hits.slice(0,40):[];
+    if(p.name==='Stunned')log(`${e.n} is stunned and loses the turn.`,'buff');else log(`${e.n} uses ${p.name||'Attack'}.`,'hurt');
+    const els=hits.map(x=>x.el).filter(x=>x&&x!=='phys');const pk=/meteor/i.test(p.name||'')?'meteor':{fire:'fireball',frost:'icicle',storm:'zap',venom:'glob'}[els[0]];
+    if(hits.length){if(pk){fx('ecast',{t:0});fxAt+=160;fx('eproj',{t:0,k:pk});fxAt+=pk==='meteor'?520:PROJ_T;}else{fx('lunge',{t:0});fxAt+=220;}}
+    const WP=S.gear.weapon&&WT[S.gear.weapon.type];const miss=hits.length?(chance(d.dodge+(c.ps.veil?40:0))?'Dodge':WP&&WP.parry&&chance(WP.parry)?'Parry':null):null;
+    if(miss){log(miss==='Dodge'?`You dodge ${e.n}.`:`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:miss,cls:'miss'});}
+    else if(p.name!=='Stunned'){let tot=0;
+      for(const x of hits){let dmg=Math.max(1,Math.round((+x.d||0)*(1-d.dr/100)));if(c.ps.shield){const a=Math.min(c.ps.shield,dmg);c.ps.shield-=a;dmg-=a;if(!c.ps.shield)delete c.ps.shield;}
+        if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);tot+=dmg;fx('impact',{t:'p',el:x.el||'phys',st:'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:dmg+(x.c?'!':''),cls:x.c?'crit':'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});fxAt+=120;if(S.hp<=0)break;}
+      if(hits.length)log(`${e.n} hits you ${hits.length>1?hits.length+' times ':''}for ${tot}.`,'hurt');stUnP(c,p.st||{});}
+    if(c.ps.veil)c.ps.veil--;
+    if(S.hp>0)tickDots(c.ps,'You',dd=>{if(!S.flags.god)S.hp=Math.max(0,S.hp-dd);},'p');
+    duelSend({t:'hp',hp:S.hp,st:stPack(c.ps)});
+    if(S.hp<=0){lose();fx('sync');runFx();render(true);return;}
+    c.myTurn=true;startTurn();
+    if(c.ps.stun){delete c.ps.stun;log('You are stunned and lose your turn.','hurt');fx('num',{t:'p',txt:'Stunned',cls:'miss'});c.myTurn=false;duelSend({t:'act',hits:[],name:'Stunned',hp:S.hp,st:stPack(e.st),me:stPack(c.ps)});}
+    fx('sync');runFx();render(true);return;}
+  if(p.t==='hp'){e.hp=Math.max(0,+p.hp||0);e.st=stUnE(p.st||{});fx('hp',{t:0,hp:e.hp,max:e.max});if(e.hp<=0){fx('die',{t:0});win();}fx('sync');runFx();render(true);return;}
   if(p.t==='end'){log(`${e.n} forfeits.`,'sys');e.hp=0;win();fx('sync');runFx();render(true);}}
 function vArena(){if(!SUPA.url||!SUPA.key)return '';
   if(!NET.user)return '<div class="sub"><h3>Duel a friend</h3><p class="dim">Sign in under Settings to duel other players.</p></div>';
@@ -1703,7 +1717,7 @@ function shield(v){const c=C();v=Math.round(v*skM*(hasP('jugg')?1.5:1));c.ps.shi
 function onKill(e){S.kills++;const c=C();{const d=derive();let hp=0,mp=0;if(d.fx.includes('soul'))hp+=.1;if(d.fx.includes('siphon')){hp+=.15;mp+=10;}if(hp||mp){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*hp));S.mp=Math.min(d.maxMp,S.mp+mp);fx('num',{t:'p',txt:'+'+Math.round(d.maxHp*hp),cls:'heal'});}}if(S.bounty&&S.bounty.mob===e.id&&S.bounty.have<S.bounty.need)S.bounty.have++;questHook('kill',e.id);ctrHook('kill',e.id);if(MOB[e.id]){S.kc=S.kc||{};const t0=bestTier(e.id);S.kc[e.id]=(S.kc[e.id]||0)+1;if(bestTier(e.id)>t0)toast(`Bestiary: ${MOB[e.id].n} milestone!`);}if(e.elite){questHook('elite',e.id);ctrHook('elite');}fx('die',{t:c.enemies.indexOf(e)});
   if(hasP('pyre')&&e.st.burn)alive().forEach(x=>burn(x,e.st.burn.s));}
 function hit(e,mult,o={}){
-  const d=derive(),c=C(),i=c.enemies.indexOf(e);if(e.hp<=0)return 0;
+  const d=derive(),c=C(),i=c.enemies.indexOf(e);const duel=c.ctx==='duel';if(e.hp<=0&&!duel)return 0;const logHit=x=>{if(duel&&c.duelHits)c.duelHits.push(x);};
   const el=o.el||d.el;c.hits=(c.hits||0)+1;
   const crit=o.crit!==undefined?o.crit:(hasP('wayblade')&&c.hits%3===0)||chance(d.crit+(o.critBonus||0));
   let bonus=(el==='phys'||(d.mel&&el===d.el)?d.pm:d.sm)*(d.wel&&el===d.wel?1.15:1)*(1+bestBon(e.id));if(hasP('brute')&&(e.st.stun||e.st.brk))bonus*=1.2;if(hasP('inferno')&&el==='fire')bonus*=1.35;if(hasP('zero'))bonus*=.85;if(d.fx.includes('wrath')&&e.st.burn)bonus*=1.2;if(d.fx.includes('edict')&&e.hp<e.max*.3)bonus*=1.5;
@@ -1711,26 +1725,26 @@ function hit(e,mult,o={}){
   const base=calc(d.atk*mult*bonus*skM,effDef(e)*(d.fx.includes('sever')?.7:1))*(1+sh);
   let dmg=base*elMult(e,el);if(crit)dmg*=d.critd;dmg=Math.max(1,Math.round(dmg));
   if(e.st.ward){const ab=Math.min(e.st.ward,dmg);e.st.ward-=ab;dmg-=ab;if(!e.st.ward)delete e.st.ward;if(ab)log(`${e.n}'s ward absorbs ${ab}.`);}
-  e.hp=Math.max(0,e.hp-dmg);revealHint(e,el);
+  e.hp=Math.max(0,e.hp-dmg);logHit({d:dmg,c:crit?1:0,el});revealHint(e,el);
   fx('impact',{t:i,el,crit,st:curStyle});fx('hit',{t:i});const em=elMult(e,el);fx('num',{t:i,txt:`${dmg}${crit?'!':''}${em!==1?` (×${em})`:''}`,cls:crit?'crit':el==='phys'?'dmg':el});
   if(crit){fx('shake',{p:4});c.crits=(c.crits||0)+1;if(c.crits>=6)S.flags.crit6=true;if(hasP('flow'))S.mp=Math.min(d.maxMp,S.mp+2);}
   log(`${o.label||'You hit'} ${e.n} for ${dmg}${crit?' — critical!':''}${em>1?' (weak)':em<1?' (resisted)':''}.`,crit?'crit':'you');
   // extra elemental damage from enchants and forge effects
   const proc=o.proc!==false;
-  if(proc)for(const en of d.ench){const E=ENCH[en.id];if(!E.el||E.el==='venom'||e.hp<=0)continue;const ex=Math.max(1,Math.round(base*.2*(en.g?1.5:1)*elMult(e,E.el)));e.hp=Math.max(0,e.hp-ex);fx('num',{t:i,txt:ex,cls:E.el});revealHint(e,E.el);
+  if(proc)for(const en of d.ench){const E=ENCH[en.id];if(!E.el||E.el==='venom'||(e.hp<=0&&!duel))continue;const ex=Math.max(1,Math.round(base*.2*(en.g?1.5:1)*elMult(e,E.el)));e.hp=Math.max(0,e.hp-ex);logHit({d:ex,el:E.el});fx('num',{t:i,txt:ex,cls:E.el});revealHint(e,E.el);
     if(E.el==='fire'&&chance(30))burn(e,1);if(E.el==='frost'&&chance(30)&&e.hp>0)chill(e,1);
     if(E.el==='storm'&&chance(25)){const o2=alive().filter(x=>x!==e);if(o2.length){const x=pick(o2);const ar=Math.max(1,Math.round(base*.3*elMult(x,'storm')));x.hp=Math.max(0,x.hp-ar);fx('num',{t:c.enemies.indexOf(x),txt:ar,cls:'storm'});if(x.hp<=0){log(`${x.n} falls.`,'kill');onKill(x);}}}}
-  if(proc&&d.fx.includes('ember')&&e.hp>0){const ex=Math.max(1,Math.round(base*.1*elMult(e,'fire')));e.hp=Math.max(0,e.hp-ex);fx('num',{t:i,txt:ex,cls:'fire'});}
-  if(proc&&e.hp>0){if(d.fx.includes('rot'))poison(e,1);if(d.fx.includes('wrath'))burn(e,2);if(d.fx.includes('reaver')&&!e.st.bleed)bleed(e,2);if(d.fx.includes('venom')&&chance(25))poison(e,1);if(d.fx.includes('jagged')&&chance(20))bleed(e,2);if(d.ench.some(x=>x.id==='venomous')&&chance(30))poison(e,1);if(d.fx.includes('tyrant'))burn(e,1);if(hasP('static'))shock(e,1);
+  if(proc&&d.fx.includes('ember')&&(e.hp>0||duel)){const ex=Math.max(1,Math.round(base*.1*elMult(e,'fire')));e.hp=Math.max(0,e.hp-ex);logHit({d:ex,el:'fire'});fx('num',{t:i,txt:ex,cls:'fire'});}
+  if(proc&&(e.hp>0||duel)){if(d.fx.includes('rot'))poison(e,1);if(d.fx.includes('wrath'))burn(e,2);if(d.fx.includes('reaver')&&!e.st.bleed)bleed(e,2);if(d.fx.includes('venom')&&chance(25))poison(e,1);if(d.fx.includes('jagged')&&chance(20))bleed(e,2);if(d.ench.some(x=>x.id==='venomous')&&chance(30))poison(e,1);if(d.fx.includes('tyrant'))burn(e,1);if(hasP('static'))shock(e,1);
     const W=S.gear.weapon&&WT[S.gear.weapon.type];if(W&&W.stun&&!e.boss&&chance(W.stun))stun(e);if(W&&W.bleed&&chance(W.bleed))bleed(e,2);if(W&&W.poison&&chance(W.poison))poison(e,1);if(d.fx.includes('emberblade')&&el==='fire')burn(e,1);}
   if(d.ls&&dmg>0){const h=Math.max(1,Math.round(dmg*d.ls/100));S.hp=Math.min(d.maxHp,S.hp+h);}
   fx('hp',{t:i,hp:e.hp,max:e.max});
-  if(e.hp<=0){log(`${e.n} falls.`,'kill');onKill(e);}
+  if(e.hp<=0&&!duel){log(`${e.n} falls.`,'kill');onKill(e);}
   fxAt+=110;
   if(!o.echo&&proc){const others=alive().filter(z=>z!==e);const W1=S.gear.weapon&&WT[S.gear.weapon.type];
-    if(W1&&W1.twice&&e.hp>0&&chance(W1.twice))hit(e,mult*.6,{...o,echo:1,crit:undefined,label:'Flurry hits'});
+    if(W1&&W1.twice&&(e.hp>0||duel)&&chance(W1.twice))hit(e,mult*.6,{...o,echo:1,crit:undefined,label:'Flurry hits'});
     if(W1&&W1.cleave&&others.length)hit(pick(others),mult*.3,{...o,echo:1,crit:false,label:'Cleave hits'});
-    if(d.fx.includes('mirror')&&e.hp>0&&chance(30))hit(e,mult*.6,{...o,echo:1,crit:undefined,label:'Mirrorfang hits'});
+    if(d.fx.includes('mirror')&&(e.hp>0||duel)&&chance(30))hit(e,mult*.6,{...o,echo:1,crit:undefined,label:'Mirrorfang hits'});
     if(d.fx.includes('prism')&&el!=='phys'&&others.length)hit(pick(others),mult*.4,{...o,el,echo:1,crit:false,label:'The prism hits'});
     if(d.fx.includes('erupt')&&crit)others.forEach(x=>hit(x,mult*.5,{el:'fire',echo:1,crit:false,label:'Eruption hits'}));}
   return dmg;
@@ -1788,7 +1802,7 @@ function enemyPhase(){const c=C();fxAt+=380;
   for(const k of ['veil','riposte','emberward'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];}
 function quickChance(){const d=derive();return Math.max(0,Math.min(40,(d.spd-maxESpd())*3+(hasP('swift')?10:0)));}
 function afterPlayer(){const c=C();
-  if(c.ctx==='duel'){const e=c.enemies[0];const dealt=Math.max(0,(c.duelPre||0)-e.hp);c.myTurn=false;duelSend({t:'act',dmg:dealt,name:c.lastAct||'Attack',hp:S.hp});c.lastAct=null;return;}
+  if(c.ctx==='duel'){const e=c.enemies[0];c.myTurn=false;duelSend({t:'act',hits:(c.duelHits||[]).slice(0,40),name:c.lastAct||'Attack',hp:S.hp,st:stPack(e.st),me:stPack(c.ps)});c.duelHits=[];c.lastAct=null;return;}
   for(let guard=0;guard<4;guard++){if(!alive().length)return win();
     if(c.ps.haste){c.ps.haste--;c.quick=true;}else c.quick=!c.lastQuick&&chance(quickChance());
     if(c.quick){c.lastQuick=true;log('Quick turn! You act again.','buff');fx('num',{t:'p',txt:'Quick!',cls:'crit'});startTurn();break;}
@@ -2043,7 +2057,7 @@ const ACT={
   resetYes:()=>{if(NET.user&&NET.sb){NET.sb.from('saves').delete().eq('user_id',NET.user.id).then(()=>{NET.cloud=null;});}S=migrate(fresh());UI.set=false;PRE=null;toast('Save wiped');},
 };
 const tgt=()=>{const c=C();let e=c.enemies[c.target];if(!e||e.hp<=0){c.target=c.enemies.findIndex(x=>x.hp>0);e=c.enemies[c.target];}return e;};
-function turn(fn){const c=C();if(!c||c.over)return;if(c.ctx==='duel'&&!c.myTurn)return;if(c.ctx==='duel')c.duelPre=c.enemies[0].hp;PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
+function turn(fn){const c=C();if(!c||c.over)return;if(c.ctx==='duel'&&!c.myTurn)return;if(c.ctx==='duel')c.duelHits=[];PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
 const SKFX={
   crush:{m:'leap',imp:'smash'},cleave:{m:'center',imp:'sweep'},sunder:{m:'leap',imp:'smash'},earthsplit:{m:'leap',imp:'quake',big:1,center:1},
   rend:{m:'dash',imp:'claw'},iaido:{m:'iaido',imp:'iaido'},whirl:{m:'center',imp:'sweep'},bladestorm:{m:'center',imp:'stab',big:1},
@@ -2958,6 +2972,8 @@ const PLAY={
   back:e=>{if(!HERO.off)return;const from=HERO.off;HERO.off=null;
     if(e.m==='blink'||e.m==='behind'||e.m==='iaido')heroTo([{transform:from,opacity:1},{transform:from,opacity:0,offset:.35},{transform:'translate(0px,0px)',opacity:0,offset:.65},{transform:'translate(0px,0px)',opacity:1}],BACK_T);
     else heroTo([{transform:from},{transform:'translate(0px,-14px)',offset:.6},{transform:'translate(0px,0px)'}],BACK_T);},
+  eproj:e=>{const hh=heroEl(),f=sprEl(elFor(e.t));if(!hh||!f)return;const A=ctr(hh),B=ctr(f);
+    if(e.k==='meteor')projFx('meteor',{x:A.x+220,y:Math.max(-40,A.y-360)},{x:A.x,y:A.y},520);else projFx(e.k,{x:B.x,y:B.y},{x:A.x,y:A.y},PROJ_T);sfx(e.k==='zap'?'zap':e.k==='meteor'?'fire':'swing');},
   proj:e=>{const hh=heroEl(),f=sprEl(elFor(e.t));if(!hh||!f)return;const A=ctr(hh),B=ctr(f);projFx(e.k,{x:A.r.right-6,y:A.y-6},{x:B.x,y:B.y},PROJ_T);sfx(e.k==='zap'?'zap':'swing');},
   wave:e=>{const hh=heroEl(),line=document.querySelector('.foesline');if(!hh||!line)return;const A=hh.getBoundingClientRect(),L=line.getBoundingClientRect();const g=sprEl(document.querySelector('[data-foe]'));
     waveFx(e.k,A.right,L.right,(g?g.getBoundingClientRect():L).bottom,260+e.n*110+420);sfx(e.k==='fire'?'fire':'frost');},
