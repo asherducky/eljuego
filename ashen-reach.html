@@ -1272,9 +1272,9 @@ const SUP={
   flame:{q:1,fx:'tyrant',d:'Every hit adds a flame stack'}, shroud:{q:2,aff:{dodge:4}}, gargstone:{q:2,aff:{def:4}},
   kingsoul:{q:1,fx:'soul',d:'Kills restore 10% HP'}, starshard:{q:2,aff:{crit:4}}, voidsilk:{q:2,aff:{ls:2}},
 };
-// flat stats grow like the tier's base stats; percent stats gain 50% per tier
+// flat stats grow like the tier's base stats; percent stats gain 25% per tier
 const heartPct=t=>1+.5*Math.min(4,t);
-const supVal=(k,v,t)=>SCALED.includes(k)?Math.round(v*TMA[t||0]):Math.round(v*(1+(t||0)*.5));
+const supVal=(k,v,t)=>SCALED.includes(k)?Math.round(v*TMA[t||0]):Math.round(v*(1+(t||0)*.25));
 function supLine(m,t){const X=SUP[m];if(!X)return '';if(X.fx==='heart')return `Regenerate ${heartPct(t||0)}% HP each turn`;if(X.fx)return X.d;return Object.entries(X.aff).map(([k,v])=>`+${supVal(k,v,t)}${PCT.includes(k)?'%':''} ${LAB[k]}`).join(', ');}
 /* alloys: a base metal plus one reagent becomes a named metal with its own bonus and colours */
 const METAL={scrap:0,steel:1,obsidian:2,hollow:3,astral:4};
@@ -1684,8 +1684,8 @@ function derive(){
   atk+=Math.round(b.atk||0);
   let hpM=(1+(t.vit+b.hpPct)/100)*(fx.includes('bloodblade')?.8:1);const bb=fx.includes('bloodblade')?1.15:1;
   return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM*(1+Math.min(.6,Math.max(0,S.lvl-8)*.025))),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)),
-    def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(75,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
-    dodge:Math.min(40,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
+    def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(60,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
+    dodge:Math.min(30,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
     regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:(1+(t.str+b.pdmg)/100)*bb,sm:(1+(t.int+b.sdmg)/100)*bb,wel:w&&WT[w.type].el||null,mel:!w||!WT[w.type].el};
 }
 function fullRest(){const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;}
@@ -2623,7 +2623,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
     ${sp.base?`${step(2,'Weapons or armor')}<div class="row">${catB('weapon','Weapons')}${catB('armor','Armor')}</div>`:''}
     ${sp.base&&cat?`${step(3,'What to make')}<div class="picks">${types}</div>`:''}
     ${sp.type?`${cat==='weapon'?`${step(4,'Alloy')} <span class="dim small">optional · changes how the weapon fights</span><div class="picks">${alloys}</div>`:''}
-      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">up to 2 · stronger at higher tiers · only one with a special effect</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
+      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">up to 2 · stronger at higher tiers · only one with a special effect · dodge caps at 30%, crit at 60%</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
       ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}`:''}</div>
     <div class="sub anvil"><div class="row" style="justify-content:space-between"><h3>The anvil</h3>${sp.type||f.metal?'<button class="btn sm" data-a="fgclear">Clear</button>':''}</div>
       ${prev?itemCard(prev,''):`<p class="empty-s">${need}</p>`}
