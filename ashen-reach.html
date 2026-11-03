@@ -130,6 +130,10 @@ canvas.scene{display:block;width:100%;height:auto}
 @keyframes cur{50%{transform:translate(-50%,-4px)}}
 .idle{}
 @keyframes idle{50%{transform:translateY(calc(-1 * var(--bob,3px)))}}
+.ttree{display:flex;flex-direction:column;gap:10px}.ttier{padding:10px;box-shadow:inset 0 0 0 2px var(--edge);display:flex;flex-direction:column;gap:6px}.ttier.shut{opacity:.6}
+.tnodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.tnode{font:inherit;color:var(--ink);background:#1a1626;border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:8px;display:flex;flex-direction:column;gap:2px;align-items:flex-start;cursor:pointer;text-align:left}
+.tnode b{font-size:.85rem;font-weight:normal}.tpips{font-size:.7rem;color:#f2c14e}.tnode.k-skill{background:#2a2036}.tnode.k-key{background:#33261a}.tnode.got{box-shadow:inset 0 0 0 2px #f2c14e}.tnode.sel{box-shadow:inset 0 0 0 2px #ffffff}.tnode.lock{opacity:.55}
+.tdet{position:sticky;top:6px;z-index:5;background:#1a1626}
 #autobar{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;display:flex;gap:10px;align-items:center;background:#1a1626;padding:6px 10px;box-shadow:0 0 0 2px var(--edge);font-size:.8rem}
 .foe.rage .fname::after{content:' · Enraged';color:#ff6b5e}
 .foe.huge{transform:translateX(24%)}.foe.huge .intent{position:absolute;top:42%;left:2%;z-index:3}.foe.huge .bar{width:62%!important}.foe.huge .bar,.foe.huge .fname,.foe.huge .sts{align-self:flex-start;margin-left:4%}
@@ -1052,7 +1056,7 @@ const itemImg=(it,s=3)=>{if(it.slot==='gem'){const p=(GEMS[it.type]||GEMS.ruby).
     const [w,hh]=sprSize(ts);return `<img class="spr" data-fr="${frameKey(fk,urls)}" src="${urls[0]}" width="${w*s}" height="${hh*s}" alt="">`;}
   if(it.slot&&it.slot!=='weapon')return sprImg(base,s,'',gearPal(it)||pal);return sprImg(base,s,'',pal);};
 
-function stIcons(st){return Object.entries(st).map(([k,v])=>{const ic={burn:'st_burn',poison:'st_poison',bleed:'st_bleed',stun:'st_stun',shield:'st_shield',veil:'st_veil',chill:'st_chill',shock:'st_shock',brk:'st_brk',riposte:'st_riposte',evade:'st_veil',emberward:'st_burn',ward:'st_shield',haste:'int_atk',rage:'st_rage',staticward:'st_shock'}[k];if(!ic)return '';
+function stIcons(st){return Object.entries(st).map(([k,v])=>{const ic={burn:'st_burn',poison:'st_poison',bleed:'st_bleed',stun:'st_stun',shield:'st_shield',veil:'st_veil',chill:'st_chill',shock:'st_shock',brk:'st_brk',riposte:'st_riposte',evade:'st_veil',emberward:'st_burn',ward:'st_shield',haste:'int_atk',rage:'st_rage',staticward:'st_shock',pguard:'st_shield'}[k];if(!ic)return '';
   const s=typeof v==='object'&&v.s>1?v.s:0,t=typeof v==='number'?v:(v.t||'');const col=STCOL[k]||'#c8c0d8';
   return `<span class="st" data-tip="st:${k}" style="border-color:${col}">${sprImg(ic,2)}${s?`<b style="color:${col}">×${s}</b>`:''}${t!==''?`<span class="num">${t===99?'∞':t}</span>`:''}</span>`;}).join('');}
 const STCOL={burn:'#e2782a',emberward:'#e2782a',poison:'#6aa84f',bleed:'#c43c3c',stun:'#f2c14e',shield:'#9cc8ff',ward:'#9cc8ff',veil:'#c08cff',evade:'#c08cff',chill:'#6fb7e8',shock:'#f2e14e',brk:'#a89c86',riposte:'#e8e0cc',haste:'#f2c14e'};
@@ -1169,7 +1173,7 @@ const wepTree=()=>treeOf(wepFam());
 const styleCol=()=>SUBS[wepFam()].col;
 const CD={};
 const SKFAM={};for(const f in SUBS)SUBS[f].skills.forEach((s,i)=>{SKFAM[s]=f;CD[s]=[0,1,2,3,4][i];});for(const s of ['ironskin','riposte','emberward','icebarrier','stormstep','veil'])CD[s]=3;
-SKFAM.dimcut='medium';Object.assign(CD,{dimcut:6,warcry:4,guillotine:2,crimson:2,thousand:3,fan:2,hemorrhage:2,immolate:2,cauterize:4,glacial:3,winter:4,ball:2,staticshield:4});
+SKFAM.dimcut=SKFAM.cleancut=SKFAM.perfectguard='medium';Object.assign(CD,{perfectguard:4,dimcut:6,warcry:4,guillotine:2,crimson:2,thousand:3,fan:2,hemorrhage:2,immolate:2,cauterize:4,glacial:3,winter:4,ball:2,staticshield:4});
 const skMult=id=>SKFAM[id]&&treeOf(SKFAM[id])!==wepTree()?.5:1;
 const STARTS=['greatsword','sword','dagger','firestaff','frostwand','stormrod'];
 const BASESTATS={str:4,dex:4,int:4,vit:4,spd:3,luk:3};
@@ -1199,19 +1203,23 @@ function buildChart(){STARS={};LINKS=[];
       LINKS.push([p+'O',id('e')]);for(const [a,b] of BRL)LINKS.push([id(a),id(b)]);});
     for(const [hb,x,y,st,lv,a,b] of [['hA',87,128,'vit',2,'0k2','1s1'],['hB',169,128,'spd',2,'1k2','2s1'],['hC',87,76,'hp',6,'0k4','1st'],['hD',169,76,tree==='melee'?'crit':'mp',6,'1k4','2st']]){
       const P1=STARS[p+a],P2=STARS[p+b];const n={x:Math.round((P1.x+P2.x)*.4),y:Math.round((P1.y+P2.y)*.4),k:'stat',lv,c:'o',tree};statNode(n,st);STARS[p+hb]=n;LINKS.push([p+hb,p+a],[p+hb,p+b]);}
-    if(tree==='melee'){const K=STARS[p+'1ky'];STARS[p+'Dc']={x:Math.round(K.x*1.17),y:Math.round(K.y*1.17),k:'skill',lv:16,c:'medium',tree,fam:'medium',n:SK.dimcut.n,d:SK.dimcut.d,skill:'dimcut'};LINKS.push([p+'1ky',p+'Dc']);}}}
+    if(tree==='melee'){const K=STARS[p+'1ky'];STARS[p+'Dc']={x:Math.round(K.x*1.17),y:Math.round(K.y*1.17),k:'skill',lv:16,c:'medium',tree,fam:'medium',n:SK.dimcut.n,d:SK.dimcut.d,skill:'dimcut'};LINKS.push([p+'1ky',p+'Dc']);}}
+  for(const k of Object.keys(STARS))if(/^m1/.test(k)||k==='mDc')delete STARS[k];LINKS=LINKS.filter(l=>l.every(x=>STARS[x]));}
 const has=id=>!!(S&&S.stars&&S.stars.includes(id));
-const hasP=pid=>!!(S&&S.stars&&S.stars.some(id=>STARS[id]&&STARS[id].pid===pid));
+function trk(id){return (S&&S.tree&&S.tree[id])||0;}
+const sr=(id,a)=>a[Math.max(1,trk(id))-1];
+const hasP=pid=>!!(S&&((S.tree&&S.tree[pid]>0)||(S.stars&&S.stars.some(id=>STARS[id]&&STARS[id].pid===pid))));
 const nbrs=id=>LINKS.filter(l=>l.includes(id)).map(l=>l[0]===id?l[1]:l[0]);
-function recomputeSkills(){S.skills={};for(const id of S.stars){const s=STARS[id];if(s&&s.skill)S.skills[s.skill]=1;}S.equip=S.equip.filter(k=>S.skills[k]);}
+function recomputeSkills(){S.skills={};for(const id of S.stars){const s=STARS[id];if(s&&s.skill)S.skills[s.skill]=1;}for(const id in (S.tree||{}))if(CNODE[id]&&CNODE[id].k==='skill')S.skills[id]=1;S.equip=(S.equip||[]).filter(k=>S.skills[k]);}
 function canLight(id){const s=STARS[id];return s&&s.k!=='start'&&!has(id)&&S.sp>=1&&S.lvl>=(s.lv||1)&&nbrs(id).some(has);}
 function canUnlight(id){if(!has(id)||STARS[id].k==='start')return false;const rest=S.stars.filter(x=>x!==id);const seen=new Set(ORIGINS);const q=[...ORIGINS];
   while(q.length){const a=q.pop();for(const b of nbrs(a))if(rest.includes(b)&&!seen.has(b)){seen.add(b);q.push(b);}}return rest.every(x=>seen.has(x));}
 const starTotal=()=>S.lvl+S.frags.length+S.chal.length+(S.qst||0);
-const spLeft=()=>starTotal()-S.stars.filter(x=>!ORIGINS.includes(x)).length;
+const treeSpent=()=>Object.values(S.tree||{}).reduce((a,b)=>a+b,0);
+const spLeft=()=>starTotal()-S.stars.filter(x=>!ORIGINS.includes(x)).length-treeSpent();
 function applyStart(wep){S.stats={...BASESTATS};S.gear.weapon=mkItem('weapon',wep,0,0,[]);S.gear.armor=mkItem('armor','leather',0,0,[]);
   S.stars=[...ORIGINS];S.starTab=treeOf(famOf(wep));S.pts=3;S.sp=spLeft();S.equip=[];recomputeSkills();S.equip=Object.keys(S.skills);const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;}
-function respecAll(){S.stats={...BASESTATS};S.pts=3+3*(S.lvl-1);S.stars=[...ORIGINS];S.sp=spLeft();recomputeSkills();clampVitals();}
+function respecAll(){S.stats={...BASESTATS};S.pts=3+3*(S.lvl-1);S.stars=[...ORIGINS];S.tree={};S.sp=spLeft();recomputeSkills();clampVitals();}
 const canEquip=()=>true;
 
 /* skills */
@@ -1223,10 +1231,12 @@ const SK={
   sunder:{n:'Sunder',mp:7,d:'120% damage, halves DEF for 3 turns',use:e=>{hit(e,1.2);if(e.hp>0){e.st.brk={t:3};log(`${e.n}'s guard breaks.`,'buff');}}},
   earthsplit:{n:'Earthsplitter',mp:12,d:'115% damage to all, 20% stun each',use:()=>alive().forEach(x=>{hit(x,1.15);if(x.hp>0&&!x.boss&&chance(20))stun(x);})},
   rend:{n:'Rend',mp:4,d:'100% damage + Bleed for 3 turns',use:e=>{hit(e,1);if(e.hp>0)bleed(e,3);}},
-  iaido:{n:'Iaido',mp:6,d:'160% damage, +30% crit chance',use:e=>hit(e,1.6,{critBonus:30})},
-  riposte:{n:'Riposte',mp:5,vfx:'shield',d:'For 2 turns, counter every attack for 70%',use:()=>{C().ps.riposte=2;log('You take a riposte stance.','buff');}},
-  whirl:{n:'Whirlwind',mp:8,d:'2 sweeps of 50% to all',use:()=>{for(let k=0;k<2;k++)alive().forEach(x=>hit(x,.5,{proc:k===0}));}},
-  bladestorm:{n:'Bladestorm',mp:12,d:'5 strikes of 40% on random enemies',use:()=>{for(let k=0;k<5;k++){const a=alive();if(!a.length)break;hit(pick(a),.4,{proc:k===0});}}},
+  iaido:{n:'Iaido',mp:6,get d(){return sr('iaido',['160% damage, +30% crit chance','190% damage, +30% crit chance','190% damage, +30% crit chance. A crit refunds its MP']);},use:e=>{const r=trk('iaido'),c=C(),c0=c.crits||0;hit(e,r>=2?1.9:1.6,{critBonus:30});if(r>=3&&(c.crits||0)>c0)S.mp=Math.min(derive().maxMp,S.mp+6);}},
+  riposte:{n:'Riposte',mp:5,vfx:'shield',get d(){return sr('riposte',['For 2 turns, counter every attack for 70%','For 2 turns, counter every attack for 90%','For 3 turns, counter every attack for 90%']);},use:()=>{C().ps.riposte=trk('riposte')>=3?3:2;log('You take a riposte stance.','buff');}},
+  cleancut:{n:'Clean Cut',mp:4,get d(){return sr('cleancut',['110% damage, +15% crit','130% damage, +15% crit','130% damage, +15% crit. A crit refunds its MP']);},use:e=>{const r=trk('cleancut'),c=C(),c0=c.crits||0;hit(e,r>=2?1.3:1.1,{critBonus:15});if(r>=3&&(c.crits||0)>c0)S.mp=Math.min(derive().maxMp,S.mp+4);}},
+  perfectguard:{n:'Perfect Guard',mp:6,vfx:'shield',get d(){return sr('perfectguard',['Block the next attack and counter for 150%','Block the next attack and counter for 200%','Block the next attack and counter for 200%, with a shorter cooldown']);},use:()=>{C().ps.pguard=1;log('You set your guard.','buff');}},
+  whirl:{n:'Whirlwind',mp:8,get d(){return sr('whirl',['2 sweeps of 50% to all','2 sweeps of 60% to all','3 sweeps of 60% to all']);},use:()=>{const r=trk('whirl');for(let k=0;k<(r>=3?3:2);k++)alive().forEach(x=>hit(x,r>=2?.6:.5,{proc:k===0}));}},
+  bladestorm:{n:'Bladestorm',mp:12,get d(){return sr('bladestorm',['5 strikes of 40% on random enemies','6 strikes of 40% on random enemies','6 strikes of 50% on random enemies']);},use:()=>{const r=trk('bladestorm');for(let k=0;k<(r>=2?6:5);k++){const a=alive();if(!a.length)break;hit(pick(a),r>=3?.5:.4,{proc:k===0});}}},
   venom:{n:'Lacerate',mp:4,d:'90% damage + Bleed for 3 turns. Against a bleeding enemy: 4 cuts of 30%, each adding a Bleed stack, and the Bleed lasts 1 turn longer',use:e=>{if(e.st.bleed){for(let k=0;k<4&&(e.hp>0||C().ctx==='duel');k++){hit(e,.3,{proc:k===0});if(e.st.bleed&&(e.hp>0||C().ctx==='duel'))bleed(e,0);}const b=e.st.bleed;if(b&&b.t<99)b.t++;}else{const st0=curStyle;curStyle='rip';hit(e,.9);curStyle=st0;if(e.hp>0)bleed(e,3);}}},
   flurry:{n:'Flurry',mp:5,d:'3 hits of 40%, +20% crit each',use:e=>{FLX.i=3;for(let k=0;k<3&&(e.hp>0||C().ctx==='duel');k++)hit(e,.4,{critBonus:20,proc:k===0});}},
   veil:{n:'Smoke Veil',mp:5,vfx:'smoke',d:'+40% dodge for 2 enemy turns',use:()=>{C().ps.veil=2;log('You vanish into smoke.','buff');}},
@@ -1249,7 +1259,7 @@ const SK={
   warcry:{n:'War Cry',mp:6,vfx:'shield',d:'+30% damage for 3 turns and heal 10% max HP',use:(e,d)=>{C().ps.rage=3;heal(d.maxHp*.1);log('You roar a war cry.','buff');}},
   guillotine:{n:'Guillotine',mp:8,d:'130% damage, 260% to enemies under 40% HP',use:e=>hit(e,e.hp<e.max*.4?2.6:1.3)},
   crimson:{n:'Crimson Arc',mp:7,d:'80% to all enemies and they all Bleed',use:()=>alive().forEach(x=>{hit(x,.8);if(x.hp>0)bleed(x,3);})},
-  thousand:{n:'Thousand Cuts',mp:10,d:'6 strikes of 30% on one enemy, +15% crit each',use:e=>{for(let k=0;k<6&&(e.hp>0||C().ctx==='duel');k++)hit(e,.3,{critBonus:15,proc:k===0});}},
+  thousand:{n:'Thousand Cuts',mp:10,get d(){return sr('thousand',['6 strikes of 30% on one enemy, +15% crit each','6 strikes of 35% on one enemy, +15% crit each','8 strikes of 35% on one enemy, +15% crit each']);},use:e=>{const r=trk('thousand');for(let k=0;k<(r>=3?8:6)&&(e.hp>0||C().ctx==='duel');k++)hit(e,r>=2?.35:.3,{critBonus:15,proc:k===0});}},
   fan:{n:'Fan of Knives',mp:6,d:'60% to all enemies, 50% chance each to Bleed',use:()=>alive().forEach(x=>{hit(x,.6);if(x.hp>0&&chance(50))bleed(x,3);})},
   hemorrhage:{n:'Hemorrhage',mp:7,d:'60% damage, then burst the Bleed early: 10% of a full hemorrhage per stack, and the stacks reset',use:e=>{hit(e,.6);const b=e.st.bleed;if(b&&b.s>0&&(e.hp>0||C().ctx==='duel')){const k=b.s;b.s=0;hemoBurst(e,k/10);}}},
   immolate:{n:'Immolate',mp:8,bolt:['#fff1a8','#e2782a','#c43c3c'],d:'180% fire + 3 flame stacks',use:e=>{hit(e,1.8,{el:'fire'});if(e.hp>0)burn(e,3);}},
@@ -1258,8 +1268,8 @@ const SK={
   winter:{n:"Winter's Embrace",mp:7,vfx:'shield',d:'Heal 15% max HP and gain a shield of 100% ATK',use:(e,d)=>{heal(d.maxHp*.15);shield(d.atk);}},
   ball:{n:'Ball Lightning',mp:7,bolt:['#fff1a8','#f2c14e','#c08cff'],d:'4 bolts of 60% storm on random enemies, each adds Shock',use:()=>{for(let k=0;k<4;k++){const a=alive();if(!a.length)break;const x=pick(a);hit(x,.6,{el:'storm',proc:k===0});if(x.hp>0)shock(x,1);}}},
   staticshield:{n:'Static Shield',mp:6,vfx:'shield',d:'Shield of 150% ATK; enemies that hit you get Shocked',use:(e,d)=>{shield(d.atk*1.5);C().ps.staticward=3;}},
-  dimcut:{n:'Dimension Cut',mp:1,d:'Spend all your MP to cut every enemy: 250% from a full bar, falling off fast below full (90% MP: 182%, 75%: 105%, 50%: 31%). Can\x27t crit',
-    use:(e,d)=>{const spent=S.mp+1;S.mp=0;const m=Math.round(2.5*Math.pow(Math.min(1,spent/d.maxMp),3)*100)/100;log(`You tear the air apart (${Math.round(m*100)}%).`,'you');alive().forEach((x,k)=>hit(x,m,{proc:k===0,crit:false}));}},
+  dimcut:{n:'Dimension Cut',mp:1,get d(){const M=sr('dimcut',[200,225,250]);return `Spend all your MP to cut every enemy: ${M}% from a full bar, falling off fast below full (75% MP: ${Math.round(M*.42)}%, 50%: ${Math.round(M/8)}%). Can't crit`;},
+    use:(e,d)=>{const spent=S.mp+1;S.mp=0;const top=sr('dimcut',[2,2.25,2.5]),m=Math.round(top*Math.pow(Math.min(1,spent/d.maxMp),3)*100)/100;log(`You tear the air apart (${Math.round(m*100)}%).`,'you');alive().forEach((x,k)=>hit(x,m,{proc:k===0,crit:false}));}},
   thunderclap:{n:'Thunderclap',mp:12,vfx:'nova',d:'90% storm to all, 25% stun',use:()=>alive().forEach(x=>{hit(x,.9,{el:'storm'});if(x.hp>0&&!x.boss&&chance(25))stun(x);})},
 };
 
@@ -1436,7 +1446,7 @@ function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(
   for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.uq&&!UNIQ[it.uq]){it.uq=null;it.rar=3;it.name=itemName(it);}
   if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&(s.combat.ctx==='duel'||s.combat.ctx==='pvp'))s.combat=null;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
-  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);if(!s.atkGone){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.affixes)it.affixes=it.affixes.filter(a=>a.id!=='atk');s.atkGone=1;}return s;}
+  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);if(!s.treeV){s.treeV=1;s.tree=s.tree||{};s.stars=(s.stars||[]).filter(x=>!/^m1/.test(x)&&x!=='mDc');s.treeSync=1;}if(!s.atkGone){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.affixes)it.affixes=it.affixes.filter(a=>a.id!=='atk');s.atkGone=1;}return s;}
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();pvpPost();}}
 /* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
 // The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
@@ -1528,14 +1538,14 @@ function duelMsg(p){const D=NET.duel;if(!D||!p)return;
     if(p.name==='Stunned')log(`${e.n} is stunned and loses the turn.`,'buff');else log(`${e.n} uses ${p.name||'Attack'}.`,'hurt');
     const els=hits.map(x=>x.el).filter(x=>x&&x!=='phys');const pk=/meteor/i.test(p.name||'')?'meteor':{fire:'fireball',frost:'icicle',storm:'zap',venom:'glob'}[els[0]];
     if(hits.length){if(pk){fx('ecast',{t:0});fxAt+=160;fx('eproj',{t:0,k:pk});fxAt+=pk==='meteor'?520:PROJ_T;}else{fx('lunge',{t:0});fxAt+=220;}}
-    const WP=S.gear.weapon&&WT[S.gear.weapon.type];const miss=hits.length?(chance(d.dodge+(c.ps.veil?40:0))?'Dodge':WP&&WP.parry&&chance(WP.parry)?'Parry':null):null;
-    const counter=[];if(miss){log(miss==='Dodge'?`You dodge ${e.n}.`:`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:miss,cls:'miss'});}
+    const WP=S.gear.weapon&&WT[S.gear.weapon.type];const pc=(WP&&WP.parry||0)+3*trk('steadyhand');const miss=hits.length?(c.ps.pguard?'Blocked':chance(d.dodge+(c.ps.veil?40:0))?'Dodge':pc&&chance(pc)?'Parry':null):null;
+    const counter=[];if(miss==='Blocked'){delete c.ps.pguard;c.duelHits=[];hit(e,trk('perfectguard')>=2?2:1.5,{label:'You counter'});counter.push(...c.duelHits.map(x=>({...x,k:'Counter'})));c.duelHits=[];}if(miss){log(miss==='Dodge'?`You dodge ${e.n}.`:`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:miss,cls:'miss'});}
     else if(p.name!=='Stunned'){let tot=0;
       for(const x of hits){let dmg=Math.max(1,Math.round((+x.d||0)*(1-d.dr/100)));if(c.ps.shield){const a=Math.min(c.ps.shield,dmg);c.ps.shield-=a;dmg-=a;if(!c.ps.shield)delete c.ps.shield;if(a){fx('num',{t:'p',txt:'Shield '+a,cls:'miss'});log(`Your shield absorbs ${a}.`,'buff');}}
-        if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);tot+=dmg;fx('impact',{t:'p',el:x.el||'phys',st:'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:dmg+(x.c?'!':''),cls:x.c?'crit':'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});fxAt+=120;if(S.hp<=0)break;}
+        if(S.flags.god)dmg=0;S.hp=Math.max(0,S.hp-dmg);lastStand(c);tot+=dmg;fx('impact',{t:'p',el:x.el||'phys',st:'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:dmg+(x.c?'!':''),cls:x.c?'crit':'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});fxAt+=120;if(S.hp<=0)break;}
       if(hits.length)log(`${e.n} hits you ${hits.length>1?hits.length+' times ':''}for ${tot}.`,'hurt');stUnP(c,p.st||{});
       if(tot>0&&S.hp>0){if(d.thorns){const r=Math.max(1,Math.round(tot*d.thorns/100));counter.push({d:r,el:'phys',k:'Thorns'});fx('num',{t:0,txt:r,cls:'dmg'});log(`Thorns deal ${r} back.`,'buff');}
-        if(c.ps.riposte||(WP&&WP.riposte&&chance(WP.riposte))){c.duelHits=[];fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});counter.push(...c.duelHits.map(x=>({...x,k:'Riposte'})));c.duelHits=[];}}}
+        if(c.ps.riposte||(WP&&WP.riposte&&chance(WP.riposte))){c.duelHits=[];fxAt+=160;fx('hlunge');counterHit(e);counter.push(...c.duelHits.map(x=>({...x,k:'Riposte'})));c.duelHits=[];}}}
     for(const k of ['veil','riposte','rage','staticward'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];
     if(S.hp>0)tickDots(c.ps,'You',dd=>{if(!S.flags.god)S.hp=Math.max(0,S.hp-dd);},'p');
     if(S.hp>0){c.myTurn=true;startTurn();}
@@ -1681,11 +1691,12 @@ function derive(){
   for(const id in (S.brews||{})){const X=BREWS[id];if(X&&S.brews[id]>0)for(const k in X.b)b[k]=(b[k]||0)+X.b[k];}
   
   if(hasP('surge'))b.crit+=10;if(hasP('unyield')){b.hpPct+=15;b.dr+=8;}if(hasP('jugg'))b.hpPct+=30;
+  b.pdmg+=2*trk('might');b.critd+=.04*trk('finesse')+.06*trk('geye');b.hpPct+=3*trk('guard');b.spd+=trk('footwork');b.crit+=2*trk('precision')+3*trk('geye');if(trk('iron'))b.dr+=10;if(trk('flowing'))b.critd+=.1;
   let atk=3;let el='phys';if(fx.includes('bloodblade'))b.ls+=8;
   if(w){const W=WT[w.type];const base=itemBase(w).atk||0;const sv=t[wepStat(w.type)];atk=Math.round(base*(1+sv*GRP[wepGrade(w)]/100)+sv*.25+(itemStats(w).atk-base||0));el=W.el||'phys';}if(fx.includes('emberblade'))el='fire';if(fx.includes('stormblade'))el='storm';
   atk+=Math.round(b.atk||0);
   let hpM=(1+(t.vit+b.hpPct)/100)*(fx.includes('bloodblade')?.8:1);const bb=fx.includes('bloodblade')?1.15:1;
-  return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM*(1+Math.min(.6,Math.max(0,S.lvl-8)*.025))),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)),
+  return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM*(1+Math.min(.6,Math.max(0,S.lvl-8)*.025))),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)*(1+.05*trk('focus'))),
     def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(100,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
     dodge:Math.min(30,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
     regen:b.regen,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:(1+(t.str+b.pdmg)/100)*bb,sm:(1+(t.int+b.sdmg)/100)*bb,wel:w&&WT[w.type].el||null,mel:!w||!WT[w.type].el};
@@ -1786,13 +1797,18 @@ function heal(v){const d=derive();v=Math.round(v);S.hp=Math.min(d.maxHp,S.hp+v);
 function shield(v){const c=C();v=Math.round(v*skM*(hasP('jugg')?1.5:1));c.ps.shield=(c.ps.shield||0)+v;log(`You gain a ${v}-point shield.`,'buff');}
 function onKill(e){if(e._dead)return;e._dead=1;S.kills++;const c=C();{const d=derive();let hp=0,mp=0;if(d.fx.includes('soul'))hp+=.1;if(d.fx.includes('soulblade'))hp+=.08;if(d.fx.includes('siphon')){hp+=.15;mp+=10;}if(hp||mp){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*hp));S.mp=Math.min(d.maxMp,S.mp+mp);fx('num',{t:'p',txt:'+'+Math.round(d.maxHp*hp),cls:'heal'});}}if(S.bounty&&S.bounty.mob===e.id&&S.bounty.have<S.bounty.need)S.bounty.have++;questHook('kill',e.id);ctrHook('kill',e.id);if(MOB[e.id]){S.kc=S.kc||{};const t0=bestTier(e.id);S.kc[e.id]=(S.kc[e.id]||0)+1;if(bestTier(e.id)>t0)toast(`Bestiary: ${MOB[e.id].n} milestone!`);}if(e.elite){questHook('elite',e.id);ctrHook('elite');}fx('die',{t:c.enemies.indexOf(e)});
   if(hasP('pyre')&&e.st.burn)alive().forEach(x=>burn(x,e.st.burn.s));}
+// Opening Strike, Single Combat, One Perfect Cut and Momentum (+5% per turn on the same enemy, up to +20%, or +40% at Master)
+function swordBonus(e,c,o){let m=1;if(trk('opening')&&c.hits===1)m*=1.25;const sc=trk('singlecombat');if(sc&&alive().length===1)m*=1+.06*sc;if(trk('onecut')&&!e._cut){e._cut=1;m*=1.5;}
+  const P=ctPts('medium');if(P>=15&&!o.echo){if(c.momE!==e){c.momE=e;c.momN=0;c.momS=c.tn;}else if(c.momS!==c.tn){c.momS=c.tn;c.momN=Math.min(P>=30?8:4,(c.momN||0)+1);}m*=1+.05*(c.momN||0);}return m;}
+function counterHit(e){const cs=trk('counterstance');hit(e,(trk('riposte')>=2?.9:.7)*(cs?1.25:1),{label:'You counter',critBonus:cs?25:0});if(trk('iron'))heal(derive().maxHp*.05);}
+function lastStand(c){if(S.hp<=0&&trk('laststand')&&!c.lastSt){c.lastSt=1;S.hp=1;log('Last Stand! You refuse to fall.','crit');fx('num',{t:'p',txt:'Last Stand',cls:'crit'});}}
 function hit(e,mult,o={}){if(!e)return 0;
   const d=derive(),c=C(),i=c.enemies.indexOf(e);const duel=c.ctx==='duel';if(e.hp<=0&&!duel)return 0;const logHit=x=>{if(duel&&c.duelHits)c.duelHits.push(x);};
   const el=o.el||d.el;c.hits=(c.hits||0)+1;
-  const crit=o.crit!==undefined?o.crit:(hasP('wayblade')&&c.hits%3===0)||chance(d.crit+(o.critBonus||0));
-  let bonus=(el==='phys'||(d.mel&&el===d.el)?d.pm:d.sm)*(d.wel&&el===d.wel?1.15:1)*(1+bestBon(e.id));if(hasP('brute')&&(e.st.stun||e.st.brk))bonus*=1.2;if(hasP('inferno')&&el==='fire')bonus*=1.35;if(c.ps&&c.ps.rage)bonus*=1.3;if(d.fx.includes('wrath')&&e.st.burn)bonus*=1.2;if(d.fx.includes('edict')&&e.hp<e.max*.3)bonus*=1.5;
+  const crit=o.crit!==undefined?o.crit:(hasP('wayblade')&&c.hits%3===0)||(trk('onecut')&&!e._cut)||chance(d.crit+(o.critBonus||0));
+  let bonus=(el==='phys'||(d.mel&&el===d.el)?d.pm:d.sm)*(d.wel&&el===d.wel?1.15:1)*(1+bestBon(e.id));bonus*=swordBonus(e,c,o);if(hasP('brute')&&(e.st.stun||e.st.brk))bonus*=1.2;if(hasP('inferno')&&el==='fire')bonus*=1.35;if(c.ps&&c.ps.rage)bonus*=1.3;if(d.fx.includes('wrath')&&e.st.burn)bonus*=1.2;if(d.fx.includes('edict')&&e.hp<e.max*.3)bonus*=1.5;
   const sh=e.st.shock?e.st.shock.s*(hasP('conduct')?.08:.05):0;
-  const base=calc(d.atk*mult*bonus*skM,effDef(e)*(d.fx.includes('sever')?.7:1)*(d.fx.includes('soulblade')?.65:1))*(1+sh);
+  const base=calc(d.atk*mult*bonus*skM,effDef(e)*(1-.05*trk('armorseeker'))*(d.fx.includes('sever')?.7:1)*(d.fx.includes('soulblade')?.65:1))*(1+sh);
   let dmg=base*elMult(e,el);if(crit)dmg*=d.critd;dmg=Math.max(1,Math.round(dmg));
   if(e.st.ward&&!duel){const ab=Math.min(e.st.ward,dmg);e.st.ward-=ab;dmg-=ab;if(!e.st.ward)delete e.st.ward;if(ab)log(`${e.n}'s ward absorbs ${ab}.`);}
   e.hp=Math.max(0,e.hp-dmg);logHit({d:dmg,c:crit?1:0,el});revealHint(e,el);
@@ -1847,15 +1863,16 @@ function enemyAct(c,e){
   else{const melee=!['heal','shield'].includes(ab);if(melee){fx('lunge',{t:i,heavy:ab==='heavy'});fxAt+=ab==='heavy'?260:180;if(e.id==='tyrant'){fx('eslash',{});fxAt+=120;}}else{fx('ecast',{t:i});fxAt+=160;}}
   if(ab==='heal'){const h=Math.round(e.max*.1);e.hp=Math.min(e.max,e.hp+h);log(`${e.n} regenerates ${h} HP.`,'hurt');fx('num',{t:i,txt:'+'+h,cls:'heal'});fx('hp',{t:i,hp:e.hp,max:e.max});return;}
   if(ab==='shield'){e.st.ward=(e.st.ward||0)+Math.round(e.max*.12);log(`${e.n} raises a ward.`,'hurt');fx('burst',{t:i,col:['#c4ecff','#f4efe4'],n:22});return;}
+  if(c.ps.pguard){delete c.ps.pguard;log(`You turn ${e.n}'s attack aside!`,'buff');fx('num',{t:'p',txt:'Blocked',cls:'miss'});fxAt+=160;fx('hlunge');const cs=trk('counterstance');hit(e,(trk('perfectguard')>=2?2:1.5)*(cs?1.25:1),{label:'You counter',critBonus:cs?25:0});if(trk('iron'))heal(d.maxHp*.05);return;}
   if(c.ps.evade){delete c.ps.evade;log(`You slip past ${e.n}.`,'buff');fx('num',{t:'p',txt:'Evade',cls:'miss'});return;}
   if(chance(d.dodge+(c.ps.veil?40:0))){log(`You dodge ${e.n}.`,'buff');fx('num',{t:'p',txt:'Dodge',cls:'miss'});return;}
-  const WP=S.gear.weapon&&WT[S.gear.weapon.type];if(WP&&WP.parry&&chance(WP.parry)){log(`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:'Parry',cls:'miss'});return;}
+  const WP=S.gear.weapon&&WT[S.gear.weapon.type];const pc=(WP&&WP.parry||0)+3*trk('steadyhand');if(pc&&chance(pc)){log(`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:'Parry',cls:'miss'});return;}
   const chillRed=e.st.chill&&hasP('bite')?1-.1*e.st.chill.s:1;
   let dmg=calc(e.atk*(ab==='heavy'?1.6:1)*chillRed,d.def*(1-(e.pierce||0)))*(1-d.dr/100);dmg=Math.max(1,Math.round(dmg));
   const n=multi?multi[1]:1,el={burn:'fire',poison:'venom'}[ab]||'phys';let total=0,absorbed=0;
   for(let k=0;k<n;k++){let part=Math.max(1,Math.round(dmg/n));if(k)fxAt+=multi[2];
     if(c.ps.shield){const a=Math.min(c.ps.shield,part);c.ps.shield-=a;part-=a;absorbed+=a;if(!c.ps.shield)delete c.ps.shield;}
-    if(S.flags.god)part=0;S.hp=Math.max(0,S.hp-part);total+=part;fx('impact',{t:'p',el,st:ab==='heavy'&&n===1?'smash':'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:part,cls:'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});if(S.hp<=0)break;}
+    if(S.flags.god)part=0;S.hp=Math.max(0,S.hp-part);lastStand(c);total+=part;fx('impact',{t:'p',el,st:ab==='heavy'&&n===1?'smash':'claw'});fx('hit',{t:'p'});fx('num',{t:'p',txt:part,cls:'hurt'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp,flash:1});if(S.hp<=0)break;}
   dmg=total;c.lastHit=e.id;if(absorbed)log(`Your shield absorbs ${absorbed}.`,'buff');if(ab==='heavy'||dmg>d.maxHp*.15)fx('shake',{p:7});
   const verb={heavy:'smashes',drain:'drains',poison:'stings',bleed:'slashes',burn:'scorches',stun:'slams'}[ab]||'hits';
   log(n>1?`${e.n} hits you ${n} times for ${dmg} total.`:`${e.n} ${verb} you for ${dmg}.`,'hurt');
@@ -1867,8 +1884,8 @@ function enemyAct(c,e){
   if(ab==='stun'&&!resist()){c.ps.stun=1;log('You are stunned!','hurt');}
   if(d.thorns&&dmg>0){const r=Math.max(1,Math.round(dmg*d.thorns/100));e.hp=Math.max(0,e.hp-r);fx('num',{t:i,txt:r,cls:'dmg'});log(`Thorns deal ${r} back.`,'buff');fx('hp',{t:i,hp:e.hp,max:e.max});if(e.hp<=0){log(`${e.n} falls.`,'kill');onKill(e);return;}}
   if(c.ps.emberward&&e.hp>0)burn(e,1);if(c.ps.staticward&&e.hp>0)shock(e,1);
-  if(c.ps.riposte&&S.hp>0&&e.hp>0){fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});}
-  else if(WP&&WP.riposte&&dmg>0&&S.hp>0&&e.hp>0&&chance(WP.riposte)){fxAt+=160;fx('hlunge');hit(e,.7,{label:'You riposte'});}
+  if(c.ps.riposte&&S.hp>0&&e.hp>0){fxAt+=160;fx('hlunge');counterHit(e);}
+  else if(WP&&WP.riposte&&dmg>0&&S.hp>0&&e.hp>0&&chance(WP.riposte)){fxAt+=160;fx('hlunge');counterHit(e);}
 }
 function enemyPhase(){const c=C();fxAt+=380;
   for(const e of c.enemies.slice()){if(e.hp<=0)continue;if(e.called){delete e.called;continue;}const i=c.enemies.indexOf(e);
@@ -1877,7 +1894,7 @@ function enemyPhase(){const c=C();fxAt+=380;
     if(e.st.stun){const fr=e.st.stun.frz;if(--e.st.stun.t<=0)delete e.st.stun;log(`${e.n} is ${fr?'frozen':'stunned'} and can't act.`);fx('num',{t:i,txt:fr?'Frozen':'Stunned',cls:'miss'});continue;}
     enemyAct(c,e);fxAt+=300;if(S.hp<=0)return;}
   for(const k of ['veil','riposte','emberward','rage','staticward'])if(c.ps[k]&&--c.ps[k]<=0)delete c.ps[k];}
-function quickChance(){const d=derive();return Math.max(0,Math.min(40,(d.spd-maxESpd())*3+(hasP('swift')?10:0)));}
+function quickChance(){const d=derive();return Math.max(0,Math.min(40,(d.spd-maxESpd())*3+(hasP('swift')?10:0)+(trk('flowing')?5:0)));}
 function afterPlayer(){const c=C();
   if(c.ctx==='duel'){const e=c.enemies[0];c.myTurn=false;duelSend({t:'act',hits:(c.duelHits||[]).slice(0,40),name:c.lastAct||'Attack',st:stPack(e.st),...duelMe()});c.duelHits=[];c.lastAct=null;return;}
   for(let guard=0;guard<4;guard++){if(!alive().length)return win();
@@ -1981,7 +1998,11 @@ const ACT={
     applyStart(S.pendingWep);S.named=true;delete S.pendingWep;delete S.pendingHC;},
   pickwep:v=>{S.pendingWep=v;},
   togglehc:()=>{S.pendingHC=!S.pendingHC;},
-  startab:v=>{S.starTab=v;S.selStar=null;},
+  startab:v=>{S.starTab=v;S.selStar=null;UI.cls=null;},
+  cls:v=>{UI.cls=v;UI.tsel=null;},
+  tsel:v=>{UI.tsel=v;},
+  tadd:v=>{if(!canRank(v))return;S.tree=S.tree||{};S.tree[v]=(S.tree[v]||0)+1;S.sp--;recomputeSkills();if(CNODE[v].k==='skill'&&S.equip.length<4&&!S.equip.includes(v))S.equip.push(v);clampVitals();sfx('coin');},
+  tsub:v=>{if(!canUnrank(v))return;S.tree[v]--;if(!S.tree[v])delete S.tree[v];S.sp++;recomputeSkills();clampVitals();},
   dmod:v=>{S.dmods=S.dmods.includes(v)?S.dmods.filter(x=>x!==v):[...S.dmods,v];},
   selstar:v=>{S.selStar=v;},
   light:v=>{if(!canLight(v))return;S.sp--;S.stars.push(v);recomputeSkills();const sk=STARS[v].skill;if(sk&&S.equip.length<4&&!S.equip.includes(sk))S.equip.push(sk);clampVitals();fx('star',{id:v});},
@@ -2022,7 +2043,7 @@ const ACT={
     log(`Analyze: ${e.n} — weak to ${e.weak?EL[e.weak].n:'nothing'}, resists ${e.res?EL[e.res].n:'nothing'}. Next move: ${INTN[e.intent]}.`,'buff');
     fx('scan',{t:i});fxAt+=520;fx('num',{t:i,txt:e.weak?'Weak: '+EL[e.weak].n:'No weakness',cls:'crit'});fxAt+=200;});},
   attack:()=>{turn(()=>{const e=tgt();C().lastAct='Attack';perform(basicFx(),e,()=>hit(e,1));});},
-  skill:v=>{const s=SK[v];const c0=C();if(!s||S.mp<s.mp||(c0&&c0.cd&&c0.cd[v]>0))return;turn(()=>{if(CD[v])C().cd[v]=CD[v]+1;const d=derive();S.mp-=s.mp;const e=tgt();skM=skMult(v);log(`You use ${s.n}${skM<1?' (0.5×, wrong weapon type)':''}.`,'you');C().lastAct=s.n;perform(SKFX[v]||{},e,()=>s.use(e,d));skM=1;});},
+  skill:v=>{const s=SK[v];const c0=C();if(!s||S.mp<s.mp||(c0&&c0.cd&&c0.cd[v]>0))return;turn(()=>{if(CD[v])C().cd[v]=CD[v]+1-(v==='perfectguard'&&trk(v)>=3?1:0);const d=derive();S.mp-=s.mp;const e=tgt();skM=skMult(v);log(`You use ${s.n}${skM<1?' (0.5×, wrong weapon type)':''}.`,'you');C().lastAct=s.n;perform(SKFX[v]||{},e,()=>s.use(e,d));skM=1;});},
   use:v=>{if(!S.cons[v])return;if(v==='orb'){S.cons.orb--;respecAll();toast('Stats and stars refunded');return;}const inCombat=C()&&!C().over;
     if(C()&&v==='potion'&&dmods().includes('nopot')){toast('Potions are sealed in this dungeon');return;}if(inCombat)C().pots=(C().pots||0)+1;
     const run=()=>{S.cons[v]--;const d=derive();
@@ -2144,7 +2165,7 @@ const ACT={
   resetYes:()=>{if(NET.user&&NET.sb){NET.sb.from('saves').delete().eq('user_id',NET.user.id).then(()=>{NET.cloud=null;});}S=migrate(fresh());UI.set=false;PRE=null;toast('Save wiped');},
 };
 const tgt=()=>{const c=C();let e=c.enemies[c.target];if(!e||e.hp<=0){c.target=c.enemies.findIndex(x=>x.hp>0);e=c.enemies[c.target];}return e;};
-function turn(fn){const c=C();if(!c||c.over)return;if(c.ctx==='duel'&&!c.myTurn)return;if(c.ctx==='duel')c.duelHits=[];PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
+function turn(fn){const c=C();if(!c||c.over)return;if(c.ctx==='duel'&&!c.myTurn)return;if(c.ctx==='duel')c.duelHits=[];PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};c.tn=(c.tn||0)+1;fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
 const SKFX={
   crush:{m:'leap',imp:'smash'},cleave:{m:'center',imp:'sweep'},sunder:{m:'leap',imp:'smash'},earthsplit:{m:'leap',imp:'quake',big:1,center:1},
   rend:{m:'dash',imp:'claw'},iaido:{m:'iaido',imp:'iaido'},whirl:{m:'center',imp:'sweep'},bladestorm:{m:'center',imp:'stab',big:1},
@@ -2154,6 +2175,7 @@ const SKFX={
   spark:{p:'zap'},chain:{chain:1},overload:{implode:1},thunderclap:{sky:1,all:1,big:1},
   ironskin:{aura:['#c9c2d6','#f4efe4']},riposte:{aura:['#f2c14e','#f4efe4']},emberward:{aura:['#e2782a','#f2c14e']},icebarrier:{aura:['#6fb7e8','#c4ecff']},
   stormstep:{aura:['#f2c14e','#c08cff'],zap:1},veil:{smoke:1},dimcut:{dimcut:1,imp:'iaido'},
+  cleancut:{m:'dash',imp:'cut'},perfectguard:{aura:['#c9c2d6','#ffffff']},
   warcry:{aura:['#c43c3c','#f2c14e']},guillotine:{m:'leap',imp:'execute'},crimson:{m:'center',imp:'sweep'},thousand:{m:'iaido',imp:'twin'},
   fan:{knives:1,imp:'knife'},hemorrhage:{m:'dash',imp:'hemorrhage'},immolate:{pillar:1},cauterize:{aura:['#e2782a','#fff1a8']},
   glacial:{ic:1},winter:{aura:['#6fb7e8','#c4ecff']},ball:{chain:1},staticshield:{aura:['#f2c14e','#fff1a8'],zap:1},
@@ -2407,7 +2429,7 @@ function sceneLoop(t){if(t-lastScene>33){lastScene=t;document.querySelectorAll('
 const TABS=[['explore','Explore'],['town','Town'],['char','Character'],['skills','Stars'],['inv','Inventory'],['beast','Bestiary'],['online','Online'],['settings','Settings']];
 const LAB={def:'Defense',hp:'Max HP',mp:'Max MP',crit:'Crit',dodge:'Dodge',spd:'Speed',str:'Phys damage',dex:'Crit damage',int:'Spell damage',vit:'Max HP',luk:'Gold find',atk:'Attack',ls:'Lifesteal',gold:'Gold find'};
 const PCT=['crit','dodge','ls','gold','str','dex','int','vit','luk'];
-const STDESC={rage:'War Cry: +30% damage',staticward:'Static Shield: enemies that hit you get Shocked',burn:'Flame stacks: damage every turn per stack, losing 1 stack each turn',poison:'Poison: damage every turn per stack',bleed:'Bleed: damage every turn. Each bleed adds a stack; at 10 stacks the target hemorrhages for 25% of its max HP (10% for bosses)',stun:'Stunned or frozen: skips its next turn',
+const STDESC={pguard:'Perfect Guard: the next attack is blocked and countered',rage:'War Cry: +30% damage',staticward:'Static Shield: enemies that hit you get Shocked',burn:'Flame stacks: damage every turn per stack, losing 1 stack each turn',poison:'Poison: damage every turn per stack',bleed:'Bleed: damage every turn. Each bleed adds a stack; at 10 stacks the target hemorrhages for 25% of its max HP (10% for bosses)',stun:'Stunned or frozen: skips its next turn',
   shield:'Shield: absorbs damage',veil:'Veiled: +40% dodge',chill:'Chill: freezes at 3 stacks',shock:'Shock: takes extra damage per stack',brk:'Sundered: defense halved',riposte:'Riposte: counters every attack',
   evade:'The next attack on you misses',emberward:'Ember Ward: attackers catch fire',ward:'Ward: absorbs damage',haste:'Guaranteed quick turns',rage:'Enraged: hits 30% harder'};
 function bar(cls,v,m,label,hb){const p=Math.max(0,Math.min(100,v/m*100));return `<div class="bar ${cls}" ${hb?`data-hb="${hb}" data-l="${label}"`:''}><i style="width:${p}%"></i><span>${label} ${Math.round(v)}/${m}</span></div>`;}
@@ -2467,6 +2489,7 @@ function tipHTML(key){const [k,v]=[key.slice(0,key.indexOf(':')),key.slice(key.i
   if(k==='item'){const it=findAny(v);return it?itemCard(it,'',isWorn(it)):'';}
   if(k==='st')return STDESC[v]||'';
   if(k==='cons')return `<b>${CONSN[v]}</b> <span class="tag num">×${S.cons[v]||0}</span><div class="small">${CONSD[v]}</div>`;
+  if(k==='tnode'){const X=CNODE[v];if(!X)return '';const L=nodeLines(v),r=trk(v);return `<b>${nodeName(v)}</b>${L.map((d,i)=>`<div class="small ${i<r?'gold':'dim'}">${L.length>1?'★'.repeat(i+1)+' ':''}${d}</div>`).join('')}`;}
   if(k==='mat')return matTip(v);
   if(k==='skill'){const s=SK[v];return s?`<b>${s.n}</b> <span class="tag">${s.mp} MP</span>${CD[v]?` <span class="tag">Cooldown ${CD[v]}</span>`:''}<div class="small" style="margin-top:4px">${s.d}</div>${skMult(v)<1?`<div class="small" style="color:var(--bad)">0.5× — needs a ${TREES[treeOf(SKFAM[v])].n.toLowerCase()} weapon</div>`:''}`:'';}
   if(k==='star'){const s=STARS[v];return s?`<b>${esc(s.n)}</b> <span class="tag">${KIND[s.k]}</span><div class="small">${s.d}</div>`:'';}
@@ -2731,6 +2754,40 @@ async function exportSave(){const data=JSON.stringify({game:'ashen-reach',at:new
   try{const blob=new Blob([JSON.stringify({game:'ashen-reach',at:new Date().toISOString(),S})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='el-juego-save.json';
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);toast('Save exported');}catch(e){toast('Export failed in this browser');}}
 function importFile(f){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);const s=o&&o.S?o.S:o;if(!s||s.v!==3||!s.stats)throw 0;IMP=s;}catch(e){IMP=null;toast('That file is not an El Juego save');}render(true);};r.readAsText(f);}
+const CLSN={heavy:'Berserker',medium:'Swordsman',light:'Rogue',fire:'Pyromancer',frost:'Cryomancer',storm:'Stormcaller'};
+const CTREE={medium:{tiers:[
+  {n:'Novice',gate:0,groups:[{ids:['cleancut','whirl','riposte','opening']},{l:'Stats',ids:['might','finesse','guard','footwork','focus']}]},
+  {n:'Adept',gate:15,bonus:'Momentum: hitting the same enemy on later turns adds +5% damage, up to +20%. Switching targets resets it.',groups:[{l:'Stats',ids:['precision','armorseeker']},{l:'Counter path',ids:['perfectguard','counterstance','steadyhand']},{l:'Duel path',ids:['iaido','flow','singlecombat']},{l:'Choose 1 stance',ids:['iron','flowing']}]},
+  {n:'Master',gate:30,bonus:'Perfect Momentum: Momentum can reach +40%.',groups:[{l:'Techniques',ids:['thousand','bladestorm','dimcut']},{l:'Passives',ids:['geye','laststand']},{l:'Choose 1 keystone',ids:['wayblade','onecut']}]}],
+  nodes:{cleancut:{k:'skill',max:3},whirl:{k:'skill',max:3},riposte:{k:'skill',max:3},perfectguard:{k:'skill',max:3},iaido:{k:'skill',max:3},thousand:{k:'skill',max:3},bladestorm:{k:'skill',max:3},dimcut:{k:'skill',max:3},
+    opening:{k:'pass',n:'Opening Strike',r:['Your first hit each fight deals +25%']},
+    might:{k:'stat',n:'Might',r:['+2% physical damage','+4% physical damage','+6% physical damage']},finesse:{k:'stat',n:'Finesse',r:['+4% crit damage','+8% crit damage','+12% crit damage']},guard:{k:'stat',n:'Guard',r:['+3% max HP','+6% max HP','+9% max HP']},
+    footwork:{k:'stat',n:'Footwork',r:['+1 SPD','+2 SPD','+3 SPD']},focus:{k:'stat',n:'Focus',r:['+5% max MP','+10% max MP','+15% max MP']},
+    precision:{k:'stat',n:'Precision',r:['+2% crit','+4% crit','+6% crit']},armorseeker:{k:'stat',n:'Armor Seeker',r:['Ignore 5% of defense','Ignore 10% of defense','Ignore 15% of defense']},
+    counterstance:{k:'pass',n:'Counterstance',r:['Counters deal +25% and have +25% crit chance']},steadyhand:{k:'pass',n:'Steady Hand',r:['3% chance to parry any attack','6% chance to parry any attack','9% chance to parry any attack']},
+    flow:{k:'pass',n:'Flow',r:['Crits restore 2 MP']},singlecombat:{k:'pass',n:'Single Combat',r:['+6% damage when only 1 enemy is left','+12% damage when only 1 enemy is left','+18% damage when only 1 enemy is left']},
+    iron:{k:'key',x:'stance',n:'Iron Stance',r:['Take 10% less damage, and counters heal 5% of your max HP']},flowing:{k:'key',x:'stance',n:'Flowing Stance',r:['+10% crit damage and +5% quick-turn chance']},
+    geye:{k:'pass',n:"Grandmaster's Eye",r:['+3% crit, +6% crit damage','+6% crit, +12% crit damage','+9% crit, +18% crit damage']},laststand:{k:'pass',n:'Last Stand',r:['Once per fight, a lethal hit leaves you at 1 HP']},
+    wayblade:{k:'key',x:'cap',n:'Way of the Blade',r:['Every 3rd hit is a guaranteed crit']},onecut:{k:'key',x:'cap',n:'One Perfect Cut',r:['Your first hit on each enemy always crits and deals +50%']}}}};
+const CNODE={};for(const f in CTREE){const T=CTREE[f];T.tiers.forEach((t,ti)=>t.groups.forEach(g=>g.ids.forEach(id=>{const X=T.nodes[id];X.t=ti;X.f=f;X.max=X.max||(X.r?X.r.length:1);CNODE[id]=X;})));}
+const ctPts=f=>{const T=CTREE[f];let n=0;if(T)for(const id in T.nodes)n+=trk(id);return n;};
+const tierPts=(f,ti,skip)=>{let n=0;for(const id in CTREE[f].nodes)if(CTREE[f].nodes[id].t===ti)n+=trk(id)-(id===skip?1:0);return n;};
+const tierOpen=(f,ti,skip)=>{let n=0;for(let k=0;k<ti;k++)n+=tierPts(f,k,skip);return n>=CTREE[f].tiers[ti].gate;};
+const nodeName=id=>CNODE[id].n||SK[id].n;
+const nodeTaken=id=>{const X=CNODE[id];return !!X.x&&Object.keys(CTREE[X.f].nodes).some(o=>o!==id&&CTREE[X.f].nodes[o].x===X.x&&trk(o)>0);};
+function canRank(id){const X=CNODE[id];return !!X&&trk(id)<X.max&&S.sp>=1&&tierOpen(X.f,X.t)&&!nodeTaken(id);}
+function canUnrank(id){const X=CNODE[id];if(!X||trk(id)<1)return false;const T=CTREE[X.f];return T.tiers.every((t,ti)=>tierPts(X.f,ti,id)<=0||tierOpen(X.f,ti,id));}
+function nodeLines(id){const X=CNODE[id];if(X.k!=='skill')return X.r;return [1,2,3].map(r=>{const o=S.tree[id];S.tree[id]=r;const d=SK[id].d;if(o===undefined)delete S.tree[id];else S.tree[id]=o;return d;});}
+function vTree(f){const T=CTREE[f],P=ctPts(f);const sel=UI.tsel&&CNODE[UI.tsel]&&CNODE[UI.tsel].f===f?UI.tsel:null;
+  const btn=id=>{const X=CNODE[id],r=trk(id),open=tierOpen(f,X.t),tk=nodeTaken(id);return `<button class="tnode k-${X.k} ${id===sel?'sel':''} ${r?'got':''} ${!open||tk?'lock':''}" data-a="tsel" data-v="${id}" data-tip="tnode:${id}"><b>${nodeName(id)}</b><span class="tpips">${'★'.repeat(r)}${'☆'.repeat(X.max-r)}</span></button>`;};
+  const tiers=T.tiers.map((t,ti)=>{const open=tierOpen(f,ti),need=t.gate;return `<div class="ttier ${open?'':'shut'}"><div class="row" style="justify-content:space-between"><h3>${t.n}</h3>${need?`<span class="tag ${open?'good':''}">${open?'Unlocked':`Needs ${need} points · you have ${P}`}</span>`:''}</div>${t.bonus?`<p class="small ${open?'gold':'dim'}">Tier bonus · ${t.bonus}</p>`:''}
+    ${t.groups.map(g=>`${g.l?`<div class="eyebrow">${g.l}</div>`:''}<div class="tnodes">${g.ids.map(btn).join('')}</div>`).join('')}</div>`;}).reverse().join('');
+  let det='<p class="empty-s">Pick a node to see what each rank does.</p>';
+  if(sel){const X=CNODE[sel],r=trk(sel),L=nodeLines(sel);const why=r>=X.max?'<span class="tag good">Maxed</span>':nodeTaken(sel)?'<span class="tag bad">You chose the other option</span>':!tierOpen(f,X.t)?`<span class="tag bad">Needs ${T.tiers[X.t].gate} points in lower tiers</span>`:S.sp<1?'<span class="tag bad">No star points</span>':'';
+    det=`<div class="row" style="justify-content:space-between"><b style="color:${SUBS[f].col}">${nodeName(sel)}</b><span class="tag">${({skill:'Skill',stat:'Stat',pass:'Passive',key:'Choose 1'})[X.k]}${X.k==='skill'?` · ${SK[sel].mp} MP`:''}</span></div>
+      ${L.map((d,i)=>`<p class="small ${i<r?'gold':'dim'}">${L.length>1?'★'.repeat(i+1)+' ':''}${d}</p>`).join('')}
+      <div class="row"><button class="btn primary" data-a="tadd" data-v="${sel}" ${canRank(sel)?'':'disabled'}>${r?'Rank up':'Learn'} ★</button><button class="btn sm" data-a="tsub" data-v="${sel}" ${canUnrank(sel)?'':'disabled'}>Refund ★</button>${why}</div>`;}
+  return {tiers,det,P};}
 function vSkills(){
   const T=S.starTab||'melee';const sel=S.selStar&&STARS[S.selStar]&&STARS[S.selStar].tree===T?S.selStar:null;const ps=PS();
   const hs=Object.entries(STARS).filter(([,s])=>s.tree===T).map(([id,s])=>`<button class="hot star ${id===sel?'sel':''}" data-a="selstar" data-v="${id}" data-tip="star:${id}" style="left:${(s.x-6)/256*100}%;top:${(s.y-6)/190*100}%;width:${12/256*100}%;height:${12/190*100}%" aria-label="${esc(s.n)}"></button>`).join('');
@@ -2743,11 +2800,14 @@ function vSkills(){
     <div class="row">${lit?(s.k==='start'?'':`<button class="btn sm" data-a="unlight" data-v="${sel}" ${canUnlight(sel)?'':'disabled'}>${canUnlight(sel)?'Unlight (refund ★)':'Holds other stars'}</button>`):`<button class="btn primary" data-a="light" data-v="${sel}" ${canLight(sel)?'':'disabled'}>Light star ★</button>`}</div>`;}
   const load=Object.keys(S.skills).map(k=>{const s=SK[k];const eq=S.equip.includes(k);const half=skMult(k)<1;return `<div class="sub shoprow" data-tip="skill:${k}"><div><b style="color:${SUBS[SKFAM[k]].col}">${s.n}</b> ${half?'<span class="tag bad">0.5×</span>':''}<small class="num">${s.mp} MP · ${s.d}</small></div><button class="btn sm ${eq?'primary':''}" data-a="eqskill" data-v="${k}" ${!eq&&S.equip.length>=4?'disabled':''}>${eq?'Equipped':'Equip'}</button></div>`;}).join('');
   const lit=t=>S.stars.filter(x=>STARS[x]&&STARS[x].tree===t&&STARS[x].k!=='start').length;
-  const tb=t=>`<button class="btn sm ${T===t?'tab on':''}" data-a="startab" data-v="${t}">${TREES[t].n} <span class="num">${lit(t)}</span></button>`;
-  return `<section class="px panel"><div class="row" style="justify-content:space-between"><div class="row">${tb('melee')}${tb('magic')}</div><span class="tag gold num">★ ${S.sp} to spend</span></div>
-  <div style="position:relative"><canvas class="scene" data-scene="stars" width="512" height="300" style="display:block;width:100%;height:min(44vh,360px);touch-action:none;cursor:grab"></canvas>
-  <div class="zoombar"><button class="btn sm" data-a="szoom" data-v="1.25" aria-label="Zoom in">+</button><button class="btn sm" data-a="szoom" data-v="0.8" aria-label="Zoom out">−</button></div></div>
-  <div class="grid2" style="grid-template-columns:1fr 1fr"><div class="sub">${det}</div><div style="display:flex;flex-direction:column;gap:8px"><h3>Loadout · ${S.equip.length}/4${S.flags.analyze?' (+ Analyze)':''}</h3>${load||'<p class="empty-s">No skills yet.</p>'}</div></div></section>`;}
+  const tb=t=>`<button class="btn sm ${T===t?'tab on':''}" data-a="startab" data-v="${t}">${TREES[t].n} <span class="num">${lit(t)+(t==='melee'?treeSpent():0)}</span></button>`;
+  const cl=UI.cls&&treeOf(UI.cls)===T?UI.cls:treeOf(wepFam())===T?wepFam():TREES[T].fams[0];
+  const ctabs=TREES[T].fams.map(f=>`<button class="btn sm ${cl===f?'tab on':''}" data-a="cls" data-v="${f}">${CLSN[f]}${CTREE[f]?` <span class="num">${ctPts(f)}</span>`:''}</button>`).join('');
+  const TV=CTREE[cl]?vTree(cl):null;
+  return `<section class="px panel"><div class="row" style="justify-content:space-between"><div class="row">${tb('melee')}${tb('magic')}</div><span class="tag gold num">★ ${S.sp} to spend</span></div><div class="row">${ctabs}</div>
+  ${TV?`<div class="sub tdet">${TV.det}</div><div class="ttree">${TV.tiers}</div>`:`<p class="dim small">${CLSN[cl]} hasn't moved to the new tree yet, so it's still on the star chart.</p><div style="position:relative"><canvas class="scene" data-scene="stars" width="512" height="300" style="display:block;width:100%;height:min(44vh,360px);touch-action:none;cursor:grab"></canvas>
+  <div class="zoombar"><button class="btn sm" data-a="szoom" data-v="1.25" aria-label="Zoom in">+</button><button class="btn sm" data-a="szoom" data-v="0.8" aria-label="Zoom out">−</button></div></div>`}
+  <div class="grid2" style="grid-template-columns:${TV?'1fr':'1fr 1fr'}">${TV?'':`<div class="sub">${det}</div>`}<div style="display:flex;flex-direction:column;gap:8px"><h3>Loadout · ${S.equip.length}/4${S.flags.analyze?' (+ Analyze)':''}</h3>${load||'<p class="empty-s">No skills yet.</p>'}</div></div></section>`;}
 function cell(it,area){return `<button class="cell r${it.rar} ${it.uid===S.invSel?'sel':''}" ${area?`style="grid-area:${area}"`:''} data-a="isel" data-v="${it.uid}" data-tip="item:${it.uid}" aria-label="${esc(it.name)}">${itemImg(it,3)}${it.isNew?'<i class="newdot"></i>':''}${it.lock?`<i class="lockic">${sprImg('lock',2)}</i>`:''}${it.plus?`<b class="pl">+${it.plus}</b>`:''}${!canEquip(it)?'<i class="noeq"></i>':''}</button>`;}
 const bagSorter=so=>so==='tier'?(a,b)=>b.tier-a.tier||b.rar-a.rar:so==='new'?(a,b)=>parseInt(b.uid,36)-parseInt(a.uid,36):(a,b)=>b.rar-a.rar||b.tier-a.tier;
 let DRAG=null;
@@ -3233,7 +3293,9 @@ function autoBar(){let b=document.getElementById('autobar');if(!AB.on){if(b)b.re
 // after a win in the Spire or a dungeon, the next floor starts by itself unless you switch it off in Settings
 function autoNext(){const c=S&&S.combat;if(!c||!c.over||!c.over.win||OPT.noAuto||MG.active)return;if(!(c.ctx==='tower'&&S.tower)&&!(c.ctx==='dungeon'&&S.dungeon))return;if(AUTOC===c)return;AUTOC=c;
   const go=n=>{if(S.combat!==c||!c.over)return;if(UI.set||Date.now()<busyUntil){if(n<20)setTimeout(()=>go(n+1),500);return;}const b=document.querySelector('[data-a="tclimb"],[data-a="descend"]');if(b)b.click();};setTimeout(()=>go(0),350);}
-function render(quiet){hideTip();setTimeout(autoNext,0);setTimeout(autoBar,0);if(S&&S.rfComp){const m=S.rfComp;delete S.rfComp;S.note=m;setTimeout(()=>notice(m),600);}
+function syncTree(){delete S.treeSync;const seen=new Set(ORIGINS),q=[...ORIGINS];while(q.length){const a=q.pop();for(const b of nbrs(a))if(S.stars.includes(b)&&!seen.has(b)){seen.add(b);q.push(b);}}
+  S.stars=S.stars.filter(x=>seen.has(x)&&STARS[x]);S.sp=spLeft();recomputeSkills();}
+function render(quiet){if(S&&S.treeSync&&Object.keys(STARS).length)syncTree();hideTip();setTimeout(autoNext,0);setTimeout(autoBar,0);if(S&&S.rfComp){const m=S.rfComp;delete S.rfComp;S.note=m;setTimeout(()=>notice(m),600);}
   if(!S.named){UI.set=false;IMP=null;document.getElementById('ovl').innerHTML='';document.getElementById('top').innerHTML='';document.getElementById('tabs').innerHTML='';document.getElementById('main').innerHTML=vIntro();
     document.querySelectorAll('canvas.scene').forEach(cv=>{try{drawScene(cv,performance.now());}catch(e){}});setAmb('0');const nm=document.getElementById('nm');if(nm&&!quiet)nm.focus();return;}
   checkUnlocks();if(!S.combat||S.combat.over)checkAch();

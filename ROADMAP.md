@@ -419,3 +419,10 @@ Goal: a skill tree that feels unique, replacing the current 3-column list.
   - Every bleed adds a stack. At 10 stacks the target hemorrhages for 25% of its max HP (10% for bosses and players).
   - The bleed itself ticks for 20% of your attack. Stacks fade 1 per turn, except with Open Wounds.
   - Lacerate's cuts each add a stack. The Hemorrhage skill bursts the stacks early.
+
+## Round 16 — New skill trees (in progress)
+- [x] **Stars tab:** Melee | Magic, then a tab per class.
+- [x] **Swordsman tree:** Novice (0 points), Adept (15) and Master (30). Skills, stats and some passives take up to 3 ranks, with a "choose 1" stance and keystone. Reaching Adept and Master grants Momentum bonuses. It shares star points with the chart, and old sword stars were refunded.
+- [ ] **Rogue:** takes Rend, Crimson Arc and Deep Wounds (bleed).
+- [ ] **Berserker and the mages:** still on the star chart.
+- [ ] **Later:** a Venom mage; possibly Shadow and a fourth tier.
