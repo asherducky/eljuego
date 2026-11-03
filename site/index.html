@@ -130,7 +130,18 @@ canvas.scene{display:block;width:100%;height:auto}
 @keyframes cur{50%{transform:translate(-50%,-4px)}}
 .idle{}
 @keyframes idle{50%{transform:translateY(calc(-1 * var(--bob,3px)))}}
-.ttree{display:flex;flex-direction:column;gap:10px}.ttier{padding:10px;box-shadow:inset 0 0 0 2px var(--edge);display:flex;flex-direction:column;gap:6px}.ttier.shut{opacity:.6}
+.ttree{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:10px;align-items:start}
+.tscroll{overflow-x:auto;min-width:0}.tboard{position:relative;height:760px;min-width:500px;background:#141021;box-shadow:inset 0 0 0 2px var(--edge)}
+.tband{position:absolute;left:0;right:0;box-shadow:inset 0 -2px 0 var(--edge)}.tband:nth-child(2){background:#1a1529}.tband.shut{background:repeating-linear-gradient(135deg,#0e0b14 0 6px,#141021 6px 12px)}
+.tbl{position:absolute;left:6px;top:4px;font-size:.7rem;z-index:1}.tbl b{font-weight:normal;color:#f2c14e;text-transform:uppercase}
+.tlines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.tlines line{stroke:#3b3450;stroke-width:3;vector-effect:non-scaling-stroke;shape-rendering:crispEdges}.tlines line.next{stroke:#8f88a8}.tlines line.on{stroke:#f2c14e}
+.tlab{position:absolute;transform:translateX(-50%);font-size:.62rem;color:#8f88a8;white-space:nowrap}
+.tn{position:absolute;transform:translate(-50%,-50%);width:76px;display:flex;flex-direction:column;align-items:center;gap:1px;font:inherit;color:var(--ink);background:transparent;border:0;padding:0;cursor:pointer;z-index:2;text-align:center}
+.tn b{font-weight:normal;font-size:.62rem;line-height:1.1;text-shadow:1px 1px 0 #000}.tn .tpips{line-height:1;font-size:.62rem;text-shadow:1px 1px 0 #000}
+.tic{display:block;width:26px;height:26px;background:#2e2742;box-shadow:inset 0 0 0 2px #5d5672}.k-skill .tic{width:32px;height:32px;background:#3b2a52;box-shadow:inset 0 0 0 2px #8f88a8}.k-stat .tic{width:20px;height:20px}.k-pass .tic{background:#1d3b3a;box-shadow:inset 0 0 0 2px #5ec4b0;transform:rotate(45deg);margin:4px}.k-key .tic{background:#4a3010;box-shadow:inset 0 0 0 2px #e2782a;transform:rotate(45deg);margin:5px}
+.tn.got .tic{box-shadow:inset 0 0 0 2px #f2c14e;background:#5a4216}.tn.max .tic{background:#f2c14e}.tn.can .tic{box-shadow:inset 0 0 0 2px #f4efe4}.tn.sel .tic{outline:2px solid #ffffff;outline-offset:2px}.tn.lock{opacity:.55}
+.tdet{position:sticky;top:6px;height:330px;overflow:auto;background:#1a1626;display:flex;flex-direction:column;gap:6px}.tstat{min-height:24px}
+@media(max-width:640px){.ttree{grid-template-columns:1fr}.tdet{order:-1;height:210px}}.ttier{padding:10px;box-shadow:inset 0 0 0 2px var(--edge);display:flex;flex-direction:column;gap:6px}.ttier.shut{opacity:.6}
 .tnodes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.tnode{font:inherit;color:var(--ink);background:#1a1626;border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:8px;display:flex;flex-direction:column;gap:2px;align-items:flex-start;cursor:pointer;text-align:left}
 .tnode b{font-size:.85rem;font-weight:normal}.tpips{font-size:.7rem;color:#f2c14e}.tnode.k-skill{background:#2a2036}.tnode.k-key{background:#33261a}.tnode.got{box-shadow:inset 0 0 0 2px #f2c14e}.tnode.sel{box-shadow:inset 0 0 0 2px #ffffff}.tnode.lock{opacity:.55}
 .tdet{position:sticky;top:6px;z-index:5;background:#1a1626}
@@ -2000,7 +2011,7 @@ const ACT={
   togglehc:()=>{S.pendingHC=!S.pendingHC;},
   startab:v=>{S.starTab=v;S.selStar=null;UI.cls=null;},
   cls:v=>{UI.cls=v;UI.tsel=null;},
-  tsel:v=>{UI.tsel=v;},
+  tsel:v=>{if(UI.tsel===v&&canRank(v)){ACT.tadd(v);return;}UI.tsel=v;},
   tadd:v=>{if(!canRank(v))return;S.tree=S.tree||{};S.tree[v]=(S.tree[v]||0)+1;S.sp--;recomputeSkills();if(CNODE[v].k==='skill'&&S.equip.length<4&&!S.equip.includes(v))S.equip.push(v);clampVitals();sfx('coin');},
   tsub:v=>{if(!canUnrank(v))return;S.tree[v]--;if(!S.tree[v])delete S.tree[v];S.sp++;recomputeSkills();clampVitals();},
   dmod:v=>{S.dmods=S.dmods.includes(v)?S.dmods.filter(x=>x!==v):[...S.dmods,v];},
@@ -2759,6 +2770,17 @@ const CTREE={medium:{tiers:[
   {n:'Novice',gate:0,groups:[{ids:['cleancut','whirl','riposte','opening']},{l:'Stats',ids:['might','finesse','guard','footwork','focus']}]},
   {n:'Adept',gate:15,bonus:'Momentum: hitting the same enemy on later turns adds +5% damage, up to +20%. Switching targets resets it.',groups:[{l:'Stats',ids:['precision','armorseeker']},{l:'Counter path',ids:['perfectguard','counterstance','steadyhand']},{l:'Duel path',ids:['iaido','flow','singlecombat']},{l:'Choose 1 stance',ids:['iron','flowing']}]},
   {n:'Master',gate:30,bonus:'Perfect Momentum: Momentum can reach +40%.',groups:[{l:'Techniques',ids:['thousand','bladestorm','dimcut']},{l:'Passives',ids:['geye','laststand']},{l:'Choose 1 keystone',ids:['wayblade','onecut']}]}],
+  bands:[[67,100],[31,67],[0,31]],
+  labels:[['Duel path',17,33],['Counter path',83,33],['Choose 1',50,30.5],['Choose 1',50,1.5]],
+  pos:{cleancut:[22,94],whirl:[50,94],riposte:[78,94],might:[8,79],finesse:[24,79],opening:[40,79],footwork:[60,79],guard:[76,79],focus:[92,79],
+    precision:[30,62],armorseeker:[70,62],iaido:[15,50],flow:[34,50],counterstance:[66,50],perfectguard:[85,50],singlecombat:[15,38],flowing:[40,38],iron:[60,38],steadyhand:[85,38],
+    thousand:[15,25],geye:[36,25],laststand:[64,25],bladestorm:[85,25],dimcut:[50,13],wayblade:[26,7],onecut:[74,7]},
+  links:[['cleancut','might'],['cleancut','finesse'],['whirl','opening'],['whirl','footwork'],['riposte','guard'],['riposte','focus'],
+    ['finesse','precision'],['opening','precision'],['footwork','armorseeker'],['guard','armorseeker'],
+    ['precision','iaido'],['precision','flow'],['armorseeker','counterstance'],['armorseeker','perfectguard'],
+    ['iaido','singlecombat'],['flow','flowing'],['counterstance','iron'],['perfectguard','steadyhand'],
+    ['singlecombat','thousand'],['flowing','geye'],['iron','laststand'],['steadyhand','bladestorm'],
+    ['geye','dimcut'],['laststand','dimcut'],['thousand','wayblade'],['bladestorm','onecut']],
   nodes:{cleancut:{k:'skill',max:3},whirl:{k:'skill',max:3},riposte:{k:'skill',max:3},perfectguard:{k:'skill',max:3},iaido:{k:'skill',max:3},thousand:{k:'skill',max:3},bladestorm:{k:'skill',max:3},dimcut:{k:'skill',max:3},
     opening:{k:'pass',n:'Opening Strike',r:['Your first hit each fight deals +25%']},
     might:{k:'stat',n:'Might',r:['+2% physical damage','+4% physical damage','+6% physical damage']},finesse:{k:'stat',n:'Finesse',r:['+4% crit damage','+8% crit damage','+12% crit damage']},guard:{k:'stat',n:'Guard',r:['+3% max HP','+6% max HP','+9% max HP']},
@@ -2775,19 +2797,22 @@ const tierPts=(f,ti,skip)=>{let n=0;for(const id in CTREE[f].nodes)if(CTREE[f].n
 const tierOpen=(f,ti,skip)=>{let n=0;for(let k=0;k<ti;k++)n+=tierPts(f,k,skip);return n>=CTREE[f].tiers[ti].gate;};
 const nodeName=id=>CNODE[id].n||SK[id].n;
 const nodeTaken=id=>{const X=CNODE[id];return !!X.x&&Object.keys(CTREE[X.f].nodes).some(o=>o!==id&&CTREE[X.f].nodes[o].x===X.x&&trk(o)>0);};
-function canRank(id){const X=CNODE[id];return !!X&&trk(id)<X.max&&S.sp>=1&&tierOpen(X.f,X.t)&&!nodeTaken(id);}
-function canUnrank(id){const X=CNODE[id];if(!X||trk(id)<1)return false;const T=CTREE[X.f];return T.tiers.every((t,ti)=>tierPts(X.f,ti,id)<=0||tierOpen(X.f,ti,id));}
+const nodeLinks=(f,id,side)=>(CTREE[f].links||[]).filter(l=>l[side]===id).map(l=>l[1-side]);
+const nodeLinked=id=>{const X=CNODE[id],ps=nodeLinks(X.f,id,1);return !ps.length||ps.some(p=>trk(p)>0);};
+function canRank(id){const X=CNODE[id];return !!X&&trk(id)<X.max&&S.sp>=1&&tierOpen(X.f,X.t)&&!nodeTaken(id)&&nodeLinked(id);}
+function canUnrank(id){const X=CNODE[id];if(!X||trk(id)<1)return false;const T=CTREE[X.f];if(trk(id)===1&&nodeLinks(X.f,id,0).some(ch=>trk(ch)>0&&!nodeLinks(X.f,ch,1).some(p=>p!==id&&trk(p)>0)))return false;return T.tiers.every((t,ti)=>tierPts(X.f,ti,id)<=0||tierOpen(X.f,ti,id));}
 function nodeLines(id){const X=CNODE[id];if(X.k!=='skill')return X.r;return [1,2,3].map(r=>{const o=S.tree[id];S.tree[id]=r;const d=SK[id].d;if(o===undefined)delete S.tree[id];else S.tree[id]=o;return d;});}
 function vTree(f){const T=CTREE[f],P=ctPts(f);const sel=UI.tsel&&CNODE[UI.tsel]&&CNODE[UI.tsel].f===f?UI.tsel:null;
-  const btn=id=>{const X=CNODE[id],r=trk(id),open=tierOpen(f,X.t),tk=nodeTaken(id);return `<button class="tnode k-${X.k} ${id===sel?'sel':''} ${r?'got':''} ${!open||tk?'lock':''}" data-a="tsel" data-v="${id}" data-tip="tnode:${id}"><b>${nodeName(id)}</b><span class="tpips">${'★'.repeat(r)}${'☆'.repeat(X.max-r)}</span></button>`;};
-  const tiers=T.tiers.map((t,ti)=>{const open=tierOpen(f,ti),need=t.gate;return `<div class="ttier ${open?'':'shut'}"><div class="row" style="justify-content:space-between"><h3>${t.n}</h3>${need?`<span class="tag ${open?'good':''}">${open?'Unlocked':`Needs ${need} points · you have ${P}`}</span>`:''}</div>${t.bonus?`<p class="small ${open?'gold':'dim'}">Tier bonus · ${t.bonus}</p>`:''}
-    ${t.groups.map(g=>`${g.l?`<div class="eyebrow">${g.l}</div>`:''}<div class="tnodes">${g.ids.map(btn).join('')}</div>`).join('')}</div>`;}).reverse().join('');
-  let det='<p class="empty-s">Pick a node to see what each rank does.</p>';
-  if(sel){const X=CNODE[sel],r=trk(sel),L=nodeLines(sel);const why=r>=X.max?'<span class="tag good">Maxed</span>':nodeTaken(sel)?'<span class="tag bad">You chose the other option</span>':!tierOpen(f,X.t)?`<span class="tag bad">Needs ${T.tiers[X.t].gate} points in lower tiers</span>`:S.sp<1?'<span class="tag bad">No star points</span>':'';
-    det=`<div class="row" style="justify-content:space-between"><b style="color:${SUBS[f].col}">${nodeName(sel)}</b><span class="tag">${({skill:'Skill',stat:'Stat',pass:'Passive',key:'Choose 1'})[X.k]}${X.k==='skill'?` · ${SK[sel].mp} MP`:''}</span></div>
-      ${L.map((d,i)=>`<p class="small ${i<r?'gold':'dim'}">${L.length>1?'★'.repeat(i+1)+' ':''}${d}</p>`).join('')}
-      <div class="row"><button class="btn primary" data-a="tadd" data-v="${sel}" ${canRank(sel)?'':'disabled'}>${r?'Rank up':'Learn'} ★</button><button class="btn sm" data-a="tsub" data-v="${sel}" ${canUnrank(sel)?'':'disabled'}>Refund ★</button>${why}</div>`;}
-  return {tiers,det,P};}
+  const bands=T.tiers.map((t,ti)=>{const [a,b]=T.bands[ti],open=tierOpen(f,ti);return `<div class="tband ${open?'':'shut'}" style="top:${a}%;height:${b-a}%"><span class="tbl"><b>${t.n}</b>${t.gate?` <span class="${open?'good':'dim'}">${open?'Unlocked':`${P}/${t.gate} points`}</span>`:''}</span></div>`;}).join('');
+  const lines=T.links.map(([a,b])=>{const A=T.pos[a],B=T.pos[b],on=trk(a)>0&&trk(b)>0,next=trk(a)>0&&!on;return `<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" class="${on?'on':next?'next':''}"/>`;}).join('');
+  const labels=(T.labels||[]).map(([t,x,y])=>`<span class="tlab" style="left:${x}%;top:${y}%">${t}</span>`).join('');
+  const nodes=Object.entries(T.pos).map(([id,[x,y]])=>{const X=CNODE[id],r=trk(id),can=canRank(id);return `<button class="tn k-${X.k} ${id===sel?'sel':''} ${r?'got':''} ${r>=X.max?'max':''} ${can?'can':''} ${!r&&!can?'lock':''}" style="left:${x}%;top:${y}%" data-a="tsel" data-v="${id}" data-tip="tnode:${id}" aria-label="${esc(nodeName(id))}"><i class="tic"></i><b>${nodeName(id)}</b><span class="tpips">${X.max>1?'★'.repeat(r)+'☆'.repeat(X.max-r):r?'★':'☆'}</span></button>`;}).join('');
+  let det=`<p class="small dim">Tap a node to see it, and tap it again to spend a point.</p>${T.tiers.filter(t=>t.bonus).map(t=>`<p class="small ${tierOpen(f,T.tiers.indexOf(t))?'gold':'dim'}"><b>${t.n} bonus.</b> ${t.bonus}</p>`).join('')}`;
+  if(sel){const X=CNODE[sel],r=trk(sel),L=nodeLines(sel);const why=r>=X.max?'<span class="tag good">Maxed</span>':nodeTaken(sel)?'<span class="tag bad">You chose the other option</span>':!tierOpen(f,X.t)?`<span class="tag bad">Needs ${T.tiers[X.t].gate} points</span>`:!nodeLinked(sel)?'<span class="tag bad">Learn a linked node first</span>':S.sp<1?'<span class="tag bad">No star points</span>':'';
+    det=`<div class="row"><button class="btn primary" data-a="tadd" data-v="${sel}" ${canRank(sel)?'':'disabled'}>${r?'Rank up':'Learn'} ★</button><button class="btn sm" data-a="tsub" data-v="${sel}" ${canUnrank(sel)?'':'disabled'}>Refund</button></div>
+      <div class="tstat">${why||`<span class="tag">${({skill:'Skill',stat:'Stat',pass:'Passive',key:'Choose 1'})[X.k]}${X.k==='skill'?` · ${SK[sel].mp} MP`:''}</span>`}</div>
+      <b style="color:${SUBS[f].col}">${nodeName(sel)}</b>${L.map((d,k)=>`<p class="small ${k<r?'gold':'dim'}">${L.length>1?'★'.repeat(k+1)+' ':''}${d}</p>`).join('')}`;}
+  return {tiers:`<div class="tboard">${bands}<svg class="tlines" viewBox="0 0 100 100" preserveAspectRatio="none">${lines}</svg>${labels}${nodes}</div>`,det,P};}
 function vSkills(){
   const T=S.starTab||'melee';const sel=S.selStar&&STARS[S.selStar]&&STARS[S.selStar].tree===T?S.selStar:null;const ps=PS();
   const hs=Object.entries(STARS).filter(([,s])=>s.tree===T).map(([id,s])=>`<button class="hot star ${id===sel?'sel':''}" data-a="selstar" data-v="${id}" data-tip="star:${id}" style="left:${(s.x-6)/256*100}%;top:${(s.y-6)/190*100}%;width:${12/256*100}%;height:${12/190*100}%" aria-label="${esc(s.n)}"></button>`).join('');
@@ -2805,7 +2830,7 @@ function vSkills(){
   const ctabs=TREES[T].fams.map(f=>`<button class="btn sm ${cl===f?'tab on':''}" data-a="cls" data-v="${f}">${CLSN[f]}${CTREE[f]?` <span class="num">${ctPts(f)}</span>`:''}</button>`).join('');
   const TV=CTREE[cl]?vTree(cl):null;
   return `<section class="px panel"><div class="row" style="justify-content:space-between"><div class="row">${tb('melee')}${tb('magic')}</div><span class="tag gold num">★ ${S.sp} to spend</span></div><div class="row">${ctabs}</div>
-  ${TV?`<div class="sub tdet">${TV.det}</div><div class="ttree">${TV.tiers}</div>`:`<p class="dim small">${CLSN[cl]} hasn't moved to the new tree yet, so it's still on the star chart.</p><div style="position:relative"><canvas class="scene" data-scene="stars" width="512" height="300" style="display:block;width:100%;height:min(44vh,360px);touch-action:none;cursor:grab"></canvas>
+  ${TV?`<div class="ttree"><div class="tscroll">${TV.tiers}</div><div class="sub tdet">${TV.det}</div></div>`:`<p class="dim small">${CLSN[cl]} hasn't moved to the new tree yet, so it's still on the star chart.</p><div style="position:relative"><canvas class="scene" data-scene="stars" width="512" height="300" style="display:block;width:100%;height:min(44vh,360px);touch-action:none;cursor:grab"></canvas>
   <div class="zoombar"><button class="btn sm" data-a="szoom" data-v="1.25" aria-label="Zoom in">+</button><button class="btn sm" data-a="szoom" data-v="0.8" aria-label="Zoom out">−</button></div></div>`}
   <div class="grid2" style="grid-template-columns:${TV?'1fr':'1fr 1fr'}">${TV?'':`<div class="sub">${det}</div>`}<div style="display:flex;flex-direction:column;gap:8px"><h3>Loadout · ${S.equip.length}/4${S.flags.analyze?' (+ Analyze)':''}</h3>${load||'<p class="empty-s">No skills yet.</p>'}</div></div></section>`;}
 function cell(it,area){return `<button class="cell r${it.rar} ${it.uid===S.invSel?'sel':''}" ${area?`style="grid-area:${area}"`:''} data-a="isel" data-v="${it.uid}" data-tip="item:${it.uid}" aria-label="${esc(it.name)}">${itemImg(it,3)}${it.isNew?'<i class="newdot"></i>':''}${it.lock?`<i class="lockic">${sprImg('lock',2)}</i>`:''}${it.plus?`<b class="pl">+${it.plus}</b>`:''}${!canEquip(it)?'<i class="noeq"></i>':''}</button>`;}
@@ -3275,6 +3300,7 @@ let toastT;
 function notice(t){toast(t);clearTimeout(toastT);toastT=setTimeout(()=>document.getElementById('toast').hidden=true,9000);}
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2600);}
 function mode(){if(S.combat||S.tab==='explore')return String(S.area);if(S.tab==='town')return ({inn:'inn',forge:'forge',sanctum:'sanctum',sealed:'sanctum'}[S.loc])||'town';return 'dust';}
+function keepAnchor(a,v,y0){if(a==='tab'||a==='loc'||a==='startab'||a==='cls')return;let q=null;try{q=document.querySelector(`[data-a="${a}"]${v!==undefined?`[data-v="${CSS.escape(v)}"]`:''}`);}catch(e){}if(!q)return;const dy=q.getBoundingClientRect().top-y0;if(Math.abs(dy)>=1)window.scrollBy({top:dy,behavior:'instant'});}
 let AUTOC=null;
 /* auto battle: one move over and over (it falls back to Attack when that move is out of MP or cooling down).
    It only runs where you've beaten the boss, never in the Spire or duels, and any loss stops it. */
@@ -3317,7 +3343,7 @@ const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','se
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
   if(Date.now()<busyUntil&&!FREE.includes(b.dataset.a))return;if(!QUIET.includes(b.dataset.a))sfx('ui');lastRect=b.getBoundingClientRect();fxAt=0;
-  if(b.dataset.a!=='reset'&&b.dataset.a!=='resetNo')S._confirm=false;if(f(b.dataset.v,b)!=='async')render();});
+  if(b.dataset.a!=='reset'&&b.dataset.a!=='resetNo')S._confirm=false;const k0=b.dataset.a,v0=b.dataset.v,y0=b.getBoundingClientRect().top;if(f(v0,b)!=='async'){render();keepAnchor(k0,v0,y0);}});
 document.addEventListener('input',ev=>{if(ev.target&&ev.target.id==='nm')S.name=ev.target.value;if(ev.target&&ev.target.id==='chatin')NET.draft=ev.target.value;if(ev.target&&ev.target.id==='un')NET.fun=ev.target.value;if(ev.target&&ev.target.id==='pw')NET.fpw=ev.target.value;
   if(ev.target&&ev.target.id==='vol'){OPT.vol=+ev.target.value;saveOpt();if(AU.g)AU.g.gain.value=OPT.vol*.5;}});
 document.addEventListener('change',ev=>{const t=ev.target;if(t&&t.id==='impf'&&t.files&&t.files[0])importFile(t.files[0]);if(t&&t.id==='vol')sfx('coin');});
