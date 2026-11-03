@@ -2007,11 +2007,11 @@ const ELITE={stalker:['Voltjaw','Voltjaw\'s Bane'],sentinel:['Captain Barnacle',
 function mkElite(id,L){const e=mkEnemy(id,L);e.hp=e.max=Math.round(e.hp*2.6);e.atk=Math.round(e.atk*1.35*10)/10;e.def=Math.round(e.def*1.3*10)/10;e.spd+=1;
   e.xp=Math.round(e.xp*3);e.gold=e.gold.map(g=>g*3);e.elite=true;e.n=ELITE[id]?ELITE[id][0]:'Elite '+e.n;return e;}
 const trackCost=ai=>25*(ai+1)*(ai+1);
-/* the Endless Spire: floor after floor, a modifier per floor, a champion every 5th, a boss every 10th */
+/* the Infinity Tower: floor after floor, a modifier per floor, a champion every 5th, a boss every 10th */
 const TMODS={rage:['Enraged','Enemies hit 20% harder'],swarm:['Swarm','One more enemy'],fort:['Fortified','Enemies have 30% more DEF'],haste:['Frenzy','Enemies are faster'],gild:['Gilded','+60% gold this floor'],bless:['Blessed','Recover 25% HP and MP after the floor']};
-function spawnTower(){const T=S.tower,f=T.floor,ua=S.unlocked-1;T.mod=f>1?pick(Object.keys(TMODS)):null;const ai=Math.min(ua,Math.floor((f-1)/6)),L=f+1;
-  const pool=AREAS.slice(0,ai+1).flatMap(a=>a.mobs);let list;
-  if(f%10===0){const ba=[...S.cleared].sort((a,b)=>b-a).find(a=>a<=ai);list=ba!==undefined?[mkEnemy(AREAS[ba].dungeon.boss,L)]:[mkElite(pick(pool),L)];}
+function spawnTower(){const T=S.tower,f=T.floor,ua=S.unlocked-1;T.mod=f>1?pick(Object.keys(TMODS)):null;const rnd=f>50,ai=Math.min(4,Math.floor((f-1)/10)),A=AREAS[ai],L=rnd?36+(f-51):Math.round(A.lv[0]+(A.lv[1]-A.lv[0])*((f-1)%10)/9);
+  const pool=rnd?AREAS.flatMap(a=>a.mobs):A.mobs;let list;
+  if(f%10===0)list=[rnd?mkEnemy(pick(AREAS).dungeon.boss,L):mkEnemy(A.dungeon.boss,A.boss)];
   else if(f%5===0)list=[mkElite(pick(pool),L),mkEnemy(pick(pool),L-1)];
   else list=Array.from({length:1+(chance(55)?1:0)+(f>8&&chance(30)?1:0)+(T.mod==='swarm'?1:0)},()=>mkEnemy(pick(pool),L));
   for(const e of list){if(T.mod==='rage')e.atk=Math.round(e.atk*12)/10;if(T.mod==='fort')e.def=Math.round(e.def*13)/10;if(T.mod==='haste')e.spd+=4;}
@@ -2021,9 +2021,9 @@ const QUESTS=[
   {id:'seer',who:'The Lighthouse Keeper',area:4,steps:[{t:'kill',mob:'stalker',n:10,d:'Eels have been tearing my nets apart. Kill ten of them.'},{t:'bring',mat:'starshard',n:6,d:'Bring me storm pearls. They keep the lamp burning.'},{t:'clear',area:4,d:'The Leviathan sleeps under my lighthouse. Send it back to the deep.'}],rw:{gold:3000,ess:30,sp:1,gem:1}},
   {id:'mill',who:'Old Miller Bram',area:0,steps:[{t:'kill',mob:'goblin',n:6,d:'Goblins keep raiding my mill. Drive them off.'},{t:'bring',mat:'moss',n:6,d:'The roof leaks. Bring moss fiber to patch it.'},{t:'clear',area:0,d:'Something rots under the Rootbound Crypt. End it.'}],rw:{gold:150,ess:8,sp:1}},
   {id:'glass',who:'Seren the Glassblower',area:1,steps:[{t:'kill',mob:'scorp',n:8,d:'Glass Scorpions keep smashing my kilns. Hunt them.'},{t:'bring',mat:'shard',n:6,d:'Bring me Glass Shards to work with.'},{t:'elite',mob:'raider',d:'Saffa the Red stole my finest piece. Find her in the Dunes.'}],rw:{gold:450,ess:12,gem:1}},
-  {id:'kael',who:'Brother Kael',area:2,steps:[{t:'kill',mob:'imp',n:8,d:'The imps are multiplying. Cull them.'},{t:'bring',mat:'ember',n:5,d:'Bring Ember Cores for the shrine fire.'},{t:'tower',n:10,d:'Prove your will: reach floor 10 of the Endless Spire.'}],rw:{gold:900,ess:16,sp:1}},
+  {id:'kael',who:'Brother Kael',area:2,steps:[{t:'kill',mob:'imp',n:8,d:'The imps are multiplying. Cull them.'},{t:'bring',mat:'ember',n:5,d:'Bring Ember Cores for the shrine fire.'},{t:'tower',n:10,d:'Prove your will: reach floor 10 of the Infinity Tower.'}],rw:{gold:900,ess:16,sp:1}},
   {id:'herald',who:'The Exiled Herald',area:3,steps:[{t:'kill',mob:'knight',n:8,d:'The Ash Knights still serve a dead king. Cut them down.'},{t:'bring',mat:'shroud',n:5,d:'Court Shroud, to weave a banner for the true heir.'},{t:'clear',area:3,d:'Break the Hollow Throne.'}],rw:{gold:1600,ess:22,sp:1,gem:1}}];
-const qStepText=st=>st.t==='kill'?`Defeat ${st.n} ${MOB[st.mob].n}`:st.t==='bring'?`Bring ${st.n} ${MATS[st.mat]}`:st.t==='clear'?`Clear ${AREAS[st.area].dungeon.name}`:st.t==='elite'?`Defeat ${ELITE[st.mob][0]}`:`Reach Spire floor ${st.n}`;
+const qStepText=st=>st.t==='kill'?`Defeat ${st.n} ${MOB[st.mob].n}`:st.t==='bring'?`Bring ${st.n} ${MATS[st.mat]}`:st.t==='clear'?`Clear ${AREAS[st.area].dungeon.name}`:st.t==='elite'?`Defeat ${ELITE[st.mob][0]}`:`Reach Tower floor ${st.n}`;
 function qProg(st,q){return st.t==='kill'?[q.h,st.n]:st.t==='bring'?[Math.min(st.n,S.mats[st.mat]||0),st.n]:st.t==='tower'?[Math.min(st.n,S.towerBest||0),st.n]:[q.h?1:0,1];}
 const qReady=(st,q)=>{const [a,b]=qProg(st,q);return a>=b;};
 function questHook(kind,v){if(!S.q)return;for(const Q of QUESTS){const q=S.q[Q.id];if(!q||q.done)continue;const st=Q.steps[q.s];if(!st||st.t!==kind)continue;
@@ -2034,7 +2034,7 @@ function ensureCtr(){if(S.ctr&&S.ctr.day===today())return;const ua=S.unlocked-1,
     if(k==='kill')c={t:'kill',area,mob:pick(AREAS[area].mobs),n:R(6,10)};else if(k==='wins')c={t:'wins',area,n:R(4,6)};else if(k==='elite')c={t:'elite',n:1};else c={t:'tower',n:Math.max(4,Math.min(30,(S.towerBest||0)+2))};
     c.have=0;c.gold=Math.round((90+ua*200)*(k==='kill'?c.n/6:k==='wins'?c.n/4:1.6));c.ess=4+ua*3+(k==='elite'||k==='tower'?4:0);c.mat=pick(AREA_MATS[c.area!==undefined?c.area:ua]);c.mq=R(2,4);c.sh=R(1,2);list.push(c);}
   S.ctr={day:today(),list,bonus:false};}
-const ctrText=c=>c.t==='kill'?`Defeat ${c.n} ${MOB[c.mob].n}`:c.t==='wins'?`Win ${c.n} fights in ${AREAS[c.area].name}`:c.t==='elite'?'Defeat any elite':`Reach Spire floor ${c.n} in one climb`;
+const ctrText=c=>c.t==='kill'?`Defeat ${c.n} ${MOB[c.mob].n}`:c.t==='wins'?`Win ${c.n} fights in ${AREAS[c.area].name}`:c.t==='elite'?'Defeat any elite':`Reach Tower floor ${c.n} in one climb`;
 function ctrHook(kind,v){if(!S.ctr)return;for(const c of S.ctr.list){if(c.claimed||c.t!==kind)continue;if(kind==='kill'&&c.mob!==v)continue;if(kind==='wins'&&c.area!==v)continue;
   c.have=kind==='tower'?Math.max(c.have,v):Math.min(c.n,c.have+1);}}
 function grantStar(loot){S.qst=(S.qst||0)+1;S.sp++;if(loot)loot.frag=true;}
@@ -2044,7 +2044,7 @@ const INTS={charge:'Charging',atk:'',heavy:'Heavy',heal:'Heal',shield:'Ward',stu
 function intentIcon(k){const s=innerWidth<800?2:3;return k==='drain'?sprImg('m_heart',s,'',{1:'#ff9a8f',2:'#c43c3c',3:'#7a1f2b'}):sprImg({atk:'int_atk',heavy:'int_heavy',heal:'int_heal',shield:'st_shield',poison:'st_poison',bleed:'st_bleed',burn:'st_burn',stun:'st_stun'}[k]||'int_atk',s);}
 function rollIntent(e){for(const [a,p] of e.ab)if(chance(p))return a;return 'atk';}
 const dmods=()=>S.dungeon&&S.dungeon.mods||[];
-// levels 20-35 grow at 30% so the jump to the Stormsea stays fair; past 35 (the deep Spire) they grow at 65%
+// levels 20-35 grow at 30% so the jump to the Stormsea stays fair; past 35 (the deep Tower) they grow at 65%
 for(const A of AREAS)for(const id of [...A.mobs,A.dungeon.boss])if(MOB[id]){MOB[id].weak=A.weak;MOB[id].res=A.res;}
 function mkEnemy(id,L){const b=MOB[id];const Le=L>35?24.5+(L-35)*.65:L>20?20+(L-20)*.3:L;const ph=Math.pow(TUNE.hpG,Le-1),pa=Math.pow(TUNE.atkG,Le-1);const df=DIFF[S.diff||'normal'];const rage=dmods().includes('rage');
   const B=b.boss?{hp:TUNE.bossHp,atk:TUNE.bossAtk,def:TUNE.bossDef,xp:6}:{hp:1,atk:1,def:1,xp:1};const hp=Math.round(b.hp*ph*df.hp*B.hp);
@@ -2135,7 +2135,7 @@ const CHG={heavy:'#f4efe4,#fff1a8',stun:'#fff1a8,#f2c14e',drain:'#5ec4b0,#c4ecff
   'unmaker:heavy':'#6fb7e8,#c4ecff,#ffffff','unmaker:stun':'#fff1a8,#ffffff','tyrant:heavy':'#e2782a,#fff1a8,#c43c3c','hking:heavy':'#9cc8ff,#f2c14e','queen:heavy':'#e05aa8,#c4ecff'};
 const chargeOf=(e,c)=>e.big&&e.boss&&e.hp>0&&c&&!c.over&&BOSSSIG[e.id]&&BOSSSIG[e.id][e.intent]?CHG[e.id+':'+e.intent]||CHG[e.intent]||'#f4efe4,#fff1a8':null;
 const chargeCol=(e,ab)=>CHG[e.id+':'+ab]||CHG[ab]||'#f4efe4,#fff1a8';
-setInterval(()=>{if(!S||!S.combat||S.combat.over||document.hidden||RM)return;document.querySelectorAll('.foe.charging').forEach(f=>{const s=sprEl(f);if(!s)return;const c=f.classList.contains('huge')?mawAt(s):ctr(s),col=(f.dataset.chg||'#f4efe4').split(',');
+setInterval(()=>{if(!S||!S.combat||S.combat.over||document.hidden||RM)return;document.querySelectorAll('.foe.charging').forEach(f=>{const s=sprEl(f);if(!s)return;bossChargeFx(f,s);const c=f.classList.contains('huge')?mawAt(s):ctr(s),col=(f.dataset.chg||'#f4efe4').split(',');
   for(let k=0;k<3;k++){const a=Math.random()*6.283,r=Math.max(c.r.width,c.r.height)*.55;burst(c.x+Math.cos(a)*r,c.y+Math.sin(a)*r*.75,{n:1,col,spd:.5,grav:-.04,life:28});}});},150);
 function stVisual(el,st){const s=sprEl(el);if(!s)return;const c=ctr(s),w=c.r.width,hh=c.r.height,rx=()=>c.x+(Math.random()-.5)*w*.7,ry=f=>c.r.top+hh*f;const hold=d=>FXO.push({t0:performance.now(),dur:210,draw:d});
   if(st.burn){const n=Math.min(5,2+Math.floor((st.burn.s||1)/2));burst(rx(),ry(.4+Math.random()*.5),{n,col:['#e2782a','#f2c14e','#c43c3c','#fff1a8'],angle:-1.57,spread:.5,spd:2,grav:-.03,life:24,size:1.5});const tall=Math.min(.6,.25+(st.burn.s||1)*.05);hold(()=>{const now=performance.now();for(let k=0;k<6;k++){const x=c.r.left+w*(.12+k*.15),t=hh*tall*(.55+.45*Math.abs(Math.sin(now/110+k*1.9))),b=c.r.bottom;for(let j=0;j<t;j+=GU){const wd=Math.max(GP,Math.round((1-j/t)*GU*3));const f=j/t;pp(x-wd/2+Math.sin(now/90+j*.1+k)*GP,b-j,f<.35?'#fff1a8':f<.7?'#f2c14e':'#e2782a',wd);}}});}
@@ -2151,7 +2151,7 @@ const BOSSSIG={warden:{heavy:'Root Grasp',poison:'Spore Burst'},queen:{heavy:'Sh
 // boss moves that throw several things land as several smaller hits: [delay before the first, number of hits, gap between hits]
 const BOSSMULTI={'queen:heavy':[350,4,95],'queen:bleed':[260,3,120],'warden:poison':[300,3,150],'tyrant:burn':[300,4,130],'unmaker:stun':[360,5,90]};
 // bosses spend a turn charging their signature move, then fire it: answer with Guard, a shield or an evade, or stun/freeze to cancel it
-const BOSSMECH={warden:{every:3,mult:3.5,cue:"sinks its roots and swells"},queen:{every:3,mult:2.8,cue:"draws every shard into a spear"},tyrant:{every:3,mult:2.4,cue:"gathers magma in its fists"},hking:{every:3,mult:1.8,cue:"raises a hand and the air goes still"},unmaker:{every:3,mult:2,cue:"opens its maw and a beam begins to build"}};
+const BOSSMECH={warden:{every:3,mult:3,cue:"sinks its roots and swells"},queen:{every:3,mult:2.5,cue:"draws every shard into a spear"},tyrant:{every:3,mult:2.1,cue:"gathers magma in its fists"},hking:{every:3,mult:1.6,cue:"raises a hand and the air goes still"},unmaker:{every:3,mult:1.6,cue:"opens its maw and a beam begins to build"}};
 const BOSSBIG={unmaker:'Abyssal Beam'};
 const bossMech=(c,e)=>e.boss&&c.ctx!=='duel'&&c.ctx!=='pvp'&&BOSSMECH[e.id];
 const sigName=(e,k)=>k==='heavy'&&e.big&&BOSSBIG[e.id]||BOSSSIG[e.id]&&BOSSSIG[e.id][k];
@@ -2175,7 +2175,7 @@ function enemyAct(c,e){
   if(big?c.ps.veil:chance(d.dodge+(c.ps.veil?(trk('veil')>=3?60:40):0))){log(`You dodge ${e.n}.`,'buff');fx('num',{t:'p',txt:'Dodge',cls:'miss'});return;}
   const WP=S.gear.weapon&&WT[S.gear.weapon.type];const pc=(WP&&WP.parry||0)+3*trk('steadyhand');if(!big&&pc&&chance(pc)){log(`You parry ${e.n}.`,'buff');fx('num',{t:'p',txt:'Parry',cls:'miss'});return;}
   const chillRed=e.st.chill&&hasP('bite')?1-.1*e.st.chill.s:1;
-  let dmg=calc(e.atk*(big?BM.mult:ab==='heavy'?1.6:1)*chillRed,d.def*(1-(e.pierce||0)))*(1-d.dr/100);if(c.ps.guard)dmg*=big?0.15:.5;dmg=Math.max(1,Math.round(dmg));
+  let dmg=calc(e.atk*(big?BM.mult:ab==='heavy'?1.6:1)*chillRed,d.def*(1-(e.pierce||0)))*(1-d.dr/100);if(c.ps.guard)dmg*=1-guardCut(d,e);dmg=Math.max(1,Math.round(dmg));
   const n=multi?multi[1]:1,el={burn:'fire',poison:'venom'}[ab]||'phys';let total=0,absorbed=0;
   for(let k=0;k<n;k++){let part=Math.max(1,Math.round(dmg/n));if(k)fxAt+=multi[2];
     if(c.ps.shield){const a=Math.min(c.ps.shield,big?Math.ceil(part/2):part);c.ps.shield-=a;part-=a;absorbed+=a;if(!c.ps.shield)delete c.ps.shield;}
@@ -2227,9 +2227,9 @@ function win(){
     const uq=Object.keys(UNIQ).filter(k=>UNIQ[k].from===e.id);if(uq.length&&chance(e.boss?7:.15))loot.items.push(mkUnique(pick(uq)));}
   if(c.enemies.some(e=>e.boss)&&!c.pots)S.flags.nopot=true;if(S.hp<=Math.max(1,Math.ceil(d.maxHp*.05)))S.flags.clutch=true;
   if(tw){const T=S.tower,f=T.floor;T.cd={...(c.cd||{})};loot.xp=Math.round(loot.xp*.3);loot.gold=Math.round(loot.gold*.6);if(T.mod==='gild')loot.gold=Math.round(loot.gold*1.6);loot.mats.essence=(loot.mats.essence||0)+Math.ceil(f/5);
-    if(f%5===0){loot.items.push(genItem(tier,1,undefined,RCAP[tier]));if(chance(50))loot.items.push(mkGem(pick(Object.keys(GEMS)),Math.min(4,Math.floor(f/10))));}
+    if(f%5===0){loot.items.push(genItem(tier,1,undefined,RCAP[tier]));if(chance(50))loot.items.push(mkGem(pick(Object.keys(GEMS)),Math.min(4,Math.floor(f/15))));}
     if(T.mod==='bless'){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.25));S.mp=Math.min(d.maxMp,S.mp+Math.round(d.maxMp*.25));}
-    if(f>(S.towerBest||0)){S.towerBest=f;if(f%10===0)grantStar(loot);if(f%5===0)addMat(f>=30&&f%10===0?'crys5':f>=25?'crys4':f>=15?'crys3':'crys2',1);spirePost();}loot.tower=f;T.floor++;ctrHook('tower',f);}
+    if(f>(S.towerBest||0)){S.towerBest=f;if(f%10===0)grantStar(loot);if(f%5===0)addMat(f>=50&&f%10===0?'crys5':f>=45?'crys4':f>=30?'crys3':'crys2',1);spirePost();}loot.tower=f;T.floor++;ctrHook('tower',f);}
   else if(c.ctx==='wild')ctrHook('wins',S.area);
   for(const id in (S.brews||{})){if(S.brews[id]>0)S.brews[id]--;if(S.brews[id]<=0)delete S.brews[id];}
   if(S.rested>0){loot.xp=Math.round(loot.xp*1.1);S.rested--;loot.rested=true;S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.08));}
@@ -2250,13 +2250,13 @@ function win(){
 }
 function lose(){const c=C();if(c.ctx==='pvp'||c.ctx==='duel')pvpResult(false);const lost=c.ctx==='tower'||c.ctx==='pvp'||c.ctx==='duel'?0:Math.round(S.gold*.1);S.gold-=lost;if(c.ctx==='tower'&&S.tower){c.towerEnd=S.tower.floor;S.tower=null;}if(c.lastHit==='bat')S.flags.bat=true;c.over={win:false,lost,dungeon:!!S.dungeon,hc:!!S.hc};S.dungeon=null;fx('shake',{p:10});fxAt+=300;fx('lose');}
 function gainXp(x){if(S.lvl>=MAXLV)return;S.xp+=x;while(S.lvl<MAXLV&&S.xp>=xpNeed(S.lvl)){S.xp-=xpNeed(S.lvl);S.lvl++;S.pts+=3;S.sp+=1;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;toast(`Level ${S.lvl}! +3 stat points, +1 star`);FXQ.push({type:'levelup',at:fxAt+1100,lvl:S.lvl});}}
-/* the Vault: gems come from here and the Spire. Each difficulty opens with its region */
+/* the Vault: gems come from here and the Tower. Each difficulty opens with its region */
 const VAULTN='The Vault',VAULTF=3,VAULT={hollow:{n:'Hollow',area:3,lv:19,g:2},abyss:{n:'Abyss',area:4,lv:34,g:3}};
 function vaultLoot(D,loot){const G=VAULT[D.gem],n=1+(chance(30+20*(D.mods||[]).length)?1:0),out=[];for(let i=0;i<n;i++){const t=GEMS[S.gemFocus]&&chance(60)?S.gemFocus:pick(Object.keys(GEMS));out.push(mkGem(t,Math.min(4,G.g+(chance(10)?1:0))));}addToBag(out);loot.items.push(...out);loot.cleared=VAULTN+' · '+G.n;}
-function vVault(){if(S.unlocked<=VAULT.hollow.area)return '';const v=VAULT[S.vault]&&S.unlocked>VAULT[S.vault].area?S.vault:S.unlocked>VAULT.abyss.area?'abyss':'hollow',G=VAULT[v];
+function vVault(){if(S.unlocked<=VAULT.hollow.area)return '<div class="area lockd">'+sprImg('lock',3)+'<span class="al">'+VAULTN+' · reach '+AREAS[VAULT.hollow.area].name+'</span></div>';const v=VAULT[S.vault]&&S.unlocked>VAULT[S.vault].area?S.vault:S.unlocked>VAULT.abyss.area?'abyss':'hollow',G=VAULT[v];
   const diffs=Object.entries(VAULT).map(([k,X])=>S.unlocked>X.area?'<button class="btn sm '+(k===v?'tab on':'')+'" data-a="vpick" data-v="'+k+'">'+X.n+'</button>':'<button class="btn sm" disabled>???</button>').join('');
   const gems=Object.keys(GEMS).map(t=>'<button class="btn sm '+(S.gemFocus===t?'tab on':'')+'" data-a="gemfocus" data-v="'+t+'" data-tip="txt:'+GEMS[t].n+'" aria-pressed="'+(S.gemFocus===t)+'">'+itemImg({slot:'gem',type:t,g:G.g},2)+'</button>').join('');
-  return '<div class="sub dungeon"><div class="eyebrow">Dungeon</div><h2>'+VAULTN+'</h2><span class="dim small">'+VAULTF+' floors, then a chest of '+GRADEN[G.g]+' gems (Lv '+G.lv+'+)</span>'
+  return '<div class="sub spire"><b>'+VAULTN+'</b><span class="dim small">'+VAULTF+' floors, then a chest of '+GRADEN[G.g]+' gems (Lv '+G.lv+'+)</span>'
     +'<div class="row"><span class="dim small">Difficulty</span>'+diffs+'</div>'
     +'<div class="row"><span class="dim small">Seek</span>'+gems+'<span class="dim small">'+(GEMS[S.gemFocus]?'Mostly '+GEMS[S.gemFocus].n:'Any gem')+'</span></div>'
     +'<div class="row"><span class="dim small">Modifiers</span>'+Object.entries(MODS).map(([k,[n,dd]])=>'<button class="btn sm '+(S.dmods.includes(k)?'danger':'')+'" data-a="dmod" data-v="'+k+'" data-tip="txt:'+dd+'" aria-pressed="'+S.dmods.includes(k)+'">'+n+'</button>').join('')+'<span class="tag">'+(30+20*S.dmods.length)+'% chance of a second gem</span></div>'
@@ -2347,7 +2347,7 @@ const ACT={
   tower:()=>{if(!S.cleared.includes(0))return;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;S.tower={floor:1,cd:{}};spawnTower();},
   towerhalf:()=>{if(!S.cleared.includes(0)||(S.towerBest||0)<4)return;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;S.tower={floor:Math.floor(S.towerBest/2),cd:{}};spawnTower();},
   tclimb:()=>{if(!S.tower)return;spawnTower();},
-  tleave:()=>{const f=S.tower?S.tower.floor-1:0;S.tower=null;S.combat=null;S.note=`You leave the Spire after floor ${f}.`;fullRest();},
+  tleave:()=>{const f=S.tower?S.tower.floor-1:0;S.tower=null;S.combat=null;S.note=`You leave the Tower after floor ${f}.`;fullRest();},
   qaccept:v=>{S.q=S.q||{};if(!S.q[v])S.q[v]={s:0,h:0,done:false};},
   qturn:v=>{const Q=QUESTS.find(x=>x.id===v),q=S.q&&S.q[v];if(!Q||!q||q.done)return;const st=Q.steps[q.s];if(!qReady(st,q))return;if(st.t==='bring')S.mats[st.mat]-=st.n;
     const sg=Math.round(Q.rw.gold*.15);S.gold+=sg;q.s++;q.h=0;
@@ -2379,7 +2379,7 @@ const ACT={
       if(v==='salve'){if(C()){delete C().ps.burn;delete C().ps.poison;delete C().ps.bleed;}S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.15));log('The salve cleanses you.','buff');fx('num',{t:'p',txt:'Cleansed',cls:'heal'});}};
     if(inCombat)turn(run);else run();},
   flee:()=>{const c=C();if(c.ctx==='duel'){if(c.over)return;duelSend({t:'end'});fxAt=0;lose();runFx();return;}if(c.enemies.some(e=>e.boss&&e.hp>0))return;
-    if(chance(40+(derive().spd-maxESpd())*4)){S.combat=null;fullRest();if(S.dungeon){S.dungeon=null;S.note='You flee the dungeon.';}else if(S.tower){S.note=`You flee the Spire from floor ${S.tower.floor}.`;S.tower=null;}else S.note='You slip away.';}
+    if(chance(40+(derive().spd-maxESpd())*4)){S.combat=null;fullRest();if(S.dungeon){S.dungeon=null;S.note='You flee the dungeon.';}else if(S.tower){S.note=`You flee the Tower from floor ${S.tower.floor}.`;S.tower=null;}else S.note='You slip away.';}
     else turn(()=>{log('You fail to escape!','hurt');fx('num',{t:'p',txt:'Blocked',cls:'miss'});});},
   stat:v=>{if(S.pts>0){S.stats[v]++;S.pts--;}},
   szoom:v=>{UI.szoom=Math.max(.5,Math.min(2.5,(UI.szoom||1)*+v));},
@@ -2578,6 +2578,39 @@ const TBCOL={inn:'#f2c14e',forge:'#f2c14e',market:'#f2c14e',sanctum:'#c08cff',ho
 function tbHover(c,t){const k=SCN.hover;if(!TB[k])return;const s=bgOf('tb_'+k,256,120,TB[k]);
   const o=bgOf('tbo_'+k,256,120,x=>{for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1]])x.drawImage(s,dx,dy);x.globalCompositeOperation='source-in';x.fillStyle=TBCOL[k];x.fillRect(0,0,256,120);});
   c.save();c.globalAlpha=Math.sin(t/180)>0?1:.7;c.drawImage(o,0,0);c.globalAlpha=1;c.drawImage(s,0,0);c.globalCompositeOperation='lighter';c.globalAlpha=.14;c.drawImage(s,0,0);c.restore();}
+/* a lair per boss: [background, moving parts] */
+const crystal32=(c,x,base,h,w,a,b)=>{for(let j=0;j<h;j++){const wd=Math.max(1,Math.round(w*(1-j/h)));F(c,x-wd,base-j,wd,1,a);F(c,x,base-j,wd,1,b);}};
+const LAIR=[
+  // Rootbound Crypt: roots through old brick, tombstones, mushrooms
+  [c=>{bricks(c,0,0,256,80,'#26332a','#1a241c');F(c,98,20,60,60,'#0a0812');for(let y=8;y<20;y++){const k=Math.sqrt(1-((20-y)/12)**2);F(c,128-30*k,y,60*k,1,'#0a0812');}
+    for(const [x,n] of [[18,46],[52,28],[84,18],[172,22],[206,34],[238,52]]){F(c,x,0,4,n,'#3a2416');F(c,x+1,0,1,n,'#5a3a22');F(c,x-3,n-8,3,2,'#3a2416');F(c,x+4,n-14,3,2,'#3a2416');F(c,x-2,0,8,3,'#2f6b3a');}
+    for(const x of [26,206]){F(c,x,62,18,18,'#4a4f4a');F(c,x+2,59,14,3,'#4a4f4a');F(c,x+8,65,2,9,'#2a2e2a');F(c,x+5,68,8,2,'#2a2e2a');F(c,x,76,18,4,'#2f6b3a');}
+    F(c,0,80,256,24,'#1c2a1e');c.fillStyle='#142016';for(let y=80;y<104;y+=6)c.fillRect(0,y,256,1);F(c,0,86,76,3,'#3a2416');F(c,180,94,76,3,'#3a2416');
+    for(const [x,y] of [[62,78],[176,82],[150,76]]){F(c,x,y-5,2,5,'#c9c2a6');F(c,x-3,y-7,8,3,'#6aa84f');F(c,x-1,y-7,2,1,'#b6e36a');}},
+   (c,t)=>{for(let i=0;i<14;i++){const x=(i*37+t/70)%256,y=(i*23+t/45)%80;F(c,x,y,1,1,i%3?'#6aa84f':'#b6e36a');}for(const [x,n] of [[120,14],[136,20]])for(let j=0;j<n;j+=2)F(c,x+Math.round(Math.sin(t/500+j*.2)*2),j,2,2,j%6?'#2f6b3a':'#6aa84f');}],
+  // Mirror Tomb: a crystal hall with a mirrored floor and a glass throne
+  [c=>{bricks(c,0,0,256,80,'#2e2444','#241a36');const L=[[24,80,62,14,'#e05aa8','#8a2f6a'],[58,80,36,9,'#6fb7e8','#3a5ea8'],[92,80,24,7,'#c4ecff','#6fb7e8'],[164,80,28,8,'#c4ecff','#6fb7e8'],[198,80,44,10,'#e05aa8','#8a2f6a'],[232,80,68,15,'#6fb7e8','#3a5ea8']];for(const k of L)crystal32(c,...k);crystal32(c,128,80,52,18,'#f4efe4','#c9c2d6');F(c,118,62,20,18,'#2e2444');F(c,120,60,16,4,'#e05aa8');
+    F(c,0,80,256,24,'#3a2e52');for(const [x,,h,w,a,b] of L){for(let j=0;j<Math.min(22,h/2);j++){const wd=Math.max(1,Math.round(w*.6*(1-j/(h/2))));F(c,x-wd,81+j,wd,1,'#5a3f6a');F(c,x,81+j,wd,1,'#463658');}}F(c,0,80,256,1,'#c4ecff');},
+   (c,t)=>{for(let i=0;i<16;i++){const x=(i*59)%256,y=(i*31)%78;if(Math.sin(t/260+i*2)>.55){F(c,x,y,1,1,'#ffffff');F(c,x-1,y,3,1,'#c4ecff');F(c,x,y-1,1,3,'#c4ecff');}}for(let i=0;i<5;i++){const x=40+i*44,y=30+Math.sin(t/600+i)*8;F(c,x,y,2,4,i%2?'#e05aa8':'#c4ecff');F(c,x,y,1,1,'#ffffff');}}],
+  // Caldera Throne: black rock, lavafalls, a throne of cooled stone
+  [c=>{bricks(c,0,0,256,80,'#2a1a18','#1a0f0e');for(const x of [26,214]){F(c,x-2,0,20,80,'#1a0f0e');F(c,x,0,16,80,'#c43c3c');F(c,x+3,0,10,80,'#e2782a');}
+    F(c,104,34,48,46,'#14100f');F(c,108,38,40,42,'#221816');for(const [x,n] of [[104,14],[116,24],[128,30],[140,24],[152,14]]){for(let j=0;j<n;j++)F(c,x-Math.max(0,3-j/4),34-j,Math.max(1,6-j/4),1,'#14100f');}F(c,118,44,20,36,'#14100f');F(c,118,44,20,2,'#e2782a');
+    F(c,0,80,256,24,'#1a1214');for(const [x,y,w] of [[0,84,40],[36,86,30],[120,92,36],[190,86,66],[60,98,50]]){F(c,x,y,w,1,'#c43c3c');F(c,x+4,y,Math.max(1,w-10),1,'#e2782a');}F(c,30,80,12,4,'#e2782a');F(c,218,80,12,4,'#e2782a');},
+   (c,t)=>{for(const x of [26,214])for(let k=0;k<4;k++){const y=(k*26+t/18)%96-16;F(c,x+3+k*3,y,2,12,k%2?'#f2c14e':'#fff1a8');}for(let i=0;i<16;i++){const x=(i*41+Math.sin(t/300+i)*6+256)%256,y=80-((i*17+t/30)%80);F(c,x,y,1,1,i%3?'#e2782a':'#f2c14e');}for(const x of [14,60,130,202])if(Math.sin(t/200+x)>.2)F(c,x,86+(x%10),3,1,'#f2c14e');}],
+  // Hollow Throne: moonlit hall, tattered banners, an empty bone throne
+  [c=>{F(c,0,0,256,80,'#14162a');bricks(c,0,0,256,80,'#191b30','#14162a');F(c,108,6,40,44,'#0e0f1c');F(c,112,10,32,40,'#1d2b52');for(let y=4;y<10;y++){const k=Math.sqrt(1-((10-y)/6)**2);F(c,128-16*k,y,32*k,1,'#1d2b52');}F(c,127,6,2,44,'#0e0f1c');F(c,112,26,32,2,'#0e0f1c');F(c,132,14,8,8,'#f4efe4');F(c,134,14,6,6,'#1d2b52');
+    for(const x of [24,72,170,218]){F(c,x,0,14,80,'#2a2c44');F(c,x,0,3,80,'#3f4260');F(c,x+11,0,3,80,'#1a1c30');F(c,x-2,0,18,4,'#3f4260');F(c,x-2,76,18,4,'#3f4260');}
+    for(const x of [46,194]){F(c,x,4,18,36,'#3a1f4a');F(c,x+2,4,3,36,'#5a2f6a');for(let i=0;i<18;i+=4)F(c,x+i,40,2,3+(i%3)*2,'#3a1f4a');F(c,x+6,14,6,6,'#c9c2d6');}
+    F(c,114,40,28,40,'#0e0f1c');F(c,116,36,24,6,'#e8e0cc');for(const x of [114,122,132,140])F(c,x,30,2,8,'#e8e0cc');F(c,120,46,16,34,'#191b30');F(c,120,62,16,4,'#a89c86');
+    for(let y=80;y<104;y+=6)for(let x=((y-80)/6%2)*12;x<256;x+=24){F(c,x,y,12,6,'#22243a');}F(c,0,80,256,1,'#3f4260');},
+   (c,t)=>{for(const x of [30,78,176,224]){const f=Math.sin(t/90+x)>0;F(c,x,48,2,6,'#e8e0cc');F(c,x,f?44:45,2,f?4:3,'#9cc8ff');F(c,x,47,2,1,'#ffffff');}for(let i=0;i<6;i++){const x=(i*47+t/90)%256,y=30+i*8+Math.sin(t/400+i)*6;F(c,x,y,2,2,'#9cc8ff');F(c,x-2,y+1,2,1,'#3a5ea8');}}],
+  // Drowned Lighthouse: a stormy sea at night, a broken lighthouse, a wet deck
+  [c=>{const S0=['#0b1422','#0f1a2e','#13263f','#1a3350','#1f3d5c'];S0.forEach((k,i)=>F(c,0,i*13,256,13,k));for(const [x,y,w] of [[10,8,60],[80,4,40],[120,14,70],[20,24,44],[200,6,50]]){F(c,x,y,w,6,'#1d2b42');F(c,x+6,y-3,w-14,3,'#26364f');}
+    F(c,186,62,44,10,'#1a1a26');F(c,196,16,26,50,'#c9c2d6');F(c,214,16,8,50,'#8f88a8');for(const y of [24,40,56])F(c,196,y,26,6,'#c43c3c');F(c,194,12,30,4,'#3b3450');F(c,200,2,18,10,'#14162a');F(c,201,3,6,8,'#0b1422');F(c,216,0,3,6,'#3b3450');
+    F(c,0,65,256,15,'#123f52');F(c,0,65,256,1,'#3a8a8a');for(const [x,w] of [[10,30],[60,44],[126,28]])F(c,x,72,w,1,'#1f6a80');F(c,0,80,256,24,'#2a2230');for(let y=80;y<104;y+=6){F(c,0,y,256,1,'#1a1622');for(let x=(y/6%2)*20;x<256;x+=40)F(c,x,y,1,6,'#1a1622');}F(c,0,80,256,2,'#4a3f4a');},
+   (c,t)=>{const ph=Math.floor(t/4000)%3,lg=t%4000;if(ph===1&&lg<160){F(c,0,0,256,2,'#c4ecff');let x=70,y=0;for(let k=0;k<7;k++){const nx=x+((k*37)%13)-6;F(c,Math.min(x,nx),y,Math.abs(nx-x)+1,1,'#ffffff');F(c,nx,y,1,9,'#fff1a8');x=nx;y+=9;}}
+    F(c,204,5,4,5,Math.sin(t/300)>0?'#fff1a8':'#f2c14e');for(let i=0;i<40;i++){const x=(i*29-t/8)%256,y=(i*17+t/5)%80,X=x<0?x+256:x;F(c,X,y,1,3,'#6fb7e8');}for(let x=0;x<256;x+=6){const y=65+Math.round(Math.sin(t/400+x*.08));F(c,x,y,3,1,'#c4ecff');}for(let x=0;x<256;x+=11)if(Math.sin(t/120+x)>.8)F(c,x,82+(x%18),2,1,'#6fb7e8');}]
+];
 const SCENES={
   town:{h:120,bg:c=>{const W=256;sky(c,W,0,96,['#0e0b1c','#151229','#1d1836','#272042']);starsBG(c,'town',55,W,60);
       circ(c,232,16,6,'#efe6c8');F(c,229,13,2,2,'#d8ceb0');F(c,234,18,2,1,'#d8ceb0');
@@ -2726,6 +2759,7 @@ const SCENES={
         if(lit)F(c,s.x,s.y,1,1,'#ffffff');
         if(id===SCN.hover&&id!==S.selStar){const R2=r+3;for(let a=0;a<8;a++){const an=a/8*6.283;F(c,s.x+Math.cos(an)*R2,s.y+Math.sin(an)*R2,1,1,'#f4efe4');}}
         if(id===S.selStar&&Math.sin(t/200)>-.3){const R2=r+4;for(let a=0;a<16;a+=2){const an=a/16*6.283;F(c,s.x+Math.cos(an)*R2,s.y+Math.sin(an)*R2,1,1,'#f2c14e');}}}c.restore();}},
+  lair:{h:104,bg:(c,v)=>LAIR[v][0](c),fg:(c,t,v)=>LAIR[v][1](c,t)},
   dun:{h:104,bg:(c,v)=>{const W=256;const tint=[['#1f2a22','#152018'],['#2e2630','#211a24'],['#2e1a18','#201010'],['#262636','#1a1a26'],['#1a2a36','#101c26']][v];bricks(c,0,0,W,80,tint[0],tint[1]);
       F(c,98,20,60,60,'#0a0812');for(let y=20;y<36;y++){const k=Math.sqrt(Math.max(0,1-((36-y)/16)**2));F(c,128-30*k,y,60*k,1,'#0a0812');}F(c,96,16,64,4,tint[1]);
       F(c,0,80,W,24,'#1a1622');c.fillStyle='#120f18';for(let y=80;y<104;y+=6){c.fillRect(0,y,W,1);for(let x=(y/6%2)*12;x<W;x+=24)c.fillRect(x,y,1,6);}
@@ -2859,11 +2893,11 @@ function vExplore(){
     const cl=S.cleared.includes(i);
     return `<button class="area ${i===S.area?'on':''}" data-a="area" data-v="${i}"><span class="an">${x.name}</span><span class="al">Lv ${x.lv[0]}–${x.lv[1]}</span><span class="tag ${cl?'good':'gold'}">${cl?'Cleared':'Open'}</span></button>`;}).join('');
   const mobs=a.mobs.map(id=>{const m=MOB[id];return `<div class="mob sub">${sprImg(id,3)}<div><b>${m.n}</b><small>${m.drops.map(x=>matImg(x[0],2)).join('')}${weakTags(id)}</small></div></div>`;}).join('');
-  const spire=S.cleared.includes(0)?`<div class="sub spire"><b>The Endless Spire</b><span class="dim small">Climb as high as you can. A champion every 5 floors, a boss every 10. Best floor: <b class="num">${S.towerBest||0}</b></span><button class="btn primary" data-a="tower">Climb</button>${(S.towerBest||0)>=4?`<button class="btn" data-a="towerhalf">Start at floor ${Math.floor(S.towerBest/2)}</button>`:''}</div>`
-    :`<div class="area lockd">${sprImg('lock',3)}<span class="al">The Endless Spire · clear the Rootbound Crypt</span></div>`;
+  const spire=S.cleared.includes(0)?`<div class="sub spire"><b>The Infinity Tower</b><span class="dim small">Climb as high as you can. Ten floors per region, then random after floor 50. A champion every 5, a boss every 10. Best floor: <b class="num">${S.towerBest||0}</b></span><button class="btn primary" data-a="tower">Climb</button>${(S.towerBest||0)>=4?`<button class="btn" data-a="towerhalf">Start at floor ${Math.floor(S.towerBest/2)}</button>`:''}</div>`
+    :`<div class="area lockd">${sprImg('lock',3)}<span class="al">The Infinity Tower · clear the Rootbound Crypt</span></div>`;
   const elites=S.wins>=3?a.mobs.filter(id=>ELITE[id]).map(id=>{const k=(S.elites||{})[id]||0;const ai=S.area;return `<div class="mob sub elite">${sprImg(id,3)}<div><b>${ELITE[id][0]}</b><small>${k?`Defeated ×${k}`:'Not yet defeated'}</small>
 </div></div>`;}).join(''):'';
-  return `<div class="grid2"><div class="areas"><h3>Regions</h3>${areas}<h3>Challenges</h3>${spire}</div>
+  return `<div class="grid2"><div class="areas"><h3>Regions</h3>${areas}<h3>Challenges</h3>${spire}${vVault()}</div>
   <section class="px panel">${sceneHTML('wild'+S.area)}<div class="row" style="justify-content:space-between"><h2>${a.name}</h2><span class="tag">Lv ${a.lv[0]}–${a.lv[1]}</span></div>
   <div class="note">${esc(S.note)}</div>
   <div class="row"><button class="btn primary" data-a="wander">Wander</button>${S.cleared.includes(S.area)?`<button class="btn ${AB.on?'danger':''}" data-a="autob">${AB.on?'Stop auto battle':'Auto battle'}</button>`:`<span class="dim small">Auto battle unlocks after you beat ${MOB[D.boss].n}</span>`}</div>
@@ -2873,14 +2907,14 @@ function vExplore(){
     <div class="row"><span class="dim small">Modifiers</span>${Object.entries(MODS).map(([k,[n,dd]])=>`<button class="btn sm ${S.dmods.includes(k)?'danger':''}" data-a="dmod" data-v="${k}" data-tip="txt:${dd}" aria-pressed="${S.dmods.includes(k)}">${n}</button>`).join('')}
       ${S.dmods.length?`<span class="tag gold">+${S.dmods.length*5} essence${S.dmods.length===3&&!S.chal.includes(S.area)?' · ★':''}</span>`:''}</div>
     <div class="row"><button class="btn primary" data-a="dungeon">Challenge</button><span class="tag">Suggested Lv ${a.boss}</span>${cleared?'<span class="tag good">Cleared</span>':''}</div></div>`}
-  ${vVault()}
   </section></div>`;
 }
 function vBattle(){
   const c=C();const d=derive();const D=S.dungeon;const narrow=innerWidth<800;const ps=narrow?2:PS()+Math.ceil(PS()/2);
-  let where=c.ctx==='duel'?`Duel · ${c.myTurn?'your turn':'their turn'}`:c.ctx==='pvp'?'Arena duel':c.ctx==='tower'?`Endless Spire · Floor ${S.tower?S.tower.floor-(c.over&&c.over.win?1:0):c.towerEnd||'?'}${S.tower&&S.tower.mod&&!(c.over&&c.over.win)?' · '+TMODS[S.tower.mod][0]:''}`:c.ctx==='dungeon'&&D&&D.gem?VAULTN+' · '+VAULT[D.gem].n+' · Floor '+(D.stage+1):c.ctx==='dungeon'&&D?`${AREAS[D.area].dungeon.name} · ${D.stage<AREAS[D.area].dungeon.floors.length?`Floor ${D.stage+1}`:'Boss'}`:AREAS[S.area].name;
+  let where=c.ctx==='duel'?`Duel · ${c.myTurn?'your turn':'their turn'}`:c.ctx==='pvp'?'Arena duel':c.ctx==='tower'?`Infinity Tower · Floor ${S.tower?S.tower.floor-(c.over&&c.over.win?1:0):c.towerEnd||'?'}${S.tower&&S.tower.mod&&!(c.over&&c.over.win)?' · '+TMODS[S.tower.mod][0]:''}`:c.ctx==='dungeon'&&D&&D.gem?VAULTN+' · '+VAULT[D.gem].n+' · Floor '+(D.stage+1):c.ctx==='dungeon'&&D?`${AREAS[D.area].dungeon.name} · ${D.stage<AREAS[D.area].dungeon.floors.length?`Floor ${D.stage+1}`:'Boss'}`:AREAS[S.area].name;
   if(c.over&&c.over.win&&c.over.loot.cleared)where=c.over.loot.cleared;
-  const scene=c.ctx==='duel'||c.ctx==='pvp'?'arena':c.ctx==='dungeon'||c.ctx==='tower'?'dun':'wild'+S.area;
+  const bossE=(c.ctx==='dungeon'||c.ctx==='tower')&&c.enemies.find(e=>e.boss),lairV=bossE?AREAS.findIndex(a=>a.dungeon.boss===bossE.id):-1;
+  const scene=c.ctx==='duel'||c.ctx==='pvp'?'arena':lairV>=0?'lair':c.ctx==='dungeon'||c.ctx==='tower'?'dun':'wild'+S.area,sceneV=lairV>=0?lairV:c.ctx==='tower'&&S.tower?Math.min(4,Math.floor((S.tower.floor-1)/10)):D?D.area:S.area;
   const wait=!!PRE;const hpOf=i=>PRE&&PRE.e[i]!==undefined?PRE.e[i]:c.enemies[i].hp;const over=c.over&&!wait;
   const dmgIntent=k=>!['heal','shield','charge'].includes(k);
   const foes=c.enemies.map((e,i)=>{const eh=hpOf(i);const up=eh>0;const showInt=e.hp>0&&!c.over&&(e.big||e.intent==='charge');return `<button class="foe ${e.boss?'boss':''} ${e.elite?'elite':''} ${e.enraged&&up?'rage':''} ${up?'':'dead'} ${e.id==='unmaker'?'huge':''} ${chargeOf(e,c)?'charging':''} ${up&&e.st.stun&&e.st.stun.frz?'frz':''}" data-chg="${chargeOf(e,c)||''}" data-a="target" data-v="${i}" data-foe="${i}" data-tip="foe:${i}" ${!up||c.over?'disabled':''} aria-label="${e.n}">
@@ -2890,7 +2924,7 @@ function vBattle(){
     ${e.pvp&&e.parts?(()=>{const [k,cv]=heroCanvas(e.parts,0),u=artPx(ps);return `<span style="display:inline-block;transform:scaleX(-1)"><img class="spr ${up?'idle body':'body'}" src="${canvasURL(k,cv)}" width="${64*u}" height="${48*u}" alt=""></span>`;})():(s=>e.st.stun&&e.st.stun.frz?s.replace(' data-fr=',' data-still='):s)(sprImg(e.maw&&up?'unmakero':e.id,e.id==='unmaker'?ps+Math.ceil(ps/3):ps,up?'idle body':'body'))}
     <div class="bar hp" data-hb="${i}"><i style="width:${eh/e.max*100}%"></i><span>${eh}/${e.max}</span></div><span class="fname">${e.elite?'★ ':''}Lv ${e.L} ${e.n}</span></button>`;}).join('');
   const stage=`<div class="stage" style="max-width:${256*PS()}px;aspect-ratio:${narrow?'256/150':'256/104'}">
-    <canvas class="scene" data-scene="${scene}" data-v="${S.area}" width="512" height="208" data-hd="1"></canvas>
+    <canvas class="scene" data-scene="${scene}" data-v="${sceneV}" width="512" height="208" data-hd="1"></canvas>
     <div class="where">${where}</div>
     <div class="hero" id="hero" data-tip="hero"><div class="sts">${stIcons(c.ps)}</div>${heroImg(ps).replace('class="spr idle"','class="spr idle body"')}<div class="bar thin hp" data-hb="p" style="width:${14*ps}px"><i style="width:${(wait?PRE.p:S.hp)/d.maxHp*100}%"></i></div></div>
     <div class="foesline">${foes}</div></div>`;
@@ -2905,12 +2939,12 @@ function vBattle(){
       <div class="row">${tm?`<button class="btn primary" data-a="tclimb">Floor ${S.tower.floor}${S.tower.floor%10===0?' · Boss':S.tower.floor%5===0?' · Champion':''} ▸</button>
         <button class="btn" data-a="use" data-v="potion" ${S.cons.potion?'':'disabled'}>${matImg('potion',2)} Potion ×${S.cons.potion}</button>
         <button class="btn" data-a="use" data-v="ether" ${S.cons.ether?'':'disabled'}>${matImg('ether',2)} Ether ×${S.cons.ether}</button>
-        <button class="btn danger" data-a="tleave">Leave the Spire</button>`:more?`<button class="btn primary" data-a="descend">${D.gem||D.stage+1<AREAS[D.area].dungeon.floors.length?`Floor ${D.stage+2}`:'Boss chamber'} ▸</button>
+        <button class="btn danger" data-a="tleave">Leave the Tower</button>`:more?`<button class="btn primary" data-a="descend">${D.gem||D.stage+1<AREAS[D.area].dungeon.floors.length?`Floor ${D.stage+2}`:'Boss chamber'} ▸</button>
         <button class="btn" data-a="use" data-v="potion" ${S.cons.potion&&!dmods().includes('nopot')?'':'disabled'}>${matImg('potion',2)} Potion ×${S.cons.potion}</button>
         <button class="btn" data-a="use" data-v="ether" ${S.cons.ether?'':'disabled'}>${matImg('ether',2)} Ether ×${S.cons.ether}</button>
         <button class="btn danger" data-a="retreat">Retreat</button>`:`<button class="btn primary" data-a="done">Continue ▸</button>`}</div></div>`;
     } else lower=o.hc?`<div class="px panel result lose"><h2>${esc(S.name)} has fallen</h2><p>Hardcore: this character is gone.</p><div class="row"><button class="btn danger" data-a="done">Start over</button></div></div>`
-      :`<div class="px panel result lose"><h2>Defeated</h2>${c.ctx==='duel'||c.ctx==='pvp'?ratingLine():''}<p>${c.towerEnd?`The Spire throws you out on floor ${c.towerEnd}. Best: ${S.towerBest||0}.`:`Lost ${o.lost} gold${o.dungeon?' and your dungeon progress':''}.`}</p><div class="row"><button class="btn primary" data-a="done">Return to camp</button></div></div>`;
+      :`<div class="px panel result lose"><h2>Defeated</h2>${c.ctx==='duel'||c.ctx==='pvp'?ratingLine():''}<p>${c.towerEnd?`The Tower throws you out on floor ${c.towerEnd}. Best: ${S.towerBest||0}.`:`Lost ${o.lost} gold${o.dungeon?' and your dungeon progress':''}.`}</p><div class="row"><button class="btn primary" data-a="done">Return to camp</button></div></div>`;
   } else {
     const bossUp=c.enemies.some(e=>e.boss&&e.hp>0);let menu;const dw=c.ctx==='duel'&&!c.myTurn;
     const off=(why)=>why?`class="mi off" aria-disabled="true" data-tip="txt:${why}"`:'class="mi"';const mpNow=wait?PRE.pm:S.mp;
@@ -2919,7 +2953,7 @@ function vBattle(){
     else menu=`<button class="mi" data-a="attack" data-tip="txt:Basic attack with your weapon. ${d.el!=='phys'?EL[d.el].n+' damage.':''}">Attack<small class="num">${d.atk} ATK</small></button>
       <button ${S.equip.length?'class="mi"':off('Light skill stars to learn skills')} data-a="menu" data-v="skills">Skills<small>▸</small></button>
       <button class="mi" data-a="menu" data-v="items">Items<small>▸</small></button>
-      ${c.ctx==='duel'||c.ctx==='pvp'?'':'<button class="mi" data-a="guard" data-tip="txt:Halve damage until your next turn, and take 85% less from a charged boss move. Restores some MP.">Guard<small>turn</small></button>'}
+      ${c.ctx==='duel'||c.ctx==='pvp'?'':'<button class="mi" data-a="guard" data-tip="txt:Take 45–80% less damage until your next turn, more with higher defense. Restores some MP.">Guard<small>turn</small></button>'}
       ${S.flags.analyze?'<button class="mi" data-a="analyze" data-tip="skill:analyze">Analyze<small>turn</small></button>':''}
       <button ${bossUp?off("You can't flee from a boss"):'class="mi"'} data-a="flee">Flee<small class="num">${bossUp?'—':Math.max(5,Math.min(100,40+(d.spd-maxESpd())*4))+'%'}</small></button>`;
     if(dw)menu=`<div class="mi off">Waiting for ${esc(c.enemies[0].n)}…</div><button class="mi" data-a="flee">Forfeit<small>leave</small></button>`;
@@ -3062,7 +3096,7 @@ function vSettings(){
     return `<div class="ach ${got?'got':''}">${sprImg('trophy',3)}<div><b>${hide?'???':n}</b><span>${hide?'Secret':dd}</span></div></div>`;}).join('');
   const st=UI.stab||'qol',A=S.autoSalv||{rar:[]};const tb=(k,n)=>`<button class="btn sm ${st===k?'tab on':''}" data-a="stab" data-v="${k}">${n}</button>`;
   const qol=`<div class="sub"><h3>Combat</h3><div class="optrow"><b>Animation speed</b>${[1,1.5,2,3].map(v=>`<button class="btn sm ${OPT.speed===v?'tab on':''}" data-a="spd" data-v="${v}">${v}×</button>`).join('')}</div>
-    <div class="optrow"><b>Auto-continue in the Spire and dungeons</b><button class="btn sm ${OPT.noAuto?'':'tab on'}" data-a="autonext" aria-pressed="${!OPT.noAuto}">${OPT.noAuto?'Off':'On'}</button></div></div>
+    <div class="optrow"><b>Auto-continue in the Tower and dungeons</b><button class="btn sm ${OPT.noAuto?'':'tab on'}" data-a="autonext" aria-pressed="${!OPT.noAuto}">${OPT.noAuto?'Off':'On'}</button></div></div>
     <div class="sub"><h3>Auto-salvage</h3><p class="dim small">New drops of the rarities you pick are salvaged straight away. Uniques, locked items and anything you forge are never touched.</p>
     <div class="optrow"><b>Auto-salvage</b><button class="btn sm ${A.on?'tab on':''}" data-a="as" data-v="on">${A.on?'On':'Off'}</button></div>
     <div class="optrow"><b>Rarities</b>${RAR.map((r,i)=>`<button class="btn sm r${i} ${A.rar[i]?'tab on':''}" style="color:var(--rc)" data-a="as" data-v="r${i}">${r.n}</button>`).join('')}</div>
@@ -3248,7 +3282,7 @@ function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date
   const g=NET.lbMode==='gold';
   const rows=(NET.lb||[]).map((r,i)=>`<tr class="${NET.user&&r.user_id===NET.user.id?'me':''}"><td class="num">${i+1}</td><td>${esc(r.name)}</td><td class="num">Lv ${r.level}</td><td class="num"><b>${NET.lbMode==='pvp'?'Rating '+r.rating:g?(r.gold||0).toLocaleString():'Floor '+r.best}</b></td></tr>`).join('');
   const lt=(m,n)=>`<button class="btn sm ${(NET.lbMode||'best')===m?'tab on':''}" data-a="lbmode" data-v="${m}">${n}</button>`;
-  return `<div class="sub"><div class="row" style="justify-content:space-between"><div class="row"><h3>Leaderboards</h3>${lt('best','Spire floors')}${lt('gold','Richest')}${lt('pvp','Arena')}</div><span class="tag">You: <b class="num">${g?S.gold.toLocaleString()+' gold':'Floor '+(S.towerBest||0)}</b></span></div>
+  return `<div class="sub"><div class="row" style="justify-content:space-between"><div class="row"><h3>Leaderboards</h3>${lt('best','Tower floors')}${lt('gold','Richest')}${lt('pvp','Arena')}</div><span class="tag">You: <b class="num">${g?S.gold.toLocaleString()+' gold':'Floor '+(S.towerBest||0)}</b></span></div>
     ${NET.lbErr?`<p class="dim">${esc(NET.lbErr)}</p>`:!NET.lb?'<p class="dim">Loading…</p>':rows?`<table class="lb"><tbody>${rows}</tbody></table>`:`<p class="dim">${g?'Nobody is on the board yet.':'No climbs yet. Be the first.'}</p>`}
     ${NET.user?'':'<p class="small dim">Sign in under Settings to put your best floor on the board.</p>'}</div>`;}
 /* admin panel: unlocked with a passcode for this browser session. It only stops casual use; anyone who edits the page can get in. */
@@ -3300,7 +3334,7 @@ function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm
   else{const mobs=Object.entries(MOB).map(([k,m])=>[k,m.n+(m.boss?' (boss)':'')]);
     body=`<div class="optrow"><b>Fight</b>${sel('a_mob',mobs,'goblin')}<b>Lv</b>${num('a_mlv',S.lvl,70)}<b>×</b>${num('a_mn',1,60)}${sel('a_kind',[['normal','Normal'],['elite','Elite']],'normal')}${b('fight','Start fight','primary')}</div>
       <div class="optrow">${C()&&!C().over?b('win','Win this fight')+b('cds','Clear cooldowns'):'<span class="dim small">Win / clear cooldowns appear during a fight.</span>'}</div>
-      <div class="optrow"><b>Best Spire floor</b>${num('a_spire',S.towerBest||0,80)}${b('spire','Set')}</div>
+      <div class="optrow"><b>Best Tower floor</b>${num('a_spire',S.towerBest||0,80)}${b('spire','Set')}</div>
       <div class="optrow">${b('unlock','Unlock all regions')}${b('disc','Discover all alloys')}${b('ctr','New daily contracts')}${b('cloud','Clear cloud-load cooldown')}</div>`;}
   return `<div class="row" style="justify-content:space-between"><div class="row">${tb('player','Player')}${tb('items','Items')}${tb('world','World')}</div>${b('lock','Lock admin')}</div>${body}`;}
 const LORE={stalker:'It lives in the lightning as much as the water. Fishermen know a storm is close when the eels start to glow.',sentinel:'A knight who went down with his ship and never stopped standing guard. The barnacles took the rest.',
@@ -3495,9 +3529,25 @@ function bsig2(e,A,B,f){const k=e.id+':'+e.ab;
 // a falling spectral blade, from above down onto (x,y)
 function ghostBlade(x,y,delay){setTimeout(()=>fxo(380,t=>{const k=Math.min(1,t*1.6),Y=y-160+160*k,a=t>.8?(1-t)*5:1;if(a<=0)return;px.globalAlpha=a;
   pline(x,Y-40,x,Y,'#3a5ea8',GU*2);pline(x,Y-36,x,Y-2,'#9cc8ff',GU);pp(x,Y,'#ffffff',GU);pline(x-8,Y-34,x+8,Y-34,'#c9c2d6',GP);px.globalAlpha=1;}),TS(delay));}
+/* Guard: blocks more the higher your defense is against this enemy, the same for all its moves */
+const guardCut=(d,e)=>.45+.35*d.def/Math.max(1,d.def+e.atk);
+/* while a boss charges, its arena reacts */
+function bossChargeFx(f,s){const e=S.combat.enemies[+f.dataset.foe];if(!e||!e.big)return;const c=ctr(s),w=c.r.width,h=c.r.height,b=c.r.bottom,rx=()=>c.x+(Math.random()-.5)*w*1.3;
+  if(e.id==='warden'){const x=rx();fxo(300,t=>{const g=Math.min(1,t*2)*22;for(let j=0;j<g;j+=GP)pp(x+Math.sin(j*.3)*2,b-j,j%6<3?'#2f6b3a':'#6aa84f',GU);});burst(rx(),b,{n:2,col:['#6aa84f','#3a2416'],angle:-1.57,spread:.6,spd:2,grav:.1,life:18});}
+  if(e.id==='queen'){const a=Math.random()*6.283,R0=w*.9;burst(c.x+Math.cos(a)*R0,c.y+Math.sin(a)*R0,{n:2,col:['#e05aa8','#c4ecff','#ffffff'],angle:a+3.14,spread:.1,spd:5,life:14,size:2});}
+  if(e.id==='tyrant'){burst(rx(),b,{n:4,col:['#e2782a','#f2c14e','#c43c3c'],angle:-1.57,spread:.5,spd:5,grav:.22,life:22});if(Math.random()<.3)shake(2);}
+  if(e.id==='hking'){ringFx(c.x,c.y,w*.9,w*.3,['#3a5ea8','#9cc8ff'],240);burst(rx(),b,{n:1,col:['#9cc8ff','#3a5ea8'],angle:-1.57,spread:.2,spd:2,grav:-.02,life:30});}
+  if(e.id==='unmaker'){const M=mawAt(s),a=Math.random()*6.283;burst(M.x+Math.cos(a)*90,M.y+Math.sin(a)*70,{n:2,col:['#6fb7e8','#c4ecff'],angle:a+3.14,spread:.1,spd:6,life:13});}}
+/* the charged move lands with its own big hit, on top of the signature move */
+function bigMove(e,A,B,f){
+  if(e.id==='warden'){f.animate([{transform:'scale(1)'},{transform:'scale(1.15,.9)'},{transform:'scale(1)'}],{duration:TS(360),easing:'steps(3)'});fxo(620,t=>{const n=Math.min(1,t*2.6),fade=t>.7?1-(t-.7)/.3:1,y=A.r.bottom;for(let k=0;k<8;k++){const x=A.x+(k-3.5)*11,top=(46+(k%3)*20)*n*fade;pline(x,y,x+(k-3.5)*2,y-top,k%2?'#3a2416':'#2f6b3a',GU*3);pline(x,y,x+(k-3.5)*2,y-top,'#6aa84f',GU);}});setTimeout(()=>{ringFx(A.x,y0(A),8,A.r.width*1.6,['#6aa84f','#3a2416'],380,.3);shake(12);},TS(240));}
+  if(e.id==='queen'){const ux=A.x-B.x,uy=A.y-B.y,L=Math.hypot(ux,uy)||1;fxo(360,t=>{const k=Math.min(1,t*1.9),hx=B.x+ux*k,hy=B.y+uy*k,tx=hx-ux/L*150,ty=hy-uy/L*150;pline(tx,ty,hx,hy,'#8a2f6a',GU*4);pline(tx,ty,hx,hy,'#e05aa8',GU*2);pline(tx,ty,hx,hy,'#ffffff',GP);});setTimeout(()=>{burst(A.x,A.y,{n:50,col:['#e05aa8','#c4ecff','#ffffff'],spd:8,life:30});ringFx(A.x,A.y,6,A.r.width*1.5,['#e05aa8','#c4ecff'],340);shake(12);},TS(190));}
+  if(e.id==='tyrant'){for(let k=0;k<4;k++)setTimeout(()=>{firePillar({...A,x:A.x+(k-1.5)*44});shake(7);},TS(180+k*120));crackFx(A.x-140,A.x+140,A.r.bottom-4,900);}
+  if(e.id==='hking'){const x=A.x;fxo(520,t=>{const k=Math.min(1,t*2),Y=A.y-260+230*k,a=t>.8?(1-t)*5:1;if(a<=0)return;px.globalAlpha=a;pline(x,Y-120,x,Y,'#1d2b52',GU*6);pline(x,Y-118,x,Y-2,'#9cc8ff',GU*3);pline(x,Y-116,x,Y-4,'#ffffff',GU);pline(x-24,Y-100,x+24,Y-100,'#f2c14e',GU*2);px.globalAlpha=1;});setTimeout(()=>{ringFx(x,A.y,8,A.r.width*1.7,['#9cc8ff','#3a5ea8'],360);burst(x,A.y,{n:40,col:['#9cc8ff','#ffffff','#3a5ea8'],spd:7,life:30});shake(12);},TS(260));}}
+const y0=A=>A.r.bottom;
 const NUMS={};
 const PLAY={
-  bsig:e=>{const hh=heroEl(),f=sprEl(elFor(e.t));if(!hh||!f)return;const A=ctr(hh),B=ctr(f);if(e.ab&&e.ab!=='heavy'){bsig2(e,A,B,f);return;}
+  bsig:e=>{const hh=heroEl(),f=sprEl(elFor(e.t));if(!hh||!f)return;const A=ctr(hh),B=ctr(f);if(e.ab&&e.ab!=='heavy'){bsig2(e,A,B,f);return;}if(e.big&&e.id!=='unmaker')bigMove(e,A,B,f);
     if(e.id==='unmaker'&&e.big){sfx('frost');flash('#c4ecff',120);const M=mawAt(f);const ly=(x0,y0,x1,y1,c,s)=>pline(x0,y0-s/2,x1,y1-s/2,c,s);
       fxo(760,t=>{const g=Math.min(1,t*6),x=M.x+(A.x-M.x)*g,y=M.y+(A.y-M.y)*g,w=t<.15||t>.82?1:t>.68?2:3;ly(M.x,M.y,x,y,'#1d4560',GU*2*w+GU*2);ly(M.x,M.y,x,y,'#3a5ea8',GU*2*w);ly(M.x,M.y,x,y,'#6fb7e8',GU*w+GP);ly(M.x,M.y,x,y,'#ffffff',GP*w);});
       setTimeout(()=>{burst(A.x,A.y,{n:44,col:['#c4ecff','#6fb7e8','#ffffff'],spd:6,grav:.12,life:34});shake(11);},TS(130));return;}
@@ -3668,7 +3718,7 @@ function mode(){if(S.combat||S.tab==='explore')return String(S.area);if(S.tab===
 function keepAnchor(a,v,y0){if(a==='tab'||a==='loc'||a==='startab'||a==='cls')return;let q=null;try{q=document.querySelector(`[data-a="${a}"]${v!==undefined?`[data-v="${CSS.escape(v)}"]`:''}`);}catch(e){}if(!q)return;const dy=q.getBoundingClientRect().top-y0;if(Math.abs(dy)>=1)window.scrollBy({top:dy,behavior:'instant'});}
 let AUTOC=null;
 /* auto battle: one move over and over (it falls back to Attack when that move is out of MP or cooling down).
-   It only runs where you've beaten the boss, never in the Spire or duels, and any loss stops it. */
+   It only runs where you've beaten the boss, never in the Tower or duels, and any loss stops it. */
 const AB={on:false};
 function autoStop(msg){AB.on=false;if(msg)toast(msg);render(true);}
 function autoTick(){if(!AB.on||!S)return;if(Date.now()<busyUntil||MG.active||UI.set||PRE)return;const c=S.combat;
@@ -3681,7 +3731,7 @@ function autoTick(){if(!AB.on||!S)return;if(Date.now()<busyUntil||MG.active||UI.
 setInterval(autoTick,350);
 function autoBar(){let b=document.getElementById('autobar');if(!AB.on){if(b)b.remove();return;}if(!b){b=document.createElement('div');b.id='autobar';document.body.appendChild(b);}
   const m=S.autoMove||'attack';b.innerHTML=`<span>Auto battle · ${m==='attack'?'Attack':(SK[m]||{}).n||'Attack'}</span><button class="btn sm danger" data-a="autob">Stop</button>`;}
-// after a win in the Spire or a dungeon, the next floor starts by itself unless you switch it off in Settings
+// after a win in the Tower or a dungeon, the next floor starts by itself unless you switch it off in Settings
 function autoNext(){const c=S&&S.combat;if(!c||!c.over||!c.over.win||OPT.noAuto||MG.active)return;if(!(c.ctx==='tower'&&S.tower)&&!(c.ctx==='dungeon'&&S.dungeon))return;if(AUTOC===c)return;AUTOC=c;
   const go=n=>{if(S.combat!==c||!c.over)return;if(UI.set||Date.now()<busyUntil){if(n<20)setTimeout(()=>go(n+1),500);return;}const b=document.querySelector('[data-a="tclimb"],[data-a="descend"]');if(b)b.click();};setTimeout(()=>go(0),350);}
 function syncTree(){delete S.treeSync;const seen=new Set(ORIGINS),q=[...ORIGINS];while(q.length){const a=q.pop();for(const b of nbrs(a))if(S.stars.includes(b)&&!seen.has(b)){seen.add(b);q.push(b);}}
