@@ -2817,7 +2817,7 @@ function tnSprite(kind,lv,gl){const key='tn2_'+kind+(gl||'')+lv;if(SPR[key])retu
   // the picture, centred
   const P=TNGLYPH[gl||kind],oy=Math.floor((W-P.length)/2);P.forEach((r,j)=>[...r].forEach((c,i)=>{if(c!=='.')set(i+8,j+oy,c);}));
   // rank 2 adds blocks on the corners; rank 3 has bigger ones and a jagged edge between them
-  if(lv>=2){const s=lv>=3?7:6,lo=lv>=3?1:2,hi=W-lo-s;for(const x of [lo,hi])for(const y of [lo,hi])block(x,y,s);}
+  if(lv>=2){const s=lv>=3?5:4,lo=lv>=3?2:3,hi=W-lo-s;for(const x of [lo,hi])for(const y of [lo,hi])block(x,y,s);}
   if(lv>=3){const J=[1,2,1,2,3,2,1,1,2,3,2,1,2,1];J.forEach((t,i)=>{for(let k=1;k<=t;k++){const c=k===t?'C':'y';set(9+i,4-k,c);set(9+i,27+k,c);set(4-k,9+i,c);set(27+k,9+i,c);}});}
   // a dark outline round the whole shape
   const o=g.map(r=>r.slice());for(let y=0;y<W;y++)for(let x=0;x<W;x++)if(g[y][x]==='.'&&[[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>(g[y+b]||[])[x+a]&&g[y+b][x+a]!=='.'))o[y][x]='k';
