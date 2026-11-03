@@ -1761,9 +1761,9 @@ const INTS={atk:'',heavy:'Heavy',heal:'Heal',shield:'Ward',stun:'Stun',drain:'Dr
 function intentIcon(k){const s=innerWidth<800?2:3;return k==='drain'?sprImg('m_heart',s,'',{1:'#ff9a8f',2:'#c43c3c',3:'#7a1f2b'}):sprImg({atk:'int_atk',heavy:'int_heavy',heal:'int_heal',shield:'st_shield',poison:'st_poison',bleed:'st_bleed',burn:'st_burn',stun:'st_stun'}[k]||'int_atk',s);}
 function rollIntent(e){for(const [a,p] of e.ab)if(chance(p))return a;return 'atk';}
 const dmods=()=>S.dungeon&&S.dungeon.mods||[];
-// past level 20 enemies grow a third as fast per level, so the jump to level 35 stays fair
+// levels 20-35 grow at 30% so the jump to the Stormsea stays fair; past 35 (the deep Spire) they grow at 65%
 for(const A of AREAS)for(const id of [...A.mobs,A.dungeon.boss])if(MOB[id]){MOB[id].weak=A.weak;MOB[id].res=A.res;}
-function mkEnemy(id,L){const b=MOB[id];const Le=L>20?20+(L-20)*.3:L;const ph=Math.pow(TUNE.hpG,Le-1),pa=Math.pow(TUNE.atkG,Le-1);const df=DIFF[S.diff||'normal'];const rage=dmods().includes('rage');
+function mkEnemy(id,L){const b=MOB[id];const Le=L>35?24.5+(L-35)*.65:L>20?20+(L-20)*.3:L;const ph=Math.pow(TUNE.hpG,Le-1),pa=Math.pow(TUNE.atkG,Le-1);const df=DIFF[S.diff||'normal'];const rage=dmods().includes('rage');
   const B=b.boss?{hp:TUNE.bossHp,atk:TUNE.bossAtk,def:TUNE.bossDef,xp:6}:{hp:1,atk:1,def:1,xp:1};const hp=Math.round(b.hp*ph*df.hp*B.hp);
   const e={id,n:b.n,L,hp,max:hp,atk:Math.round(b.atk*pa*df.atk*B.atk*(rage?1.2:1)*10)/10,def:Math.round(b.def*Math.pow(TUNE.defG,Le-1)*B.def*10)/10,spd:Math.round(b.spd+(L-1)*.4),xp:Math.round(b.xp*ph*df.rew*B.xp),
     gold:b.gold.map(g=>Math.round(g*ph*df.rew*B.xp)),drops:b.drops,ab:b.ab,boss:!!b.boss,weak:b.weak,res:b.res,st:{}};
