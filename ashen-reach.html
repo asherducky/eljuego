@@ -245,7 +245,7 @@ img.spr{max-width:none}
 .cc .ih{display:flex;gap:8px;align-items:center;margin-bottom:4px}
 .cr{display:grid;grid-template-columns:1fr auto auto;gap:6px;font-size:.88rem;align-items:center;padding:1px 0;border-bottom:1px solid #241d36}
 .cr i{font-style:normal;font-size:.8rem;min-width:3.6em;text-align:right}.cr i.up{color:var(--good)}.cr i.down{color:var(--bad)}.cr i.eq{color:var(--mute)}
-.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px}.picks.sets{grid-auto-flow:column;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(4,auto)}@media(max-width:560px){.picks.sets .pick{flex-direction:column;gap:3px;padding:6px 2px;text-align:center}.picks.sets .pick span{font-size:.72rem;align-items:center}}
 .pick{font:inherit;color:var(--ink);display:flex;gap:8px;align-items:center;text-align:left;padding:8px;background:var(--panel2);border:0;cursor:pointer;box-shadow:inset 0 0 0 2px var(--edge);min-height:52px}
 .pick span{display:flex;flex-direction:column;font-size:.9rem;line-height:1.2}.pick small{font-size:.74rem;color:var(--dim)}
 .pick.on{box-shadow:inset 0 0 0 3px var(--gold);background:#3a2f1a}.pick:disabled{color:var(--mute);cursor:not-allowed;background:#1a1527}.pick:hover:not(:disabled){background:#3a3152}
@@ -2965,7 +2965,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
     const img=W?sprImg(tierSprite(base,tier,null),2,'',wepPal(base,tier,null,m?m[1]:undefined)):sl==='cloak'?sprImg(base,2,'',gearPal({type:k,tier})||(m?m[1]:undefined)):gearIcon(sl,k,tier,2);
     if(W&&(W.ft||0)>tier)return `<button class="pick off" disabled>${img}<span>${n}<small>Needs ${TIERN[W.ft]}</small></span></button>`;
     return `<button class="pick ${f.type===v?'on':''}" data-a="fgtype" data-v="${v}">${img}<span>${n}${W?`<small>${W.trn||EL[W.el].n}</small>`:''}</span></button>`;};
-  const types=cat==='weapon'?Object.entries(WT).map(([k,W])=>tpB('weapon',k,W.n)).join(''):cat==='armor'?[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].map(([sl,T])=>Object.entries(T).map(([k,X])=>tpB(sl,k,ARMN[k]?ARMN[k][tier]:X.n)).join('')).join(''):'';
+  const types=cat==='weapon'?Object.entries(WT).map(([k,W])=>tpB('weapon',k,W.n)).join(''):cat==='armor'?[['helm','armor','greaves','mantle'],['cap','leather','shoes','cape'],['hood','robe','treads','shroud']].map(([a,b,c,d])=>[['helm',a],['armor',b==='armor'?'plate':b],['boots',c],['cloak',d]].map(([sl,k])=>tpB(sl,k,ARMN[k]?ARMN[k][tier]:TYPES[sl][k].n)).join('')).join(''):'';
   const alloys=Object.entries(ALLOYOF).map(([r,k])=>{const A=ALLOYS[k],have=S.mats[r]||0;if(!alloyOpen(k))return `<button class="pick off" disabled>${matImg(r,2)}<span>???<small>Opens in ${AREAS[A.ar].name}</small></span></button>`;
     return `<button class="pick ${f.alloy===r?'on':''} ${have<A.q?'short':''}" data-a="fgalloy" data-v="${r}">${matImg(r,2)}<span>${A.n}<small class="num">${have}/${A.q} ${MATS[r]}</small><small>${A.short}</small></span></button>`;}).join('');
   const sups=Object.keys(SUP).filter(m=>(S.mats[m]||0)>0&&m!==f.metal&&SUP[m].to===cat).map(m=>mB('fgsup',m,(f.sups||[]).includes(m),SUP[m].q,supLine(m,tier))).join('');
@@ -2976,7 +2976,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
   return `<div class="forgegrid"><div style="display:flex;flex-direction:column;gap:10px;min-width:0">
     ${step(1,'Core metal')}<div class="picks">${metals||'<p class="empty-s">No metals yet.</p>'}</div>
     ${sp.base?`${step(2,'Weapons or armor')}<div class="row">${catB('weapon','Weapons')}${catB('armor','Armor')}</div>`:''}
-    ${sp.base&&cat?`${step(3,'What to make')}<div class="picks">${types}</div>`:''}
+    ${sp.base&&cat?`${step(3,'What to make')}<div class="picks ${cat==='armor'?'sets':''}">${types}</div>`:''}
     ${sp.type?`${step(4,'Supplements')} <span class="dim small num">${sp.sup.length}/${supSlots(f)}</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
       ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}
       ${cat==='weapon'?`${step(5,'Alloy')}<div class="picks">${alloys}</div>`:''}`:''}</div>
