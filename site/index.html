@@ -899,6 +899,7 @@ function head32(R,P){const k=SKIN;R(13,14,5,2,k.S);R(11,3,12,11,k.s);R(11,11,2,3
   R(12,8,2,2,k.S);P(12,8,k.s);R(18,7,3,1,k.B);R(18,8,2,2,k.K);P(18,8,k.W);R(20,12,2,1,k.S);}
 /* unique chest pieces: f(R,P,over) draws the body when over is false, and the front arm after the head when true */
 ARM32.plate=[{m:'#8a5f3c',d:'#54371f',h:'#b58a5a',a:'#a6a0b4'},{m:'#8f94a8',d:'#565a70',h:'#c8ccd8',a:'#3a5ea8'},{m:'#2a2433',d:'#14101c',h:'#5d5672',a:'#e2782a',g:'#f2c14e'},{m:'#e8e0cc',d:'#a89c86',h:'#fffaf0',a:'#6e6680',g:'#9cc8ff'},{m:'#2a6e6e',d:'#1d2b52',h:'#5ec4b0',a:'#e8796a',g:'#c4ecff'}];
+ARM32.leather=[{m:'#8a5a32',d:'#4a2f1a',h:'#b98a52',a:'#3a2416'},{m:'#a8703f',d:'#6e4528',h:'#d8a86a',a:'#c43c3c'},{m:'#3a2e2a',d:'#1f1714',h:'#5a4a42',a:'#e2782a',g:'#f2c14e'},{m:'#d8ccb4',d:'#8f88a8',h:'#fff8ec',a:'#2a2433',g:'#9cc8ff'},{m:'#3a6a7a',d:'#1d3a4a',h:'#6fa8b8',a:'#e8f0f4',g:'#c4ecff'}];
 ARM32.robe=[{m:'#6b7a4a',d:'#3f4a2c',h:'#97a86a',a:'#8a5a32'},{m:'#d8b878',d:'#9a7a48',h:'#f0dca8',a:'#c43c3c'},{m:'#2e2630',d:'#171219',h:'#4a3f4a',a:'#e2782a',g:'#f2c14e'},{m:'#f4efe4',d:'#b8b0c8',h:'#ffffff',a:'#2a2433',g:'#9cc8ff'},{m:'#1f6a80',d:'#123f52',h:'#3fa8a8',a:'#5ec4b0',g:'#c4ecff'}];
 /* themed headgear and boots: each type has its own look per tier, matching the chest pieces */
 const helmB=(R,p,slit)=>{R(10,2,11,1,p.m);R(9,3,13,11,p.m);R(8,5,15,8,p.m);R(10,3,3,7,p.h);R(9,5,1,6,p.h);R(19,4,3,9,p.d);R(8,13,15,2,p.d);R(10,2,6,1,p.h);R(14,7,9,1,slit);R(18,8,1,4,slit);};
@@ -1000,6 +1001,37 @@ const ARM32X={plate:[
     R(14,18,4,4,d);R(15,19,2,2,w);P(15,19,'#ffffff');P(14,18,g);P(17,21,g);
     R(9,25,14,2,d);R(9,25,14,1,h);R(15,25,2,2,w);
     }
+],leather:[
+  // Patched Hide: stitched hides, a fur collar on the shoulders, a rope belt
+  (R,P,o)=>{const m='#8a5a32',d='#4a2f1a',h='#b98a52',f='#e8dcc4',e='#b8a88a',s='#c9b98a',n='#3a2416';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);R(21,20,3,2,h);P(21,20,s);P(23,21,s);R(20,15,7,2,f);R(20,16,7,1,e);P(26,17,e);R(22,23,5,3,SKIN.s);R(22,25,5,1,SKIN.S);return;}
+    R(10,27,4,3,m);R(10,29,4,1,d);R(15,27,3,2,d);R(18,27,4,3,d);P(11,30,m);P(20,30,d);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);R(13,17,5,4,h);P(13,17,s);P(17,17,s);P(13,20,s);P(17,20,s);R(18,22,4,3,n);P(18,22,s);P(21,24,s);
+    R(9,25,14,2,n);R(15,25,2,2,s);R(12,27,1,3,n);},
+  // Nomad Leathers: crossed bandoliers, a red sash, wrapped forearms, a side pouch
+  (R,P,o)=>{const m='#a8703f',d='#6e4528',h='#d8a86a',a='#c43c3c',b='#7a1f2b',w='#e8dcc4',n='#3a2416';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);R(21,19,5,1,w);R(21,21,5,1,w);R(24,19,2,1,'#b8a88a');R(24,21,2,1,'#b8a88a');R(22,23,5,3,SKIN.s);R(22,25,5,1,SKIN.S);return;}
+    R(10,27,12,2,d);R(11,27,3,5,a);R(13,27,1,5,b);P(11,32,b);R(18,27,4,3,d);R(18,27,4,1,m);P(19,28,w);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);for(let i=0;i<10;i++){R(21-i,15+i,2,1,n);R(10+i,15+i,1,1,n);}P(15,20,w);P(16,20,w);
+    R(9,25,14,2,a);R(9,26,14,1,b);R(15,25,2,2,w);},
+  // Ashhide: scorched leather, ember cracks, a burnt jagged hem
+  (R,P,o)=>{const m='#3a2e2a',d='#1f1714',h='#5a4a42',a='#e2782a',g='#f2c14e';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);P(22,18,a);P(23,19,g);P(22,21,a);for(const x of [21,23,25])P(x,23,d);R(22,23,5,3,SKIN.s);R(22,25,5,1,SKIN.S);P(27,16,a);return;}
+    for(let x=10;x<22;x++){const n=1+((x*5)%3);R(x,27,1,n,x>17?d:m);P(x,27+n,a);}
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);for(const [x,y,c] of [[14,16,a],[15,17,g],[14,18,a],[16,19,a],[17,20,g],[16,21,a],[12,20,a],[13,21,a],[18,17,a],[19,18,g]])P(x,y,c);
+    R(9,25,14,2,d);R(9,25,14,1,a);R(15,25,2,2,g);},
+  // Gravehide: pale leather, a row of bone clasps, stitched ribs, a skull on the belt
+  (R,P,o)=>{const m='#d8ccb4',d='#8f88a8',h='#fff8ec',c='#2a2433',g='#9cc8ff',b='#fffaf0';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);R(21,18,5,1,c);R(21,20,5,1,c);R(21,17,1,5,b);R(22,23,5,3,SKIN.s);R(22,25,5,1,SKIN.S);return;}
+    R(10,27,12,2,d);R(10,29,3,2,m);R(19,29,3,1,d);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);for(const y of [17,19,21,23])R(11,y,10,1,c);R(15,16,2,9,m);for(const y of [16,18,20,22])R(15,y,2,1,b);P(15,17,g);
+    R(9,25,14,2,c);R(14,24,4,3,b);P(14,25,c);P(17,25,c);P(15,26,c);P(16,26,c);},
+  // Sharkskin: sleek grey-blue with a pale belly, gills and a tooth necklace
+  (R,P,o)=>{const m='#3a6a7a',d='#1d3a4a',h='#6fa8b8',w='#e8f0f4',g='#c4ecff';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);R(26,18,1,4,h);R(27,19,1,2,g);R(21,21,5,1,w);R(22,23,5,3,SKIN.s);R(22,25,5,1,SKIN.S);return;}
+    R(10,27,12,2,d);R(10,27,12,1,m);R(13,27,6,3,w);R(13,29,6,1,h);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(13,17,6,9,w);R(18,17,1,9,h);R(10,16,2,8,h);for(const y of [19,21,23])R(20,y,2,1,'#0f2a36');for(let x=11;x<21;x+=2){P(x,16,w);P(x+1,17,'#f4efe4');}
+    R(9,25,14,2,d);R(15,25,2,2,g);}
 ],robe:[
   // Ragweave Robe: mossy sackcloth, patches, a rope belt, a torn hem
   (R,P,o)=>{const m='#6b7a4a',d='#3f4a2c',h='#97a86a',b='#8a5a32',n='#54371f',l='#b6e36a',s='#c9b98a';
@@ -1049,22 +1081,23 @@ const ARM32X={plate:[
     }
 ]};
 // themed details that sit on the far shoulder, at the same height as the near one
-const ARM32TOP={plate:[(R,P)=>{P(5,13,'#4f4a5c');R(8,12,1,2,'#a6a0b4');},null,null,(R,P)=>{R(4,14,7,4,'#e8e0cc');R(4,14,7,1,'#fffaf0');R(4,17,7,1,'#a89c86');R(5,15,2,2,'#2a2433');R(8,15,2,2,'#2a2433');P(5,15,'#9cc8ff');P(8,15,'#9cc8ff');for(let x=5;x<10;x+=2)P(x,17,'#2a2433');},(R,P)=>{R(6,7,2,7,'#e8796a');R(6,7,1,7,'#ffb3a8');R(3,9,3,1,'#e8796a');R(3,7,1,2,'#e8796a');R(8,10,3,1,'#e8796a');R(10,8,1,2,'#ffb3a8');P(6,6,'#ffb3a8');P(3,6,'#ffb3a8');P(10,7,'#ffb3a8');}],
+const ARM32TOP={leather:[null,null,null,null,(R,P)=>{R(6,11,1,5,'#6fa8b8');R(7,12,1,4,'#6fa8b8');R(8,13,1,3,'#3a6a7a');P(5,12,'#c4ecff');}],plate:[(R,P)=>{P(5,13,'#4f4a5c');R(8,12,1,2,'#a6a0b4');},null,null,(R,P)=>{R(4,14,7,4,'#e8e0cc');R(4,14,7,1,'#fffaf0');R(4,17,7,1,'#a89c86');R(5,15,2,2,'#2a2433');R(8,15,2,2,'#2a2433');P(5,15,'#9cc8ff');P(8,15,'#9cc8ff');for(let x=5;x<10;x+=2)P(x,17,'#2a2433');},(R,P)=>{R(6,7,2,7,'#e8796a');R(6,7,1,7,'#ffb3a8');R(3,9,3,1,'#e8796a');R(3,7,1,2,'#e8796a');R(8,10,3,1,'#e8796a');R(10,8,1,2,'#ffb3a8');P(6,6,'#ffb3a8');P(3,6,'#ffb3a8');P(10,7,'#ffb3a8');}],
   robe:[(R,P)=>{R(5,15,6,1,'#2f6b3a');for(const x of [5,7,10])P(x,14,'#b6e36a');P(8,14,'#6aa84f');},(R,P)=>{R(3,16,2,8,'#c43c3c');R(3,16,1,8,'#7a1f2b');},(R,P)=>{R(7,10,3,6,'#2e2630');R(7,10,1,6,'#4a3f4a');R(5,12,2,4,'#171219');P(6,11,'#4a3f4a');R(8,8,1,2,'#171219');P(4,9,'#e2782a');P(9,6,'#e2782a');P(3,5,'#f2c14e');},null,(R,P)=>{for(const [x,n] of [[5,5],[8,7]]){R(x,16-n,2,n,'#5ec4b0');R(x,16-n,1,n,'#c4ecff');}}]};
 // the far arm is the near arm mirrored, with a dark line so it stays apart from the chest
 function mirrorArm(g,f){const a=hgrid(),[R,P]=hpen(a);f(R,P);for(let y=0;y<HH;y++){let e=-1;for(let x=0;x<HW;x++)if(a[y][x]&&x<=30){g[y][30-x]=a[y][x];e=Math.max(e,30-x);}if(y>=17&&e>=0&&g[y][e+1])g[y][e+1]='#2a2638';}}
-function bodyX(at,tr,bt,btr){const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),plate=at==='plate',f=ARM32X[at][tr];
+const headOr=(R,P,no)=>{if(no)R(13,14,5,2,SKIN.S);else head32(R,P);};
+function bodyX(at,tr,bt,btr,noHead){const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),plate=at==='plate',f=ARM32X[at][tr];
   const bm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):{m:'#4a3324',d:'#2a1c12',h:'#6e4528'};
-  const pm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):plate?p:{m:'#4a4560',d:'#2e2a40',h:'#6e6680'};
-  if(plate){R(10,27,12,2,pm.m);R(10,29,5,6,pm.m);R(17,29,5,6,pm.m);R(13,29,2,6,pm.d);R(20,29,2,6,pm.d);R(10,29,1,6,pm.h);R(17,29,1,6,pm.h);R(15,27,2,2,pm.d);
+  const pm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):plate?p:at==='leather'?{m:'#5a3a22',d:'#3a2416',h:'#7a5232'}:{m:'#4a4560',d:'#2e2a40',h:'#6e6680'};
+  if(at!=='robe'){R(10,27,12,2,pm.m);R(10,29,5,6,pm.m);R(17,29,5,6,pm.m);R(13,29,2,6,pm.d);R(20,29,2,6,pm.d);R(10,29,1,6,pm.h);R(17,29,1,6,pm.h);R(15,27,2,2,pm.d);
     if(bt&&bt!=='shoes'){R(10,33,5,2,bm.m);R(17,33,5,2,bm.m);R(10,33,5,1,bm.h);R(17,33,5,1,bm.h);}
     if(bt==='greaves'){R(10,30,5,5,bm.m);R(17,30,5,5,bm.m);R(10,30,5,1,bm.h);R(17,30,5,1,bm.h);R(13,31,2,4,bm.d);R(20,31,2,4,bm.d);}
-    else{R(10,31,5,2,p.m);R(17,31,5,2,p.m);R(10,31,5,1,p.h);R(17,31,5,1,p.h);}}
+    else if(plate){R(10,31,5,2,p.m);R(17,31,5,2,p.m);R(10,31,5,1,p.h);R(17,31,5,1,p.h);}}
   R(9,35,6,4,bm.m);R(9,35,6,1,bm.h);R(17,35,7,4,bm.m);R(17,35,7,1,bm.h);R(22,37,2,2,bm.m);R(9,38,6,1,bm.d);R(17,38,7,1,bm.d);
   if(bt==='treads'){R(9,36,6,1,bm.d);R(17,36,7,1,bm.d);}
   if(bt)bootX(R,P,bt,btr);
   f(R,P,false);
-  mirrorArm(g,(r,q)=>f(r,q,true));const top=ARM32TOP[at][tr];if(top)top(R,P);f(R,P,true);head32(R,P);if(at==='robe'&&tr===1)scarf32(R);return g;}
+  mirrorArm(g,(r,q)=>f(r,q,true));const top=ARM32TOP[at][tr];if(top)top(R,P);f(R,P,true);headOr(R,P,noHead);if(at==='robe'&&tr===1)scarf32(R);return g;}
 // gear icons: the piece as it looks on the hero, without skin, centered at the same size as other icons
 function iconGrid(sl,ty,tr){const cut=(g,a,b)=>{for(let y=0;y<HH;y++)if(y<a||y>=b)g[y].fill(null);return g;};
   const fill=(g,c)=>{for(const row of g){const a=row.findIndex(Boolean),b=row.length-1-[...row].reverse().findIndex(Boolean);if(a>=0)for(let x=a;x<=b;x++)if(!row[x])row[x]=c;}return g;};
@@ -1080,7 +1113,7 @@ function gearIcon(sl,ty,tr,s){const key='aic'+sl+ty+tr;let c=SC[key];if(!c){cons
 const ARMN={plate:['Scrap Plate','Iron Plate','Obsidian Plate','Bone Plate','Abyssal Plate'],leather:['Patched Hide','Nomad Leathers','Ashhide','Gravehide','Sharkskin'],robe:['Ragweave Robe','Sandwrap Robe','Cinder Robe','Funeral Robe','Tidecaller Robe'],
   helm:['Scrap Bucket','Iron Helm','Obsidian Helm','Skull Helm','Abyssal Helm'],cap:['Patched Cap','Nomad Turban','Ash Cap','Grave Cap','Shark Cap'],hood:['Ragweave Hood','Sandwrap Hood','Cinder Hood','Funeral Hood','Tidecaller Hood'],
   greaves:['Scrap Greaves','Iron Greaves','Obsidian Greaves','Bone Greaves','Abyssal Greaves'],shoes:['Patched Boots','Nomad Boots','Ash Boots','Grave Boots','Shark Boots'],treads:['Ragweave Wraps','Sandwrap Sandals','Cinder Slippers','Funeral Slippers','Tidecaller Slippers']};
-function body32(at,tr,bt,btr){if(ARM32X[at]&&ARM32X[at][tr])return bodyX(at,tr,bt,btr);const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),robe=at==='robe',plate=at==='plate',lea=at==='leather';
+function body32(at,tr,bt,btr,noHead){if(ARM32X[at]&&ARM32X[at][tr])return bodyX(at,tr,bt,btr,noHead);const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),robe=at==='robe',plate=at==='plate',lea=at==='leather';
   const bm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):{m:'#4a3324',d:'#2a1c12',h:'#6e4528'};
   // legs and boots
   const pm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):plate?armP('plate',tr):lea?{m:'#5a3a22',d:'#3a2416',h:'#7a5232'}:{m:'#4a4560',d:'#2e2a40',h:'#6e6680'};
@@ -1127,7 +1160,7 @@ function body32(at,tr,bt,btr){if(ARM32X[at]&&ARM32X[at][tr])return bodyX(at,tr,b
     if(plate){R(22,23,5,3,p.m);R(22,23,5,1,p.h);R(22,25,5,1,p.d);if(tr===2){P(26,19,p.h);P(27,18,p.h);}if(tr===3)P(23,24,p.g);}
     else{R(22,23,5,3,SKIN.s);R(22,25,5,1,SKIN.S);}
     if(lea){R(21,21,5,2,tr===2?p.d:'#3a2416');if(tr===2){P(26,21,p.a);P(27,21,p.a);}}}};
-  mirrorArm(g,arm);arm(R,P);head32(R,P);if(lea&&tr===1){R(10,14,12,2,p.f);R(11,14,10,1,'#ffffff');}
+  mirrorArm(g,arm);arm(R,P);headOr(R,P,noHead);if(lea&&tr===1){R(10,14,12,2,p.f);R(11,14,10,1,'#ffffff');}
   return g;}
 function hat32(type,tr){const g=hgrid(),[R,P]=hpen(g);
   if(HAT32X[type]&&HAT32X[type][tr]){HAT32X[type][tr](R,P,armP(type==='helm'?'plate':type==='cap'?'leather':'robe',tr));return g;}
@@ -1230,7 +1263,7 @@ function heroParts(wt0,at0){const mine=wt0===undefined&&S&&S.gear,G=mine?S.gear:
 function heroCanvas(P,i){const key='h4:'+JSON.stringify(P)+':'+i;if(SC[key])return [key,SC[key]];const c=document.createElement('canvas');c.width=64;c.height=48;const x=c.getContext&&c.getContext('2d');
   if(x){if(P.wt&&WT[P.wt]){const m=ITEMSPR[P.wt];const base=m?m[0]:'i_'+P.wt,pal=m?m[1]:undefined;x.drawImage(wepFrame(tierSprite(base,P.wtr,P.uq),wepPal(base,P.wtr,P.uq,pal,P.al),P.aura,i),24-AM,4-AM);}
     if(P.ck)x.drawImage(hcv('ck'+P.ck+P.ctr+':'+i,()=>cloak32(P.ck,P.ctr,i/NF*6.283)),6,6);
-    x.drawImage(hcv('bd'+P.at+P.atr+P.bt+P.btr,()=>body32(P.at,P.atr,P.bt,P.btr)),6,6);
+    x.drawImage(hcv('bd'+P.at+P.atr+P.bt+P.btr+(P.hm==='helm'?'nh':''),()=>body32(P.at,P.atr,P.bt,P.btr,P.hm==='helm')),6,6);
     if(P.hm)x.drawImage(hcv('hm'+P.hm+P.htr,()=>hat32(P.hm,P.htr)),6,6);}
   SC[key]=c;return [key,c];}
 function heroImg(scale,wt,at){const P=heroParts(wt,at),n=(P.ck||P.aura.length)&&!RM?NF:1,urls=[];let k0='';
