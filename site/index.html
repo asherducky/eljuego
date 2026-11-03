@@ -1151,6 +1151,8 @@ const SLOTN={weapon:'Weapon',armor:'Armor',helm:'Helm',boots:'Boots',cloak:'Cloa
 const SLOTICON={weapon:'i_sword',armor:'i_leather',helm:'i_cap',boots:'i_shoes',cloak:'i_cape',gem1:'gemslot',gem2:'gemslot',gem3:'gemslot'};
 const gemOpen=s=>s!=='gem3'||(S&&S.cleared&&S.cleared.includes(2));
 const bagMax=()=>50+((S&&S.bagx)||0)*10,bagCost=()=>300*(((S&&S.bagx)||0)+1);
+// rarity raises an item's base stats
+const RARW=[1,1.1,1.15,1.2,1.25,1.3],RARA=[1,1.05,1.1,1.15,1.2,1.3];
 const TM=[1,3,8,18,36];          // base stat multiplier per tier
 const TMA=[1,1.8,3,4.5,6.5];       // flat bonus multiplier per tier
 const SCALED=['atk','def','hp','mp'];
@@ -1428,7 +1430,7 @@ function migrateRf(s){if(s.rfGone)return;let n=0,ess=0,gold=0;
     s.rfComp=`Sorry, reforges are gone! You had ${n} reforged item${n>1?'s':''}, so here are ${ess} essence and ${gold} gold.`;}}
 const ENCHCOL={venom:'#b6e36a',frost:'#6fb7e8',storm:'#f2c14e',fire:'#e2782a'};
 const enchCost=it=>4+it.tier*3+it.rar,enchPool=it=>Object.keys(ENCH).filter(k=>ENCH[k].slots.includes(it.slot)&&ENCH[k].area<S.unlocked);
-const enchSlots=it=>it.slot==='gem'?0:it.rar>=3?2:1;
+const enchSlots=it=>it.slot==='gem'?0:it.rar>=5?2:1;
 const SUPPLY=[
   {id:'potion',n:'Healing Potion ×2',cost:{moss:2},g:0,out:'potion',q:2,d:'Restores 40% HP'},
   {id:'ether',n:'Ether',cost:{wing:2},g:5,out:'ether',q:1,d:'Restores 40% MP'},
@@ -1464,7 +1466,7 @@ function genItem(tier,minRar=0,slot,maxRar){
   return mkItem(slot,type,tier,rar,affs,{q:QUAL[qi][1],qn:QUAL[qi][0]});
 }
 const affVal=(it,a)=>Math.round(a.v*(1+(it.slot==='weapon'?0:it.plus*0.05)));
-function itemBase(it){const T=TYPES[it.slot][it.type];const m=TM[it.tier]*(it.q||1)*(1+it.plus*(it.slot==='weapon'?0.03:0.05));const o={};
+function itemBase(it){const T=TYPES[it.slot][it.type];const m=TM[it.tier]*(it.slot==='weapon'?RARW:RARA)[it.rar||0]*(it.q||1)*(1+it.plus*(it.slot==='weapon'?0.03:0.05));const o={};
   for(const k of ['atk','def','hp','mp','dodge','crit','spd']) if(T[k]) o[k]=SCALED.includes(k)?Math.round(T[k]*m*10)/10:T[k];
   if(o.atk)o.atk=Math.round(o.atk);if(o.def)o.def=Math.round(o.def*10)/10;if(o.hp)o.hp=Math.round(o.hp);if(o.mp)o.mp=Math.round(o.mp);return o;}
 function itemStats(it){const o={...itemBase(it)};for(const a of it.affixes){o[a.id]=(o[a.id]||0)+affVal(it,a);}const r=rfStats(it);for(const k in r)o[k]=(o[k]||0)+r[k];return o;}
@@ -2046,8 +2048,9 @@ const restockCost=()=>10*(tierNow()+1);
 const matPrice=i=>8*(i+1);
 const hasMats=cost=>Object.entries(cost).every(([m,q])=>(S.mats[m]||0)>=q);
 const payMats=cost=>{for(const m in cost)S.mats[m]-=cost[m];};
+const supSlots=f=>f.crystal==='crys4'||f.crystal==='crys5'?2:1;
 function forgeSpec(){const f=S.fg;const [cat,type]=(f.type||'').split(':');const base=f.metal&&METAL[f.metal]!==undefined?f.metal:null;const tier=base?METAL[base]:0;
-  const al=base&&cat==='weapon'&&f.alloy&&ALLOYOF[f.alloy]&&alloyOpen(ALLOYOF[f.alloy])?ALLOYOF[f.alloy]:null;let fxn=0;const sup=(f.sups||[]).filter(m=>SUP[m]&&m!==base&&(!cat||SUP[m].to===(cat==='weapon'?'weapon':'armor'))).slice(0,2).filter(m=>!SUP[m].fx||fxn++<1);const cr=f.crystal&&CRYS[f.crystal]?f.crystal:null;
+  const al=base&&cat==='weapon'&&f.alloy&&ALLOYOF[f.alloy]&&alloyOpen(ALLOYOF[f.alloy])?ALLOYOF[f.alloy]:null;let fxn=0;const sup=(f.sups||[]).filter(m=>SUP[m]&&m!==base&&(!cat||SUP[m].to===(cat==='weapon'?'weapon':'armor'))).slice(0,supSlots(f)).filter(m=>!SUP[m].fx||fxn++<1);const cr=f.crystal&&CRYS[f.crystal]?f.crystal:null;
   const cost={};const add=(m,q)=>{cost[m]=(cost[m]||0)+q;};if(base)add(base,4);if(al)add(f.alloy,ALLOYS[al].q);for(const s of sup)add(s,SUP[s].q);if(cr)add(cr,1);
   const ok=!!(cat&&type&&TYPES[cat]&&TYPES[cat][type]&&(cat!=='weapon'||(WT[type].ft||0)<=tier));
   return {cat:cat||null,type:ok?type:null,tier,base,al,sup,cr,cost,g:base?BASEMAT[tier].g:0};}
@@ -2184,8 +2187,8 @@ const ACT={
   fgtype:v=>{S.fg.type=S.fg.type===v?null:v;},
   fgmetal:v=>{const f=S.fg;f.metal=f.metal===v?null:v;f.sups=(f.sups||[]).filter(m=>m!==f.metal);const [c,t]=(f.type||'').split(':');if(c==='weapon'&&WT[t]&&(WT[t].ft||0)>(f.metal?METAL[f.metal]:0))f.type=null;},
   fgalloy:v=>{S.fg.alloy=S.fg.alloy===v?null:v;},
-  fgsup:v=>{const m=S.fg.sups||[];S.fg.sups=m.includes(v)?m.filter(x=>x!==v):m.length<2?[...m,v]:m;},
-  fgcrys:v=>{S.fg.crystal=S.fg.crystal===v?null:v;},
+  fgsup:v=>{const m=S.fg.sups||[];const n=supSlots(S.fg);S.fg.sups=m.includes(v)?m.filter(x=>x!==v):m.length<n?[...m,v]:[...m.slice(0,n-1),v];},
+  fgcrys:v=>{S.fg.crystal=S.fg.crystal===v?null:v;S.fg.sups=(S.fg.sups||[]).slice(0,supSlots(S.fg));},
   fgclear:()=>{Object.assign(S.fg,{type:null,metal:null,alloy:null,sups:[],crystal:null});},
   fuse:v=>{const [t,g0]=v.split(':');const g=+g0;if(g>=4||S.gold<FUSEG[g])return;const pile=S.bag.filter(it=>it.slot==='gem'&&it.type===t&&it.g===g&&!it.lock).slice(0,3);if(pile.length<3)return;
     S.gold-=FUSEG[g];S.bag=S.bag.filter(it=>!pile.includes(it));const out=mkGem(t,g+1);addToBag([out]);fx('strike',{perfect:true});busyUntil=Date.now()+600;fx('forge',{item:out.uid,delay:400});},
@@ -2553,12 +2556,12 @@ function statRows(it){if(!it)return [];const rows=[];const W=it.slot==='weapon'?
   const st=itemStats(it),rf=rfStats(it);for(const k of ['def','hp','mp','crit','dodge','spd','str','dex','int','vit','luk','atk','ls','gold']){if(W&&k==='atk')continue;if(st[k])rows.push({k,l:LAB[k],v:st[k],pct:PCT.includes(k),rfv:rf[k]});}
   return rows;}
 const fmtRow=r=>!r?'—':r.g!==undefined?`<span class="grd g${r.g}">${GR[r.g]}</span>`:(r.v>0&&!['atk','def','hp','mp'].includes(r.k)?'+':'')+r.v+(r.pct?'%':'');
-function extrasHTML(it){if(!it)return '';const n=enchSlots(it);const TW=it.slot==='weapon'&&WT[it.type];
+function extrasHTML(it){if(!it)return '';const n=Math.max(enchSlots(it),(it.ench||[]).length);const TW=it.slot==='weapon'&&WT[it.type];
   const st=false&&SETSLOTS.includes(it.slot)&&SETS[it.tier||0]?(()=>{const B=SETS[it.tier||0],n=setCounts()[it.tier||0]||0;return `<div class="xl">◈ ${B.n} (${n}/4 worn): 2 · ${B.d2} — 4 · ${B.d4}</div>`;})():'';
   return st+(TW&&TW.tr?`<div class="xl">▸ ${TW.trn}: ${TW.tr}</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${f==='heart'?`Regenerate ${heartPct(it.tier||0)}% HP each turn`:FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
    +Array.from({length:n},(_,i)=>{const e=it.ench[i];if(!e)return '<div class="xl dim">· empty enchant slot</div>';const E=ENCH[e.id];return `<div class="xl arc" style="color:${ENCHCOL[E.el]||'var(--arc)'}">◆ ${e.g?'Greater ':''}${E.n}: ${e.g&&ENCHG[e.id]||E.d}</div>`;}).join('');}
 function headHTML(it){const W=it.slot==='weapon'?WT[it.type]:null;return `<div class="ih"><span class="icbox">${itemImg(it,3)}</span><div><div class="iname">${it.plus?`+${it.plus} `:''}${esc(it.name)}</div>
-  <div class="rar">${it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
+  <div class="rar">${it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n}${it.rar?` (+${Math.round(((it.slot==='weapon'?RARW:RARA)[it.rar]-1)*100)}% base)`:''} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
 function itemCard(it,actions,equipped){const rows=statRows(it);const W=it.slot==='weapon'?WT[it.type]:null;
   const ws=W?wepStat(it.type):null,gg=W?wepGrade(it):0;const grades=W?`<div class="grades">${['str','dex','int'].map(k=>{const g=k===ws?gg:0;return `<span class="gr g${g}">${STATL[k]} <span class="grd">${GR[g]}</span></span>`;}).join('')}</div>`:'';
   return `<div class="item r${it.rar}">${headHTML(it)}${equipped?'<span class="eqtag">Equipped</span>':''}
@@ -2733,7 +2736,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
   const alloys=Object.entries(ALLOYOF).map(([r,k])=>{const A=ALLOYS[k],have=S.mats[r]||0;if(!alloyOpen(k))return `<button class="pick off" disabled>${matImg(r,2)}<span>???<small>Opens in ${AREAS[A.ar].name}</small></span></button>`;
     return `<button class="pick ${f.alloy===r?'on':''} ${have<A.q?'short':''}" data-a="fgalloy" data-v="${r}">${matImg(r,2)}<span>${A.n}<small class="num">${have}/${A.q} ${MATS[r]}</small><small>${A.short}</small></span></button>`;}).join('');
   const sups=Object.keys(SUP).filter(m=>(S.mats[m]||0)>0&&m!==f.metal&&SUP[m].to===cat).map(m=>mB('fgsup',m,(f.sups||[]).includes(m),SUP[m].q,supLine(m,tier))).join('');
-  const crys=Object.keys(CRYS).filter(m=>(S.mats[m]||0)>0).map(m=>mB('fgcrys',m,f.crystal===m,1,'Makes it '+RAR[CRYS[m].r].n)).join('');
+  const crys=Object.keys(CRYS).filter(m=>(S.mats[m]||0)>0).map(m=>mB('fgcrys',m,f.crystal===m,1,'Makes it '+RAR[CRYS[m].r].n+': +'+Math.round((RARA[CRYS[m].r]-1)*100)+'% armor, +'+Math.round((RARW[CRYS[m].r]-1)*100)+'% weapon base'+(m==='crys5'?', second supplement and enchant':m==='crys4'?', second supplement':''))).join('');
   let prev=null;if(sp.cat&&sp.type&&sp.base){prev=forgedItem(sp,1);prev.qn='Quality: your strikes';prev.name=`${sp.al?ALLOYS[sp.al].n:TIERN[prev.tier]} ${TYPES[prev.slot][prev.type].n}`;}
   const need=!sp.base?'Choose a core metal. It sets the tier.':!cat?'Choose weapons or armor.':!sp.type?'Choose what to make.':'';
   const parts=sp.base?[[MATS[sp.base],`Tier ${tier+1} base stats`],sp.al?[ALLOYS[sp.al].n,ALLOYS[sp.al].short]:null,...sp.sup.map(s=>[MATS[s],supLine(s,tier)]),sp.cr?[MATS[sp.cr],RAR[CRYS[sp.cr].r].n+' rarity']:null,['Your 3 strikes','Quality: 0.9× to 1.2× base stats']].filter(Boolean):[];
@@ -2742,7 +2745,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
     ${sp.base?`${step(2,'Weapons or armor')}<div class="row">${catB('weapon','Weapons')}${catB('armor','Armor')}</div>`:''}
     ${sp.base&&cat?`${step(3,'What to make')}<div class="picks">${types}</div>`:''}
     ${sp.type?`${cat==='weapon'?`${step(4,'Alloy')} <span class="dim small">optional · changes how the weapon fights</span><div class="picks">${alloys}</div>`:''}
-      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">up to 2 · stronger at higher tiers · only one with a special effect · dodge caps at 30%</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
+      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">${supSlots(f)>1?'2 slots with this crystal':'1 slot · a Legendary or Mythic crystal adds a second'} · stronger at higher tiers · only one with a special effect · dodge caps at 30%</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
       ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}`:''}</div>
     <div class="sub anvil"><div class="row" style="justify-content:space-between"><h3>The anvil</h3>${sp.type||f.metal?'<button class="btn sm" data-a="fgclear">Clear</button>':''}</div>
       ${prev?itemCard(prev,''):`<p class="empty-s">${need}</p>`}
