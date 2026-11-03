@@ -12,7 +12,7 @@
   --bg:#120f1c; --panel:#231d33; --panel2:#2e2742; --panel3:#3a3152; --edge:#0a0812; --hi:#4d4369; --lo:#17121f;
   --ink:#f4efe4; --dim:#c3bcd8; --mute:#8f88a8; --gold:#f2c14e; --gold-hi:#fff1a8; --gold-lo:#a8702a;
   --hp:#d04848; --mp:#3a7ad8; --xp:#9a6ad8; --good:#7ccf6a; --bad:#ef6262; --arc:#c08cff;
-  --r0:#c9c2d6; --r1:#6fb7e8; --r2:#f2c14e; --r3:#c08cff; --r4:#ff8b45; --r5:#ff4fd8;
+  --r0:#a8a4b4; --r1:#7bd95a; --r2:#5a9cf0; --r3:#c08cff; --r4:#f2c14e; --r5:#ff4fd8;
   --f:"Silkscreen","Pixelify Sans","Courier New",monospace;
   --notch:polygon(3px 0,calc(100% - 3px) 0,calc(100% - 3px) 3px,100% 3px,100% calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,3px calc(100% - 3px),0 calc(100% - 3px),0 3px,3px 3px);
 }
@@ -234,8 +234,8 @@ img.spr{max-width:none}
 .bigstat{font-size:.95rem;color:var(--dim)}.bigstat b{font-size:1.35rem;color:var(--gold);text-shadow:2px 2px 0 #000}
 .grades{display:flex;gap:6px;flex-wrap:wrap}
 .gr{font-size:.8rem;padding:1px 7px;background:#0e0b16;box-shadow:inset 0 0 0 2px var(--edge);color:var(--mute)}
-.gr.g1,.gr.g2{color:var(--dim)}.gr.g3,.gr.g4{color:var(--ink)}.gr.g5{color:var(--gold)}.gr.g6,.gr.g7,.gr.g8{color:var(--r4);box-shadow:inset 0 0 0 2px #7a3a1a}
-.grd{font-family:"Press Start 2P",var(--f);font-size:.62rem;letter-spacing:.05em}.grd.g5{color:var(--gold)}.grd.g6,.grd.g7,.grd.g8{color:var(--r4)}.grd.g0{color:var(--mute)}
+.gr.g1,.gr.g2{color:var(--dim)}.gr.g3,.gr.g4{color:var(--ink)}.gr.g5{color:var(--gold)}.gr.g6,.gr.g7,.gr.g8{color:#ff8b45;box-shadow:inset 0 0 0 2px #7a3a1a}
+.grd{font-family:"Press Start 2P",var(--f);font-size:.62rem;letter-spacing:.05em}.grd.g5{color:var(--gold)}.grd.g6,.grd.g7,.grd.g8{color:#ff8b45}.grd.g0{color:var(--mute)}
 .item li{display:flex;justify-content:space-between;gap:8px}
 .xl{font-size:.82rem;line-height:1.3}.xl.gold{color:var(--gold)}
 .cmp2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -272,7 +272,7 @@ img.spr{max-width:none}
 .ach div{display:flex;flex-direction:column;font-size:.85rem;line-height:1.2}.ach span{font-size:.75rem}
 .ach.got{background:var(--panel2);color:var(--ink);box-shadow:inset 0 0 0 2px var(--gold-lo)}.ach.got img{filter:none}.ach.got span{color:var(--dim)}
 .invgrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}.invgrid>.sub:last-child{grid-column:1/-1}
-.doll{display:grid;grid-template-columns:repeat(3,64px);grid-template-areas:"helm hero gem1" "weapon hero gem2" "armor hero gem3" "cloak boots .";gap:6px}
+.doll{display:grid;grid-template-columns:64px auto 64px;grid-template-areas:"helm hero gem1" "weapon hero gem2" "armor hero gem3" "cloak boots .";gap:6px}
 .dollhero{grid-area:hero;display:grid;place-items:center;align-self:center}
 .bag{display:grid;grid-template-columns:repeat(auto-fill,64px);gap:6px}
 .cell{width:64px;height:64px;display:grid;place-items:center;position:relative;background:#0e0b16;border:0;cursor:pointer;padding:0;clip-path:var(--notch);box-shadow:inset 0 0 0 3px var(--rc,var(--edge))}
@@ -1158,7 +1158,7 @@ const TMA=[1,1.8,3,4.5,6.5];       // flat bonus multiplier per tier
 const SCALED=['atk','def','hp','mp'];
 const TIERN=['Iron','Steel','Obsidian','Hollow','Abyssal'];
 const RAR=[{n:'Common'},{n:'Uncommon'},{n:'Rare'},{n:'Epic'},{n:'Legendary'},{n:'Mythic'}];
-const RCOL=['#c9c2d6','#6fb7e8','#f2c14e','#c08cff','#ff8b45','#ff4fd8'];
+const RCOL=['#a8a4b4','#7bd95a','#5a9cf0','#c08cff','#f2c14e','#ff4fd8'];
 const QUAL=[["Crude",0.9],["Standard",1],["Fine",1.05],["Superior",1.12],["Masterwork",1.2]];
 const AFF={
   str:{l:'STR',lo:1,hi:2,suf:'of the Ox'}, dex:{l:'DEX',lo:1,hi:2,suf:'of the Fox'}, int:{l:'INT',lo:1,hi:2,suf:'of the Owl'},
@@ -2562,7 +2562,7 @@ function extrasHTML(it){if(!it)return '';const n=Math.max(enchSlots(it),(it.ench
   return st+(TW&&TW.tr?`<div class="xl">▸ ${TW.trn}: ${TW.tr}</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${f==='heart'?`Regenerate ${heartPct(it.tier||0)}% HP each turn`:FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
    +Array.from({length:n},(_,i)=>{const e=it.ench[i];if(!e)return '<div class="xl dim">· empty enchant slot</div>';const E=ENCH[e.id];return `<div class="xl arc" style="color:${ENCHCOL[E.el]||'var(--arc)'}">◆ ${e.g?'Greater ':''}${E.n}: ${e.g&&ENCHG[e.id]||E.d}</div>`;}).join('');}
 function headHTML(it){const W=it.slot==='weapon'?WT[it.type]:null;return `<div class="ih"><span class="icbox">${itemImg(it,3)}</span><div><div class="iname">${it.plus?`+${it.plus} `:''}${esc(it.name)}</div>
-  <div class="rar">${it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n}${it.rar?` (+${Math.round(((it.slot==='weapon'?RARW:RARA)[it.rar]-1)*100)}% base)`:''} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
+  <div class="rar">${it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
 function itemCard(it,actions,equipped){const rows=statRows(it);const W=it.slot==='weapon'?WT[it.type]:null;
   const ws=W?wepStat(it.type):null,gg=W?wepGrade(it):0;const grades=W?`<div class="grades">${['str','dex','int'].map(k=>{const g=k===ws?gg:0;return `<span class="gr g${g}">${STATL[k]} <span class="grd">${GR[g]}</span></span>`;}).join('')}</div>`:'';
   return `<div class="item r${it.rar}">${headHTML(it)}${equipped?'<span class="eqtag">Equipped</span>':''}
@@ -2987,7 +2987,7 @@ function vInv(){
   const mats=Object.entries(S.mats).filter(([,q])=>q>0).map(([m,q])=>`<div data-tip="mat:${m}">${matImg(m,2)}<span>${MATS[m]}</span><b class="num">${q}</b></div>`).join('');
   const junk=S.bag.filter(it=>it.rar<=1&&!it.lock).length;
   return `<section class="px panel"><div class="invgrid">
-    <div class="sub" style="align-items:center"><h3>Equipped</h3><div class="doll">${doll}<div class="dollhero">${heroImg(3).replace('idle','')}</div></div></div>
+    <div class="sub" style="align-items:center"><h3>Equipped</h3><div class="doll">${doll}<div class="dollhero">${heroImg(innerWidth<440?4:innerWidth<500?6:8).replace('idle','')}</div></div></div>
     <div class="sub" style="min-width:0"><div class="row" style="justify-content:space-between"><h3>Bag · <span class="num">${S.bag.length}/${bagMax()}</span></h3><div class="row">${(S.bagx||0)<5?`<button class="btn sm" data-a="bagx" ${S.gold>=bagCost()?'':'disabled'} data-tip="txt:Ten more bag slots">+10 slots ${coinImg(2)}<span class="num">${bagCost()}</span></button>`:''}<button class="btn sm ${UI.ms?'tab on':''}" data-a="msel">Select</button></div></div>
       <div class="row">${fb('all','All')}${fb('weapon','Weapons')}${fb('armor','Armor')}${fb('helm','Helms')}${fb('boots','Boots')}${fb('cloak','Cloaks')}${fb('gem','Gems')}</div>
       <div class="row"><span class="dim small">Sort</span>${sbn('rarity','Rarity')}${sbn('tier','Tier')}${sbn('new','Newest')}${sbn('custom','Custom')}<span class="dim small">Drag to arrange or onto a slot to equip · right-click to lock</span></div>
