@@ -139,6 +139,8 @@ canvas.scene{display:block;width:100%;height:auto}
 .tn{position:absolute;transform:translate(-50%,-50%);width:76px;display:flex;flex-direction:column;align-items:center;gap:1px;font:inherit;color:var(--ink);background:transparent;border:0;padding:0;cursor:pointer;z-index:2;text-align:center}
 .tn b{font-weight:normal;font-size:.62rem;line-height:1.1;text-shadow:1px 1px 0 #000}.tn .tpips{line-height:1;font-size:.62rem;text-shadow:1px 1px 0 #000}
 .tic{display:block;width:26px;height:26px;background:#2e2742;box-shadow:inset 0 0 0 2px #5d5672}.k-skill .tic{width:32px;height:32px;background:#3b2a52;box-shadow:inset 0 0 0 2px #8f88a8}.k-stat .tic{width:20px;height:20px}.k-pass .tic{background:#1d3b3a;box-shadow:inset 0 0 0 2px #5ec4b0;transform:rotate(45deg);margin:4px}.k-key .tic{background:#4a3010;box-shadow:inset 0 0 0 2px #e2782a;transform:rotate(45deg);margin:5px}
+.tlc{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}.tband.shut{background:repeating-conic-gradient(#0e0b14 0 25%,#141021 0 50%)!important;background-size:8px 8px!important}
+.tn img{display:block}.tn.sel img{outline:2px solid #ffffff;outline-offset:1px}.tn.can img{outline:2px solid #6aa84f;outline-offset:1px}.tn.sel.can img{outline-color:#ffffff}.tn.lock b{color:#8f88a8}.tn.taken{opacity:.35}.tnum{font-size:.58rem;color:#f2c14e;line-height:1;text-shadow:1px 1px 0 #000}
 .tn.got .tic{box-shadow:inset 0 0 0 2px #f2c14e;background:#5a4216}.tn.max .tic{background:#f2c14e}.tn.can .tic{box-shadow:inset 0 0 0 2px #f4efe4}.tn.sel .tic{outline:2px solid #ffffff;outline-offset:2px}.tn.lock{opacity:.55}
 .tdet{position:sticky;top:6px;height:330px;overflow:auto;background:#1a1626;display:flex;flex-direction:column;gap:6px}.tstat{min-height:24px}
 @media(max-width:640px){.ttree{grid-template-columns:1fr}.tdet{order:-1;height:210px}}.ttier{padding:10px;box-shadow:inset 0 0 0 2px var(--edge);display:flex;flex-direction:column;gap:6px}.ttier.shut{opacity:.6}
@@ -1457,7 +1459,7 @@ function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(
   for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.uq&&!UNIQ[it.uq]){it.uq=null;it.rar=3;it.name=itemName(it);}
   if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&(s.combat.ctx==='duel'||s.combat.ctx==='pvp'))s.combat=null;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
-  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);if(!s.treeV){s.treeV=1;s.tree=s.tree||{};s.stars=(s.stars||[]).filter(x=>!/^m1/.test(x)&&x!=='mDc');s.treeSync=1;}if(!s.atkGone){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.affixes)it.affixes=it.affixes.filter(a=>a.id!=='atk');s.atkGone=1;}return s;}
+  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);if(!s.treeV){s.stars=(s.stars||[]).filter(x=>!/^m1/.test(x)&&x!=='mDc');}if((s.treeV||0)<2){s.treeV=2;s.tree={};s.treeSync=1;}if(!s.atkGone){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.affixes)it.affixes=it.affixes.filter(a=>a.id!=='atk');s.atkGone=1;}return s;}
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();pvpPost();}}
 /* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
 // The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
@@ -2771,16 +2773,17 @@ const CTREE={medium:{tiers:[
   {n:'Adept',gate:15,bonus:'Momentum: hitting the same enemy on later turns adds +5% damage, up to +20%. Switching targets resets it.',groups:[{l:'Stats',ids:['precision','armorseeker']},{l:'Counter path',ids:['perfectguard','counterstance','steadyhand']},{l:'Duel path',ids:['iaido','flow','singlecombat']},{l:'Choose 1 stance',ids:['iron','flowing']}]},
   {n:'Master',gate:30,bonus:'Perfect Momentum: Momentum can reach +40%.',groups:[{l:'Techniques',ids:['thousand','bladestorm','dimcut']},{l:'Passives',ids:['geye','laststand']},{l:'Choose 1 keystone',ids:['wayblade','onecut']}]}],
   bands:[[67,100],[31,67],[0,31]],
-  labels:[['Duel path',17,33],['Counter path',83,33],['Choose 1',50,30.5],['Choose 1',50,1.5]],
+  labels:[['Duel path',15,33],['Counter path',85,33]],
   pos:{cleancut:[22,94],whirl:[50,94],riposte:[78,94],might:[8,79],finesse:[24,79],opening:[40,79],footwork:[60,79],guard:[76,79],focus:[92,79],
-    precision:[30,62],armorseeker:[70,62],iaido:[15,50],flow:[34,50],counterstance:[66,50],perfectguard:[85,50],singlecombat:[15,38],flowing:[40,38],iron:[60,38],steadyhand:[85,38],
-    thousand:[15,25],geye:[36,25],laststand:[64,25],bladestorm:[85,25],dimcut:[50,13],wayblade:[26,7],onecut:[74,7]},
+    precision:[30,62],armorseeker:[70,62],iaido:[15,50],flow:[34,50],counterstance:[66,50],perfectguard:[85,50],singlecombat:[15,38],flowing:[41,41],iron:[59,41],steadyhand:[85,38],
+    thousand:[14,23],geye:[31,24],laststand:[69,24],bladestorm:[86,23],dimcut:[50,17],wayblade:[39,5],onecut:[61,5]},
   links:[['cleancut','might'],['cleancut','finesse'],['whirl','opening'],['whirl','footwork'],['riposte','guard'],['riposte','focus'],
     ['finesse','precision'],['opening','precision'],['footwork','armorseeker'],['guard','armorseeker'],
     ['precision','iaido'],['precision','flow'],['armorseeker','counterstance'],['armorseeker','perfectguard'],
     ['iaido','singlecombat'],['flow','flowing'],['counterstance','iron'],['perfectguard','steadyhand'],
-    ['singlecombat','thousand'],['flowing','geye'],['iron','laststand'],['steadyhand','bladestorm'],
+    ['singlecombat','thousand'],['steadyhand','bladestorm'],['thousand','geye'],['bladestorm','laststand'],
     ['geye','dimcut'],['laststand','dimcut'],['thousand','wayblade'],['bladestorm','onecut']],
+  xor:[['flowing','iron'],['wayblade','onecut']],
   nodes:{cleancut:{k:'skill',max:3},whirl:{k:'skill',max:3},riposte:{k:'skill',max:3},perfectguard:{k:'skill',max:3},iaido:{k:'skill',max:3},thousand:{k:'skill',max:3},bladestorm:{k:'skill',max:3},dimcut:{k:'skill',max:3},
     opening:{k:'pass',n:'Opening Strike',r:['Your first hit each fight deals +25%']},
     might:{k:'stat',n:'Might',r:['+2% physical damage','+4% physical damage','+6% physical damage']},finesse:{k:'stat',n:'Finesse',r:['+4% crit damage','+8% crit damage','+12% crit damage']},guard:{k:'stat',n:'Guard',r:['+3% max HP','+6% max HP','+9% max HP']},
@@ -2798,21 +2801,34 @@ const tierOpen=(f,ti,skip)=>{let n=0;for(let k=0;k<ti;k++)n+=tierPts(f,k,skip);r
 const nodeName=id=>CNODE[id].n||SK[id].n;
 const nodeTaken=id=>{const X=CNODE[id];return !!X.x&&Object.keys(CTREE[X.f].nodes).some(o=>o!==id&&CTREE[X.f].nodes[o].x===X.x&&trk(o)>0);};
 const nodeLinks=(f,id,side)=>(CTREE[f].links||[]).filter(l=>l[side]===id).map(l=>l[1-side]);
-const nodeLinked=id=>{const X=CNODE[id],ps=nodeLinks(X.f,id,1);return !ps.length||ps.some(p=>trk(p)>0);};
+const nodeLinked=id=>{const X=CNODE[id],ps=nodeLinks(X.f,id,1);return ps.every(p=>trk(p)>0);};
 function canRank(id){const X=CNODE[id];return !!X&&trk(id)<X.max&&S.sp>=1&&tierOpen(X.f,X.t)&&!nodeTaken(id)&&nodeLinked(id);}
-function canUnrank(id){const X=CNODE[id];if(!X||trk(id)<1)return false;const T=CTREE[X.f];if(trk(id)===1&&nodeLinks(X.f,id,0).some(ch=>trk(ch)>0&&!nodeLinks(X.f,ch,1).some(p=>p!==id&&trk(p)>0)))return false;return T.tiers.every((t,ti)=>tierPts(X.f,ti,id)<=0||tierOpen(X.f,ti,id));}
+function canUnrank(id){const X=CNODE[id];if(!X||trk(id)<1)return false;const T=CTREE[X.f];if(trk(id)===1&&nodeLinks(X.f,id,0).some(ch=>trk(ch)>0))return false;return T.tiers.every((t,ti)=>tierPts(X.f,ti,id)<=0||tierOpen(X.f,ti,id));}
 function nodeLines(id){const X=CNODE[id];if(X.k!=='skill')return X.r;return [1,2,3].map(r=>{const o=S.tree[id];S.tree[id]=r;const d=SK[id].d;if(o===undefined)delete S.tree[id];else S.tree[id]=o;return d;});}
+const TNGLYPH={skill:['......CC','.....CC.','....CC..','C..CC...','.CCC....','..CC....','.C.C....','C.......'],stat:['...CC...','..CCCC..','.CCCCCC.','...CC...','...CC...','...CC...','...CC...','........'],
+  pass:['...CC...','..C..C..','.C.CC.C.','C.CCCC.C','C.CCCC.C','.C.CC.C.','..C..C..','...CC...'],key:['C..CC..C','CC.CC.CC','CCCCCCCC','CCCCCCCC','.CCCCCC.','........','.CCCCCC.','........']};
+const TNPAL={skill:{U:'#7a3fb0',u:'#2e1a40',C:'#e0c8ff'},stat:{U:'#8f88a8',u:'#1f1a2b',C:'#c9c2d6'},pass:{U:'#2a8a7a',u:'#0f2a36',C:'#7ee0cc'},key:{U:'#c0602a',u:'#3a1f10',C:'#ffc49a'},off:{U:'#3b3450',u:'#16121f',C:'#4a4560'}};
+function tnSprite(kind,lv){const key='tn_'+kind+lv;if(SPR[key])return key;const W=18,g=Array.from({length:W},()=>Array(W).fill('.')),gold=lv>=3;
+  for(let y=2;y<W-1;y++)for(let x=1;x<W-1;x++){const cx=Math.min(x-1,W-2-x),cy=Math.min(y-2,W-2-y);if(cx+cy<2)continue;g[y][x]=cx===0||cy===0||cx+cy===2?'k':cx===1||cy===1||cx+cy===3?(gold?'y':'U'):'u';}
+  TNGLYPH[kind].forEach((r,j)=>[...r].forEach((c,i)=>{if(c!=='.')g[j+6][i+5]=lv>=3?'Y':'C';}));
+  if(lv>=2)for(const [x,y] of [[2,5],[15,5],[2,14],[15,14],[5,3],[12,3],[5,16],[12,16]])g[y][x]=gold?'Y':'y';
+  if(gold){for(const x of [4,8,9,13]){g[1][x]='k';g[2][x]='y';}g[0][8]='k';g[0][9]='k';g[1][8]='Y';g[1][9]='Y';for(const x of [6,11])g[3][x]='Y';}
+  SPR[key]=g.map(r=>r.join(''));return key;}
+function drawTreeCanvases(){document.querySelectorAll('canvas.tlc').forEach(cv=>{const T=CTREE[cv.dataset.f];if(!T)return;const x=cv.getContext&&cv.getContext('2d');if(!x)return;const W=cv.width,H=cv.height;x.clearRect(0,0,W,H);
+  const pt=id=>[Math.round(T.pos[id][0]/100*W),Math.round(T.pos[id][1]/100*H)];
+  const seg=(a,b,col,dash)=>{let [x0,y0]=a;const [x1,y1]=b,dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx-dy,n=0;x.fillStyle=col;for(;;){if(!dash||(n>>1)%2===0)x.fillRect(x0,y0,1,1);n++;if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>-dy){e-=dy;x0+=sx;}if(e2<dx){e+=dx;y0+=sy;}}};
+  for(const [a,b] of T.links){const on=trk(a)>0&&trk(b)>0,next=trk(a)>0;seg(pt(a),pt(b),on?'#f2c14e':next?'#8f88a8':'#3b3450');}
+  for(const [a,b] of T.xor||[]){const A=pt(a),B=pt(b);seg(A,B,'#c43c3c',true);const mx=(A[0]+B[0])>>1,my=(A[1]+B[1])>>1;x.fillStyle='#ff6b5e';for(const d of [-2,-1,0,1,2]){x.fillRect(mx+d,my+d,1,1);x.fillRect(mx+d,my-d,1,1);}}});}
 function vTree(f){const T=CTREE[f],P=ctPts(f);const sel=UI.tsel&&CNODE[UI.tsel]&&CNODE[UI.tsel].f===f?UI.tsel:null;
   const bands=T.tiers.map((t,ti)=>{const [a,b]=T.bands[ti],open=tierOpen(f,ti);return `<div class="tband ${open?'':'shut'}" style="top:${a}%;height:${b-a}%"><span class="tbl"><b>${t.n}</b>${t.gate?` <span class="${open?'good':'dim'}">${open?'Unlocked':`${P}/${t.gate} points`}</span>`:''}</span></div>`;}).join('');
-  const lines=T.links.map(([a,b])=>{const A=T.pos[a],B=T.pos[b],on=trk(a)>0&&trk(b)>0,next=trk(a)>0&&!on;return `<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" class="${on?'on':next?'next':''}"/>`;}).join('');
   const labels=(T.labels||[]).map(([t,x,y])=>`<span class="tlab" style="left:${x}%;top:${y}%">${t}</span>`).join('');
-  const nodes=Object.entries(T.pos).map(([id,[x,y]])=>{const X=CNODE[id],r=trk(id),can=canRank(id);return `<button class="tn k-${X.k} ${id===sel?'sel':''} ${r?'got':''} ${r>=X.max?'max':''} ${can?'can':''} ${!r&&!can?'lock':''}" style="left:${x}%;top:${y}%" data-a="tsel" data-v="${id}" data-tip="tnode:${id}" aria-label="${esc(nodeName(id))}"><i class="tic"></i><b>${nodeName(id)}</b><span class="tpips">${X.max>1?'★'.repeat(r)+'☆'.repeat(X.max-r):r?'★':'☆'}</span></button>`;}).join('');
-  let det=`<p class="small dim">Tap a node to see it, and tap it again to spend a point.</p>${T.tiers.filter(t=>t.bonus).map(t=>`<p class="small ${tierOpen(f,T.tiers.indexOf(t))?'gold':'dim'}"><b>${t.n} bonus.</b> ${t.bonus}</p>`).join('')}`;
-  if(sel){const X=CNODE[sel],r=trk(sel),L=nodeLines(sel);const why=r>=X.max?'<span class="tag good">Maxed</span>':nodeTaken(sel)?'<span class="tag bad">You chose the other option</span>':!tierOpen(f,X.t)?`<span class="tag bad">Needs ${T.tiers[X.t].gate} points</span>`:!nodeLinked(sel)?'<span class="tag bad">Learn a linked node first</span>':S.sp<1?'<span class="tag bad">No star points</span>':'';
+  const nodes=Object.entries(T.pos).map(([id,[x,y]])=>{const X=CNODE[id],r=trk(id),can=canRank(id),tk=nodeTaken(id),lv=!r?0:X.max===1?3:r;const big=X.k==='skill'||X.k==='key';return `<button class="tn ${id===sel?'sel':''} ${r?'got':''} ${can?'can':''} ${!r&&!can?'lock':''} ${tk?'taken':''}" style="left:${x}%;top:${y}%" data-a="tsel" data-v="${id}" data-tip="tnode:${id}" aria-label="${esc(nodeName(id))}">${sprImg(tnSprite(X.k,lv),big?3:2,'',r?TNPAL[X.k]:can?TNPAL[X.k]:TNPAL.off)}<b>${nodeName(id)}</b>${X.max>1?`<span class="tnum num">${r}/${X.max}</span>`:''}</button>`;}).join('');
+  let det=`<p class="small dim">Tap a node to see it, and tap it again to spend a point. Everything linked below a node must be learned first. A red × between two nodes means you can only pick one.</p>${T.tiers.filter(t=>t.bonus).map(t=>`<p class="small ${tierOpen(f,T.tiers.indexOf(t))?'gold':'dim'}"><b>${t.n} bonus.</b> ${t.bonus}</p>`).join('')}`;
+  if(sel){const X=CNODE[sel],r=trk(sel),L=nodeLines(sel);const why=r>=X.max?'<span class="tag good">Maxed</span>':nodeTaken(sel)?'<span class="tag bad">You chose the other option</span>':!tierOpen(f,X.t)?`<span class="tag bad">Needs ${T.tiers[X.t].gate} points</span>`:!nodeLinked(sel)?'<span class="tag bad">Learn everything linked below first</span>':S.sp<1?'<span class="tag bad">No star points</span>':'';
     det=`<div class="row"><button class="btn primary" data-a="tadd" data-v="${sel}" ${canRank(sel)?'':'disabled'}>${r?'Rank up':'Learn'} ★</button><button class="btn sm" data-a="tsub" data-v="${sel}" ${canUnrank(sel)?'':'disabled'}>Refund</button></div>
       <div class="tstat">${why||`<span class="tag">${({skill:'Skill',stat:'Stat',pass:'Passive',key:'Choose 1'})[X.k]}${X.k==='skill'?` · ${SK[sel].mp} MP`:''}</span>`}</div>
       <b style="color:${SUBS[f].col}">${nodeName(sel)}</b>${L.map((d,k)=>`<p class="small ${k<r?'gold':'dim'}">${L.length>1?'★'.repeat(k+1)+' ':''}${d}</p>`).join('')}`;}
-  return {tiers:`<div class="tboard">${bands}<svg class="tlines" viewBox="0 0 100 100" preserveAspectRatio="none">${lines}</svg>${labels}${nodes}</div>`,det,P};}
+  return {tiers:`<div class="tboard">${bands}<canvas class="tlc" data-f="${f}" width="250" height="254"></canvas>${labels}${nodes}</div>`,det,P};}
 function vSkills(){
   const T=S.starTab||'melee';const sel=S.selStar&&STARS[S.selStar]&&STARS[S.selStar].tree===T?S.selStar:null;const ps=PS();
   const hs=Object.entries(STARS).filter(([,s])=>s.tree===T).map(([id,s])=>`<button class="hot star ${id===sel?'sel':''}" data-a="selstar" data-v="${id}" data-tip="star:${id}" style="left:${(s.x-6)/256*100}%;top:${(s.y-6)/190*100}%;width:${12/256*100}%;height:${12/190*100}%" aria-label="${esc(s.n)}"></button>`).join('');
@@ -3328,7 +3344,7 @@ function render(quiet){if(S&&S.treeSync&&Object.keys(STARS).length)syncTree();hi
   document.getElementById('top').innerHTML=vTop();document.getElementById('tabs').innerHTML=vTabs();
   if(S.combat&&S.tab!=='settings'&&S.tab!=='explore')S.tab='explore';
   const v=S.tab==='settings'?vSettings():S.combat?vBattle():({explore:vExplore,town:vTown,char:vChar,skills:vSkills,inv:vInv,beast:vBeast,online:vOnline}[S.tab]||vExplore)();
-  document.getElementById('main').innerHTML=v;
+  document.getElementById('main').innerHTML=v;drawTreeCanvases();
   document.querySelectorAll('canvas.scene').forEach(cv=>{try{drawScene(cv,performance.now());}catch(e){}});
   const lg=document.getElementById('log');if(lg)lg.scrollTop=lg.scrollHeight;
   setAmb(mode());const d=derive();document.getElementById('vig').style.opacity=S.combat&&!S.combat.over&&S.hp<d.maxHp*.3?1:0;
