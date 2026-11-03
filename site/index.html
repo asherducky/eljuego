@@ -900,6 +900,64 @@ function head32(R,P){const k=SKIN;R(13,14,5,2,k.S);R(11,3,12,11,k.s);R(11,11,2,3
 /* unique chest pieces: f(R,P,over) draws the body when over is false, and the front arm after the head when true */
 ARM32.plate=[{m:'#8a5f3c',d:'#54371f',h:'#b58a5a',a:'#a6a0b4'},{m:'#8f94a8',d:'#565a70',h:'#c8ccd8',a:'#3a5ea8'},{m:'#2a2433',d:'#14101c',h:'#5d5672',a:'#e2782a',g:'#f2c14e'},{m:'#e8e0cc',d:'#a89c86',h:'#fffaf0',a:'#6e6680',g:'#9cc8ff'},{m:'#2a6e6e',d:'#1d2b52',h:'#5ec4b0',a:'#e8796a',g:'#c4ecff'}];
 ARM32.robe=[{m:'#6b7a4a',d:'#3f4a2c',h:'#97a86a',a:'#8a5a32'},{m:'#d8b878',d:'#9a7a48',h:'#f0dca8',a:'#c43c3c'},{m:'#2e2630',d:'#171219',h:'#4a3f4a',a:'#e2782a',g:'#f2c14e'},{m:'#f4efe4',d:'#b8b0c8',h:'#ffffff',a:'#2a2433',g:'#9cc8ff'},{m:'#1f6a80',d:'#123f52',h:'#3fa8a8',a:'#5ec4b0',g:'#c4ecff'}];
+/* themed headgear and boots: each type has its own look per tier, matching the chest pieces */
+const helmB=(R,p,slit)=>{R(10,2,11,1,p.m);R(9,3,13,11,p.m);R(8,5,15,8,p.m);R(10,3,3,7,p.h);R(9,5,1,6,p.h);R(19,4,3,9,p.d);R(8,13,15,2,p.d);R(10,2,6,1,p.h);R(14,7,9,1,slit);R(18,8,1,4,slit);};
+const capB=(R,p)=>{R(9,0,13,4,p.m);R(8,2,4,6,p.m);R(10,0,9,1,p.h);R(11,1,4,1,p.h);R(13,4,12,2,p.d);R(13,4,12,1,p.m);};
+const hoodB=(R,p,t)=>{for(let y=0;y<16;y++){const x0=y<3?10-y:7,x1=y<3?18+y:(y<12?23:21-(y-12));R(x0,y,x1-x0+1,1,p.m);}R(13,4,10,10,null);R(12,4,1,10,t);R(13,3,10,1,t);R(7,6,3,8,p.d);R(8,1,2,4,p.h);for(let y=14;y<20;y++)R(6,y,y>17?4:5,1,p.m);R(6,14,1,6,p.d);};
+const HAT32X={helm:[
+  // Scrap Bucket: a rusty bucket with a tin patch, rivets and a handle
+  (R,P,p)=>{const i='#7a7488',k='#a6a0b4',b='#d8c8a0',s='#54371f';R(9,1,13,13,p.m);R(8,3,1,9,p.d);R(9,1,13,1,p.h);R(19,2,3,12,p.d);R(9,4,13,1,s);R(9,13,14,2,i);R(9,13,14,1,k);R(15,7,8,1,'#1f1a2b');P(16,10,'#1f1a2b');P(19,10,'#1f1a2b');R(10,8,3,3,i);P(10,8,k);P(10,5,b);P(14,5,b);P(10,12,b);P(12,2,p.d);R(7,6,1,3,s);},
+  // Iron Helm: clean visor, blue crest and neck guard
+  (R,P,p)=>{helmB(R,p,'#1f1a2b');R(8,13,15,2,'#3a5ea8');R(12,0,8,2,'#3a5ea8');R(13,0,4,1,'#6fb7e8');P(11,5,p.h);P(11,11,p.h);},
+  // Obsidian Helm: black horns and spikes, a molten visor
+  (R,P,p)=>{helmB(R,p,'#f2c14e');R(18,8,1,4,'#e2782a');P(11,8,'#e2782a');P(12,9,'#e2782a');P(11,10,'#f2c14e');for(const x of [10,13,16,19])R(x,0,1,2,p.h);R(5,6,3,1,p.h);P(4,5,p.h);P(3,4,p.h);R(23,6,2,1,p.h);P(25,5,p.h);P(26,4,p.h);},
+  // Skull Helm: an open-jawed skull with cold blue eyes
+  (R,P,p)=>{const c='#2a2433',g='#9cc8ff';R(10,2,11,1,p.m);R(9,3,13,8,p.m);R(8,5,15,6,p.m);R(10,3,3,5,p.h);R(19,4,3,7,p.d);R(14,6,3,3,c);R(19,6,3,3,c);P(15,7,g);P(20,7,g);R(17,9,2,2,c);R(11,11,11,3,p.m);R(19,11,3,3,p.d);for(let x=12;x<22;x+=2)R(x,12,1,2,c);P(12,4,p.d);P(13,5,p.d);},
+  // Abyssal Helm: a finned crest, gills, a pearl and a coral branch
+  (R,P,p)=>{const c='#e8796a',e='#ffb3a8';helmB(R,p,p.g);R(13,0,7,2,p.h);for(const x of [14,16,18])R(x,0,1,2,p.d);for(const x of [10,12])R(x,8,1,3,p.d);P(11,12,'#f4efe4');R(6,4,2,1,c);P(5,3,c);P(7,3,e);P(5,2,e);}
+],cap:[
+  // Patched Cap: stitched scraps
+  (R,P,p)=>{capB(R,p);R(9,3,13,1,'#3a2416');R(13,1,3,2,p.h);P(13,1,'#e8dcc4');P(15,2,'#e8dcc4');R(17,0,3,2,p.d);P(18,1,'#e8dcc4');},
+  // Nomad Turban: wrapped cloth, a red jewel, a trailing tail
+  (R,P,p)=>{const c='#e8dcc4',d='#b8a88a';R(8,0,15,6,c);R(10,0,10,1,'#fff8ec');R(8,2,15,1,d);R(8,4,15,1,d);R(16,2,2,2,'#c43c3c');P(16,2,'#ff6b5e');R(6,4,3,8,c);R(6,4,1,8,d);},
+  // Ash Cap: a scorched wide brim with live embers
+  (R,P,p)=>{const m='#2e2630',d='#171219';capB(R,{m,d,h:'#4a3f4a'});R(8,3,18,2,d);R(9,3,13,1,'#e2782a');P(12,1,'#e2782a');P(18,2,'#f2c14e');P(25,3,'#e2782a');},
+  // Grave Cap: pale leather, a black band, a small skull
+  (R,P,p)=>{const c='#2a2433';capB(R,p);R(9,3,13,1,c);R(15,0,4,3,'#fffaf0');P(15,1,c);P(17,1,c);P(16,2,c);R(20,1,2,1,'#fffaf0');},
+  // Shark Cap: a fin on top and a row of teeth along the brim
+  (R,P,p)=>{capB(R,p);R(9,3,13,1,p.d);R(11,0,4,1,p.g);R(12,1,3,1,p.h);for(let x=13;x<25;x+=2)P(x,6,'#f4efe4');P(21,2,'#1f1a2b');}
+],hood:[
+  // Ragweave Hood: mossy sackcloth, a patch, torn edges
+  (R,P,p)=>{hoodB(R,p,p.h);R(9,1,3,1,'#2f6b3a');P(11,0,'#b6e36a');P(15,0,'#b6e36a');P(8,2,'#6aa84f');R(8,8,2,3,'#8a5a32');P(8,8,'#c9b98a');R(7,19,1,1,null);R(9,18,1,2,null);},
+  // Sandwrap Hood: desert cloth with a mouth wrap and a red band
+  (R,P,p)=>{hoodB(R,p,p.a);R(13,10,10,4,p.m);R(13,10,10,1,p.h);R(13,12,10,1,p.d);R(12,4,1,6,p.a);},
+  // Cinder Hood: a burnt point, ember trim, drifting sparks
+  (R,P,p)=>{hoodB(R,p,p.a);R(6,0,2,1,p.d);P(10,0,p.a);P(9,1,p.a);P(4,2,p.a);P(3,0,p.g);for(const x of [6,8])P(x,19,p.a);P(8,5,p.g);},
+  // Funeral Hood: a white shroud, black brow band, grave beads
+  (R,P,p)=>{hoodB(R,p,p.a);for(const x of [14,17,20])P(x,3,'#a89c86');R(6,19,4,1,p.a);P(8,15,'#a89c86');P(8,17,'#a89c86');},
+  // Tidecaller Hood: a fin crest, pearls, a foam trim
+  (R,P,p)=>{hoodB(R,p,p.g);for(const x of [10,12,14])P(x,0,p.g);R(6,19,4,1,'#c4ecff');P(9,16,'#f4efe4');P(10,18,'#f4efe4');P(5,8,p.a);P(4,7,p.g);P(5,6,p.a);}
+]};
+const BOOT32X={greaves:[
+  (R,P,x,w,p)=>{R(x+1,31,3,2,'#7a7488');R(x+1,31,3,1,'#a6a0b4');P(x+1,32,'#d8c8a0');R(x,34,5,1,'#3a2416');R(x+w-3,36,3,2,'#7a7488');R(x+w-3,36,3,1,'#a6a0b4');P(x+1,37,'#d8c8a0');},
+  (R,P,x,w,p)=>{R(x+1,30,3,2,p.h);R(x,34,5,1,'#3a5ea8');R(x,36,w,1,p.d);},
+  (R,P,x,w,p)=>{P(x-1,31,p.h);P(x-2,30,p.h);P(x+2,31,p.a);P(x+3,32,p.g);P(x+2,33,p.a);R(x,38,w,1,p.a);P(x+w,37,p.h);},
+  (R,P,x,w,p)=>{const c='#2a2433';R(x,31,5,3,c);R(x+1,30,1,5,p.m);R(x+3,30,1,5,p.m);R(x,32,5,1,p.h);R(x,35,w,1,p.h);for(let i=x;i<x+w;i+=2)P(i,38,c);P(x+w,38,p.m);},
+  (R,P,x,w,p)=>{P(x+1,31,p.h);P(x+3,32,p.h);P(x+1,33,p.h);P(x-1,35,p.h);P(x-2,34,p.h);P(x-3,33,p.g);R(x+1,36,w-2,1,p.h);P(x+2,37,'#f4efe4');}
+],shoes:[
+  (R,P,x,w,p)=>{R(x+1,36,2,2,p.h);P(x+1,36,'#e8dcc4');P(x+2,37,'#e8dcc4');R(x+3,35,2,1,p.d);R(x,34,5,1,'#e8dcc4');},
+  (R,P,x,w,p)=>{R(x,33,5,1,'#e8dcc4');R(x,34,5,1,'#b8a88a');R(x,36,w,1,p.d);P(x+w,37,p.m);P(x+w,38,p.d);},
+  (R,P,x,w,p)=>{R(x,35,w,4,'#2e2630');R(x,35,w,1,'#4a3f4a');P(x+1,36,'#e2782a');P(x+4,37,'#f2c14e');R(x,38,w,1,'#e2782a');},
+  (R,P,x,w,p)=>{R(x,34,5,1,p.m);R(x+2,36,2,2,'#fffaf0');P(x+2,36,'#2a2433');R(x,38,w,1,p.d);},
+  (R,P,x,w,p)=>{R(x,36,w,1,p.h);P(x-1,35,p.h);P(x-2,34,p.g);P(x-1,36,p.m);R(x,38,w,1,'#f4efe4');P(x+w-1,37,'#f4efe4');}
+],treads:[
+  (R,P,x,w,p)=>{R(x,33,5,2,p.d);R(x,35,w,1,p.d);R(x,37,w,1,p.d);P(x+1,34,'#b6e36a');P(x+3,33,'#6aa84f');},
+  (R,P,x,w,p)=>{R(x,36,w,2,SKIN.s);R(x,35,w,1,'#8a5a32');R(x,38,w,1,'#54371f');R(x+2,36,1,2,'#8a5a32');R(x,34,5,1,'#8a5a32');},
+  (R,P,x,w,p)=>{R(x,38,w,1,p.a);P(x+1,37,p.g);P(x+w-2,36,p.a);P(x+w,36,p.m);P(x+w,35,p.h);},
+  (R,P,x,w,p)=>{R(x,36,w,1,p.a);P(x+1,37,'#a89c86');P(x+3,37,'#a89c86');R(x,38,w,1,p.d);},
+  (R,P,x,w,p)=>{R(x,36,w,1,p.a);P(x+w,37,p.a);P(x+w,36,p.g);P(x+w-1,35,p.g);R(x,38,w,1,'#c4ecff');P(x+1,37,'#f4efe4');}
+]};
+function bootX(R,P,bt,tr){const f=BOOT32X[bt]&&BOOT32X[bt][tr];if(!f)return;const p=armP(bt==='greaves'?'plate':bt==='shoes'?'leather':'robe',tr);f(R,P,9,6,p);f(R,P,17,7,p);}
 const scarf32=R=>{R(10,14,12,2,'#c43c3c');R(10,15,12,1,'#7a1f2b');R(11,14,6,1,'#ff6b5e');};
 const ARM32X={plate:[
   // Scrap Plate: rusty sheets, a grey tin patch, bolts, a dented pan on the shoulder
@@ -1004,24 +1062,24 @@ function bodyX(at,tr,bt,btr){const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),plate=a
     else{R(10,31,5,2,p.m);R(17,31,5,2,p.m);R(10,31,5,1,p.h);R(17,31,5,1,p.h);}}
   R(9,35,6,4,bm.m);R(9,35,6,1,bm.h);R(17,35,7,4,bm.m);R(17,35,7,1,bm.h);R(22,37,2,2,bm.m);R(9,38,6,1,bm.d);R(17,38,7,1,bm.d);
   if(bt==='treads'){R(9,36,6,1,bm.d);R(17,36,7,1,bm.d);}
+  if(bt)bootX(R,P,bt,btr);
   f(R,P,false);
-  if(btr===4&&bt&&plate){for(const x0 of [9,17]){P(x0-1,35,bm.h);P(x0-2,34,bm.h);P(x0-3,33,bm.g||'#c4ecff');}}
   mirrorArm(g,(r,q)=>f(r,q,true));const top=ARM32TOP[at][tr];if(top)top(R,P);f(R,P,true);head32(R,P);if(at==='robe'&&tr===1)scarf32(R);return g;}
 // gear icons: the piece as it looks on the hero, without skin, centered at the same size as other icons
 function iconGrid(sl,ty,tr){const cut=(g,a,b)=>{for(let y=0;y<HH;y++)if(y<a||y>=b)g[y].fill(null);return g;};
   const fill=(g,c)=>{for(const row of g){const a=row.findIndex(Boolean),b=row.length-1-[...row].reverse().findIndex(Boolean);if(a>=0)for(let x=a;x<=b;x++)if(!row[x])row[x]=c;}return g;};
-  if(sl==='helm')return ty==='hood'?fill(hat32(ty,tr),'#1f1a2b'):hat32(ty,tr);
-  // cloaks hang behind the body, so the icon mirrors the visible half into a whole cloak
-  if(sl==='cloak'){const g=cloak32(ty,tr,0);let e=0;for(const row of g)row.forEach((v,x)=>{if(v)e=Math.max(e,x);});const o=hgrid();g.forEach((row,y)=>row.forEach((v,x)=>{if(v){o[y][x-Math.max(0,2*e-HW+2)]=v;const m=2*e+1-x-Math.max(0,2*e-HW+2);if(m<HW)o[y][m]=v;}}));return fill(o,CLOAK32[ty]?CLOAK32[ty].d:'#1d2b52');}
+  if(sl==='helm')return ty==='hood'?fill(hat32(ty,tr),armP('robe',tr).d):hat32(ty,tr);
   // boots: the two feet side by side, shown larger
-  if(sl==='boots'){const g=cut(body32('none',0,ty,tr),ty==='greaves'?30:33,HH);for(const row of g){for(let x=15;x>=1;x--)row[x]=row[x-1];}return g;}
+  if(sl==='boots'){const g=cut(body32('none',0,ty,tr),ty==='greaves'?29:33,HH);for(const row of g){for(let x=15;x>=1;x--)row[x]=row[x-1];}return g;}
   const f=ARM32X[ty]&&ARM32X[ty][tr];if(!f)return cut(body32(ty,tr,null,0),14,27);
   const g=hgrid(),[R,P]=hpen(g);f(R,P,false);mirrorArm(g,(r,q)=>f(r,q,true));const top=ARM32TOP[ty][tr];if(top)top(R,P);f(R,P,true);if(ty==='robe'&&tr===1)scarf32(R);return g;}
 function gearIcon(sl,ty,tr,s){const key='aic'+sl+ty+tr;let c=SC[key];if(!c){const g=iconGrid(sl,ty,tr);let t=HH,b=0,l=HW,r=0;
     for(let y=0;y<HH;y++)for(let x=0;x<HW;x++){if(g[y][x]===SKIN.s||g[y][x]===SKIN.S)g[y][x]=null;if(g[y][x]){t=Math.min(t,y);b=Math.max(b,y);l=Math.min(l,x);r=Math.max(r,x);}}
     c=document.createElement('canvas');c.width=32;c.height=32;const x=c.getContext&&c.getContext('2d');const k=sl==='boots'?2:1,o=gcanvas(g);if(x){x.imageSmoothingEnabled=false;x.drawImage(o,Math.round((32-(r-l+1)*k)/2)-(l+1)*k,Math.round((32-(b-t+1)*k)/2)-(t+1)*k,o.width*k,o.height*k);}SC[key]=c;}
   return '<img class="spr" src="'+canvasURL(key,c)+'" width="'+16*s+'" height="'+16*s+'" alt="">';}
-const ARMN={plate:['Scrap Plate','Iron Plate','Obsidian Plate','Bone Plate','Abyssal Plate'],leather:['Patched Hide','Nomad Leathers','Ashhide','Gravehide','Sharkskin'],robe:['Ragweave Robe','Sandwrap Robe','Cinder Robe','Funeral Robe','Tidecaller Robe']};
+const ARMN={plate:['Scrap Plate','Iron Plate','Obsidian Plate','Bone Plate','Abyssal Plate'],leather:['Patched Hide','Nomad Leathers','Ashhide','Gravehide','Sharkskin'],robe:['Ragweave Robe','Sandwrap Robe','Cinder Robe','Funeral Robe','Tidecaller Robe'],
+  helm:['Scrap Bucket','Iron Helm','Obsidian Helm','Skull Helm','Abyssal Helm'],cap:['Patched Cap','Nomad Turban','Ash Cap','Grave Cap','Shark Cap'],hood:['Ragweave Hood','Sandwrap Hood','Cinder Hood','Funeral Hood','Tidecaller Hood'],
+  greaves:['Scrap Greaves','Iron Greaves','Obsidian Greaves','Bone Greaves','Abyssal Greaves'],shoes:['Patched Boots','Nomad Boots','Ash Boots','Grave Boots','Shark Boots'],treads:['Ragweave Wraps','Sandwrap Sandals','Cinder Slippers','Funeral Slippers','Tidecaller Slippers']};
 function body32(at,tr,bt,btr){if(ARM32X[at]&&ARM32X[at][tr])return bodyX(at,tr,bt,btr);const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),robe=at==='robe',plate=at==='plate',lea=at==='leather';
   const bm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):{m:'#4a3324',d:'#2a1c12',h:'#6e4528'};
   // legs and boots
@@ -1032,6 +1090,7 @@ function body32(at,tr,bt,btr){if(ARM32X[at]&&ARM32X[at][tr])return bodyX(at,tr,b
   else if(plate){R(10,31,5,2,p.m);R(17,31,5,2,p.m);R(10,31,5,1,p.h);R(17,31,5,1,p.h);}
   R(9,35,6,4,bm.m);R(9,35,6,1,bm.h);R(17,35,7,4,bm.m);R(17,35,7,1,bm.h);R(22,37,2,2,bm.m);R(9,38,6,1,bm.d);R(17,38,7,1,bm.d);
   if(bt==='treads'){R(9,36,6,1,bm.d);R(17,36,7,1,bm.d);}
+  if(bt)bootX(R,P,bt,btr);
   if(robe){R(9,26,14,10,p.m);R(8,30,16,6,p.m);R(19,26,4,10,p.d);R(21,30,3,6,p.d);R(15,27,1,9,p.d);R(8,35,16,1,p.h);R(9,26,1,4,p.h);
     if(tr===1){for(let x=8;x<24;x+=2)P(x,34,p.a);R(15,26,1,9,p.a);}
     if(tr===2){for(let x=8;x<24;x+=2)P(x,36,p.m);R(8,35,16,1,p.a);P(12,31,p.g);P(19,29,p.g);}
@@ -1062,7 +1121,6 @@ function body32(at,tr,bt,btr){if(ARM32X[at]&&ARM32X[at][tr])return bodyX(at,tr,b
       R(4,12,10,7,p.m);for(const x of [5,7,9,11,13])R(x,12,1,6,p.d);R(4,12,10,1,p.h);for(const [x,hh] of [[5,3],[8,4],[11,3]])R(x,12-hh,2,hh,p.h);P(9,15,pearl);R(4,18,10,1,p.g);}
     else if(lea){for(let y=16;y<25;y+=2)for(let x=10;x<21;x++)if((x+((y>>1)%2)*2)%4===0)P(x,y,p.h);for(let i=0;i<10;i++)R(20-i,15+i,2,1,p.a);P(15,20,pearl);}
     else if(robe){for(let x=8;x<24;x++)P(x,34+((x>>1)%2),p.g);for(const x of [10,14,18,22])P(x,32,pearl);R(14,15,4,2,p.a);P(15,18,pearl);P(16,20,pearl);P(15,22,pearl);R(5,13,8,2,p.d);for(const x of [5,8,11])R(x,10,1,3,p.g);}}
-  if(btr===4&&bt){for(const x0 of [9,17]){P(x0-1,35,bm.h);P(x0-2,34,bm.h);P(x0-3,33,bm.g||'#c4ecff');}}
   const arm=(R,P)=>{
   if(robe){R(20,16,6,7,p.m);R(20,16,6,1,p.h);R(24,17,2,6,p.d);R(19,22,8,2,tr>=1?p.a:p.h);R(22,24,5,2,SKIN.s);R(22,25,5,1,SKIN.S);}
   else{R(21,16,5,7,p.m);R(21,16,5,1,p.h);R(24,17,2,6,p.d);
@@ -1072,6 +1130,7 @@ function body32(at,tr,bt,btr){if(ARM32X[at]&&ARM32X[at][tr])return bodyX(at,tr,b
   mirrorArm(g,arm);arm(R,P);head32(R,P);if(lea&&tr===1){R(10,14,12,2,p.f);R(11,14,10,1,'#ffffff');}
   return g;}
 function hat32(type,tr){const g=hgrid(),[R,P]=hpen(g);
+  if(HAT32X[type]&&HAT32X[type][tr]){HAT32X[type][tr](R,P,armP(type==='helm'?'plate':type==='cap'?'leather':'robe',tr));return g;}
   if(type==='cap'){const p=armP('leather',tr);R(9,0,13,4,p.m);R(8,2,4,6,p.m);R(10,0,9,1,p.h);R(11,1,4,1,p.h);R(13,4,12,2,p.d);R(13,4,12,1,p.m);R(9,3,13,1,tr===3?p.h:'#f2c14e');
     if(tr===1)for(const [x,y] of [[8,2],[7,1],[6,0],[7,2],[6,1],[5,0]])P(x,y,x<7?'#ff6b5e':'#c43c3c');
     if(tr===2){for(const x of [11,15,19])P(x,1,p.a);}
@@ -1187,7 +1246,7 @@ const MATICON={soulflux:['m_gem','#e8fbff','#9cc8ff','#3a5ea8'],emberflux:['m_ge
 function matImg(id,scale=3){const m=MATICON[id]||MATICON.essence;return sprImg(m[0],scale,'',{1:m[1],2:m[2],3:m[3]});}
 const coinImg=(s=2)=>sprImg('coin',s);
 const ITEMSPR={firestaff:['i_firestaff',STAFFPAL.firestaff],frostwand:['i_frostwand',STAFFPAL.frostwand],stormrod:['i_stormrod',STAFFPAL.stormrod],band:['i_ring',{y:'#c9c2d6',Y:'#f4efe4',c:'#6aa84f',C:'#b6e36a'}],mantle:['i_cape',{R:'#3a5ea8',r:'#1d2b52',y:'#f4efe4'}],shroud:['i_cape',{R:'#7a3fb0',r:'#3b1f5a',y:'#c08cff'}]};
-const itemImg=(it,s=3)=>{if(['armor','helm','boots','cloak'].includes(it.slot)&&TYPES[it.slot][it.type])return gearIcon(it.slot,it.type,it.tier||0,s);if(it.slot==='gem'){const p=(GEMS[it.type]||GEMS.ruby).pal;return sprImg('gem'+(it.g||0),s,'',{1:p[0],2:p[1],3:p[2]});}
+const itemImg=(it,s=3)=>{if(['armor','helm','boots'].includes(it.slot)&&TYPES[it.slot][it.type])return gearIcon(it.slot,it.type,it.tier||0,s);if(it.slot==='gem'){const p=(GEMS[it.type]||GEMS.ruby).pal;return sprImg('gem'+(it.g||0),s,'',{1:p[0],2:p[1],3:p[2]});}
   const m=ITEMSPR[it.type];const base=m?m[0]:'i_'+it.type,pal=m?m[1]:undefined;const t=it.tier||0;
   if(it.slot==='weapon'){const au=wepAura(it);if(!(t||it.uq||it.al||au.length||/staff|wand|rod/.test(base)))return sprImg(base,s,'',pal);const P=wepPal(base,t,it.uq,pal,it.al),ts=tierSprite(base,t,it.uq);if(!au.length||RM)return sprImg(ts,s,'',P);
     const fk='wi:'+pkey(ts,P)+au.join(),urls=[];for(let i=0;i<NF;i++){const k=fk+':'+i;if(!SC[k]){const f=wepFrame(ts,P,au,i),c=document.createElement('canvas');c.width=f.width-AM*2;c.height=f.height-AM*2;const x=c.getContext&&c.getContext('2d');if(x)x.drawImage(f,-AM,-AM);SC[k]=c;}urls.push(canvasURL(k,SC[k]));}
@@ -2870,7 +2929,7 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
   const metals=Object.keys(METAL).filter(m=>METAL[m]<S.unlocked).map(m=>mB('fgmetal',m,f.metal===m,4,`${TIERN[METAL[m]]} · Tier ${METAL[m]+1}`)).join('');
   const catB=(c,n)=>`<button class="btn ${cat===c?'primary':''}" data-a="fgcat" data-v="${c}">${n}</button>`;
   const tpB=(sl,k,n)=>{const v=sl+':'+k,m=ITEMSPR[k],base=m?m[0]:'i_'+k,W=sl==='weapon'?WT[k]:null;
-    const img=W?sprImg(tierSprite(base,tier,null),2,'',wepPal(base,tier,null,m?m[1]:undefined)):gearIcon(sl,k,tier,2);
+    const img=W?sprImg(tierSprite(base,tier,null),2,'',wepPal(base,tier,null,m?m[1]:undefined)):sl==='cloak'?sprImg(base,2,'',gearPal({type:k,tier})||(m?m[1]:undefined)):gearIcon(sl,k,tier,2);
     if(W&&(W.ft||0)>tier)return `<button class="pick off" disabled>${img}<span>${n}<small>Needs ${TIERN[W.ft]}</small></span></button>`;
     return `<button class="pick ${f.type===v?'on':''}" data-a="fgtype" data-v="${v}">${img}<span>${n}${W?`<small>${W.trn||EL[W.el].n}</small>`:''}</span></button>`;};
   const types=cat==='weapon'?Object.entries(WT).map(([k,W])=>tpB('weapon',k,W.n)).join(''):cat==='armor'?[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].map(([sl,T])=>Object.entries(T).map(([k,X])=>tpB(sl,k,ARMN[k]?ARMN[k][tier]:X.n)).join('')).join(''):'';
