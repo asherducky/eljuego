@@ -897,7 +897,120 @@ function gcanvas(g){const H=g.length,W=g[0].length,c=document.createElement('can
 function head32(R,P){const k=SKIN;R(13,14,5,2,k.S);R(11,3,12,11,k.s);R(11,11,2,3,k.S);R(12,13,10,1,k.S);R(22,6,1,6,k.s);
   R(9,1,14,3,k.B);R(8,3,5,9,k.B);R(13,4,3,2,k.B);R(21,4,2,1,k.B);R(11,0,9,1,k.B);R(12,1,6,1,k.n);R(10,2,3,1,k.n);R(9,4,2,4,k.n);
   R(12,8,2,2,k.S);P(12,8,k.s);R(18,7,3,1,k.B);R(18,8,2,2,k.K);P(18,8,k.W);R(20,12,2,1,k.S);}
-function body32(at,tr,bt,btr){const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),robe=at==='robe',plate=at==='plate',lea=at==='leather';
+/* unique chest pieces: f(R,P,over) draws the body when over is false, and the front arm after the head when true */
+ARM32.plate=[{m:'#8a5f3c',d:'#54371f',h:'#b58a5a',a:'#a6a0b4'},{m:'#8f94a8',d:'#565a70',h:'#c8ccd8',a:'#3a5ea8'},{m:'#2a2433',d:'#14101c',h:'#5d5672',a:'#e2782a',g:'#f2c14e'},{m:'#e8e0cc',d:'#a89c86',h:'#fffaf0',a:'#6e6680',g:'#9cc8ff'},{m:'#2a6e6e',d:'#1d2b52',h:'#5ec4b0',a:'#e8796a',g:'#c4ecff'}];
+ARM32.robe=[{m:'#6b7a4a',d:'#3f4a2c',h:'#97a86a',a:'#8a5a32'},{m:'#d8b878',d:'#9a7a48',h:'#f0dca8',a:'#c43c3c'},{m:'#2e2630',d:'#171219',h:'#4a3f4a',a:'#e2782a',g:'#f2c14e'},{m:'#f4efe4',d:'#b8b0c8',h:'#ffffff',a:'#2a2433',g:'#9cc8ff'},{m:'#1f6a80',d:'#123f52',h:'#3fa8a8',a:'#5ec4b0',g:'#c4ecff'}];
+const ARM32X={plate:[
+  // Scrap Plate: rusty sheets, a grey tin patch, bolts, a dented pan on the shoulder
+  (R,P,o)=>{const m='#8a5f3c',d='#54371f',h='#b58a5a',i='#7a7488',j='#4f4a5c',k='#a6a0b4',b='#d8c8a0',s='#3a2416';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);R(21,19,5,1,s);R(21,21,5,1,s);R(22,23,5,3,SKIN.s);R(22,25,5,1,SKIN.S);R(20,14,7,3,i);R(20,14,7,1,k);R(20,16,7,1,j);P(22,15,b);P(25,15,b);P(27,13,j);return;}
+    R(10,27,3,3,i);R(10,27,3,1,k);R(14,27,2,4,m);R(18,27,4,3,m);R(18,27,4,1,h);P(19,28,b);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,6,5,i);R(10,16,6,1,k);R(15,16,1,5,j);R(10,20,6,1,j);P(11,17,b);P(14,19,b);R(13,21,7,3,h);R(13,23,7,1,m);P(14,22,b);P(18,22,b);R(17,16,3,3,d);P(18,17,b);
+    R(9,25,14,2,s);R(15,25,2,2,k);
+    R(5,13,9,6,i);R(5,13,9,1,k);R(5,18,9,1,j);R(8,14,1,4,j);P(6,15,b);P(11,15,b);P(6,12,j);R(11,11,1,2,k);R(3,15,2,2,m);P(3,15,h);},
+  // Iron Plate: clean soldier's armor, blue tabard, round pauldrons
+  (R,P,o)=>{const m='#8f94a8',d='#565a70',h='#c8ccd8',t='#3a5ea8',u='#1d2b52',v='#6fb7e8',s='#3a2416',y='#c8ccd8';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);R(22,23,5,3,m);R(22,23,5,1,h);R(22,25,5,1,d);R(20,13,7,4,m);R(21,13,5,1,h);R(20,16,7,1,d);R(25,14,2,2,d);return;}
+    R(9,27,4,3,m);R(9,27,4,1,h);R(19,27,4,3,d);R(19,27,4,1,m);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);R(13,15,6,17,t);R(18,15,1,17,u);R(13,15,1,17,v);R(15,18,2,4,y);R(14,19,4,1,y);R(13,31,6,1,u);
+    R(9,25,14,2,s);R(15,25,2,2,y);
+    R(5,13,9,6,m);R(6,12,7,1,h);R(5,13,9,1,h);R(5,18,9,1,d);R(5,16,9,1,d);},
+  // Obsidian Plate: black jagged slabs, spikes, lava in the cracks
+  (R,P,o)=>{const m='#2a2433',d='#14101c',h='#5d5672',l='#e2782a',g='#f2c14e';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);P(23,18,l);P(22,19,l);P(23,20,g);R(22,23,5,3,m);R(22,23,5,1,h);R(22,25,5,1,d);P(27,22,h);P(28,21,h);P(27,25,h);R(20,14,7,3,m);R(20,14,7,1,h);R(24,12,1,2,h);R(26,11,1,3,h);R(27,13,2,1,h);P(29,12,h);P(22,15,l);return;}
+    for(const [x,n] of [[9,5],[12,6],[15,4],[18,6],[21,4]]){for(let j=0;j<n;j++)R(x,27+j,Math.max(1,3-j),1,m);P(x,27,h);}
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,7,h);
+    for(const [x,y,c] of [[15,15,l],[14,16,l],[14,17,g],[15,18,l],[16,19,g],[16,20,l],[15,21,l],[14,22,g],[14,23,l],[17,20,l],[18,21,l],[12,18,l],[11,19,l]])P(x,y,c);
+    R(9,25,14,2,d);R(15,25,2,2,g);
+    R(5,13,9,6,m);R(5,13,9,1,h);R(5,18,9,1,d);P(8,15,l);P(11,16,g);
+    for(const [x,n] of [[5,4],[8,6],[11,4]])for(let j=0;j<n;j++)P(x,12-j,j?h:m);R(2,15,3,1,h);P(1,15,h);},
+  // Bone Plate: an open ribcage, skull on the shoulder, hanging femurs
+  (R,P,o)=>{const m='#e8e0cc',d='#a89c86',h='#fffaf0',c='#2a2433',g='#9cc8ff';
+    if(o){R(22,16,3,7,m);R(22,16,3,1,h);R(24,17,1,6,d);R(22,19,3,1,c);R(21,16,1,3,d);R(22,23,5,3,m);R(22,23,5,1,h);R(22,25,5,1,d);P(23,24,g);R(20,14,6,2,d);R(20,14,6,1,m);return;}
+    R(11,27,2,6,m);R(11,27,1,6,h);R(10,32,4,1,m);R(16,27,2,7,m);R(16,27,1,7,h);R(15,33,4,1,m);R(20,27,2,5,d);R(19,31,4,1,d);
+    R(9,15,14,11,c);R(15,15,2,10,m);R(15,15,1,10,h);
+    for(const y of [16,18,20,22]){R(10,y,5,1,m);R(17,y,5,1,d);P(10,y,h);P(9,y+1,d);P(22,y+1,d);}
+    R(16,17,1,1,g);P(13,19,g);P(19,21,g);
+    R(9,25,14,2,d);R(9,25,14,1,m);R(14,25,4,2,h);P(15,26,c);P(16,26,c);
+    R(5,12,9,7,m);R(5,12,9,1,h);R(5,18,9,1,d);R(7,14,2,2,c);R(10,14,2,2,c);P(7,14,g);P(10,14,g);P(9,16,c);for(let x=6;x<13;x+=2)P(x,17,c);},
+  // Abyssal Plate: scales, a coral branch on the shoulder, a pearl at the heart, fins
+  (R,P,o)=>{const m='#2a6e6e',d='#1d2b52',h='#5ec4b0',c='#e8796a',e='#ffb3a8',w='#f4efe4',g='#c4ecff';
+    if(o){R(21,16,5,7,m);R(21,16,5,1,h);R(24,17,2,6,d);P(22,18,h);P(23,20,h);P(22,21,h);R(22,23,5,3,m);R(22,23,5,1,h);R(22,25,5,1,d);R(26,17,1,5,h);R(27,18,1,3,h);P(28,19,g);R(20,14,7,3,m);R(20,14,7,1,h);P(23,15,w);return;}
+    for(let x=9;x<23;x+=3){R(x,27,3,2,x>17?d:m);P(x+1,29,x>17?d:m);P(x,27,h);}
+    R(9,15,14,11,m);R(19,15,4,11,d);
+    for(let y=16;y<25;y+=2)for(let x=10+((y>>1)%2);x<22;x+=3){P(x,y,h);P(x+1,y+1,d);}
+    R(14,18,4,4,d);R(15,19,2,2,w);P(15,19,'#ffffff');P(14,18,g);P(17,21,g);
+    R(9,25,14,2,d);R(9,25,14,1,h);R(15,25,2,2,w);
+    R(4,13,10,6,m);R(4,13,10,1,h);R(4,18,10,1,g);for(const x of [6,8,10,12])R(x,14,1,4,d);
+    R(6,7,2,6,c);R(6,7,1,6,e);R(3,9,3,1,c);R(3,7,1,2,c);R(8,10,3,1,c);R(10,8,1,2,e);P(6,6,e);P(3,6,e);P(10,7,e);}
+],robe:[
+  // Ragweave Robe: mossy sackcloth, patches, a rope belt, a torn hem
+  (R,P,o)=>{const m='#6b7a4a',d='#3f4a2c',h='#97a86a',b='#8a5a32',n='#54371f',l='#b6e36a',s='#c9b98a';
+    if(o){R(20,16,6,7,m);R(20,16,6,1,h);R(24,17,2,6,d);R(21,19,3,3,b);P(21,19,s);P(23,21,s);for(const x of [20,22,25])P(x,23,m);R(22,24,5,2,SKIN.s);R(22,25,5,1,SKIN.S);return;}
+    R(9,26,14,9,m);R(8,30,16,5,m);R(19,26,4,9,d);R(21,30,3,5,d);R(9,26,1,4,h);
+    for(const [x,n2] of [[8,1],[9,3],[10,0],[11,2],[12,3],[13,1],[14,0],[15,2],[16,3],[17,1],[18,2],[19,0],[20,3],[21,1],[22,2],[23,0]])if(n2)R(x,35,1,n2,x>18?d:m);
+    R(11,29,4,4,b);P(11,29,s);P(14,29,s);P(11,32,s);P(14,32,s);R(17,27,3,3,d);P(18,28,h);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);R(14,18,5,4,b);P(14,18,s);P(18,18,s);P(14,21,s);P(18,21,s);
+    R(9,24,14,2,n);R(9,24,14,1,b);R(12,26,1,4,n);P(12,30,b);
+    R(5,15,8,6,m);R(5,20,8,1,d);R(5,14,8,2,'#2f6b3a');for(const [x,y] of [[5,13],[7,12],[9,13],[11,12],[6,14],[10,14]])P(x,y,l);P(8,13,'#6aa84f');P(4,15,'#6aa84f');},
+  // Sandwrap Robe: layered desert cloth, a neck scarf, a long red sash
+  (R,P,o)=>{const m='#d8b878',d='#9a7a48',h='#f0dca8',a='#c43c3c',b='#7a1f2b';
+    if(o){R(10,14,12,2,a);R(10,15,12,1,b);R(11,14,6,1,'#ff6b5e');R(20,16,6,7,m);R(20,16,6,1,h);R(24,17,2,6,d);for(const [x,y] of [[20,18],[21,19],[22,20],[23,21]])R(x,y,3,1,d);R(19,22,8,2,a);R(19,23,8,1,b);R(22,24,5,2,SKIN.s);R(22,25,5,1,SKIN.S);return;}
+    R(9,26,14,10,m);R(8,30,16,6,m);R(19,26,4,10,d);R(21,30,3,6,d);R(8,31,16,1,d);R(8,30,16,1,h);R(8,35,16,1,h);
+    for(let i=0;i<4;i++)R(10+i*3,27,2,1,d);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);for(let i=0;i<9;i++){R(20-i,15+i,2,1,d);R(13-Math.floor(i/2),16+i,1,1,h);}
+    R(9,24,14,2,a);R(9,25,14,1,b);R(11,26,3,10,a);R(13,26,1,10,b);R(11,36,3,1,b);P(11,37,a);P(13,37,a);
+    R(5,15,8,6,m);R(5,15,8,1,h);R(5,20,8,1,d);R(5,17,8,1,d);R(4,14,3,7,a);R(4,14,1,7,b);P(5,21,a);},
+  // Cinder Robe: charred cloth, a burnt hem with live embers, a high scorched collar
+  (R,P,o)=>{const m='#2e2630',d='#171219',h='#4a3f4a',a='#e2782a',g='#f2c14e';
+    if(o){R(20,16,6,7,m);R(20,16,6,1,h);R(24,17,2,6,d);P(22,18,a);P(23,20,g);for(const x of [19,21,23,25]){R(x,23,1,2,d);P(x,25,a);}R(22,24,5,2,SKIN.s);R(22,25,5,1,SKIN.S);P(27,16,a);return;}
+    R(9,26,14,9,m);R(8,30,16,5,m);R(19,26,4,9,d);R(21,30,3,5,d);R(9,26,1,4,h);
+    for(let x=8;x<24;x++){const n=1+((x*7)%4);R(x,35,1,n,x>18?d:m);P(x,35+n,a);if(x%3===0)P(x,34+n,g);}
+    for(const [x,y,c] of [[12,28,a],[13,29,g],[12,30,a],[11,31,a],[17,29,a],[18,30,a],[16,32,g]])P(x,y,c);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);R(15,16,2,8,d);
+    for(const [x,y,c] of [[15,17,a],[16,18,g],[15,19,a],[16,20,a],[15,21,g],[16,22,a]])P(x,y,c);
+    R(9,24,14,2,d);R(9,24,14,1,a);R(15,24,2,2,g);
+    R(5,15,8,6,m);R(5,15,8,1,h);R(5,20,8,1,d);P(7,18,a);P(10,17,g);
+    R(7,10,3,5,m);R(7,10,1,5,h);R(5,12,2,3,d);P(6,11,h);R(8,8,1,2,d);P(4,9,a);P(9,6,a);P(3,5,g);},
+  // Funeral Robe: a floor-length white shroud, black sash, skull charm, grave beads
+  (R,P,o)=>{const m='#f4efe4',d='#b8b0c8',h='#ffffff',a='#2a2433',g='#9cc8ff',b='#a89c86';
+    if(o){R(20,16,6,8,m);R(20,16,6,1,h);R(24,17,2,7,d);R(19,23,8,2,a);R(22,25,5,1,SKIN.s);for(let y=17;y<23;y+=2)P(21,y,b);return;}
+    R(9,26,14,8,m);R(8,29,16,5,m);R(7,33,18,5,m);R(19,26,4,12,d);R(21,29,4,9,d);R(7,37,18,1,d);R(9,26,1,6,h);R(15,27,1,10,d);
+    R(11,26,2,12,a);R(11,37,2,1,g);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);
+    for(const [x,y] of [[10,15],[11,16],[12,17],[13,18],[14,19],[16,19],[17,18],[18,17],[19,16],[20,15]])P(x,y,b);
+    R(14,20,4,3,m);R(14,20,4,1,h);P(14,21,a);P(17,21,a);P(15,22,a);P(16,22,a);
+    R(9,24,14,2,a);
+    R(5,14,8,7,m);R(5,14,8,1,h);R(5,20,8,1,d);R(5,17,8,1,d);for(const x of [6,9,12])P(x,18,b);P(4,16,d);},
+  // Tidecaller Robe: flowing teal, foam on a wave hem, a trailing train, shell fins, pearls
+  (R,P,o)=>{const m='#1f6a80',d='#123f52',h='#3fa8a8',a='#5ec4b0',g='#c4ecff',w='#f4efe4';
+    if(o){R(20,16,6,7,m);R(20,16,6,1,h);R(24,17,2,6,d);R(19,22,8,2,a);R(19,23,8,1,h);R(26,17,1,5,a);R(27,18,1,3,g);P(28,19,g);R(22,24,5,2,SKIN.s);R(22,25,5,1,SKIN.S);return;}
+    R(9,26,14,9,m);R(8,30,16,5,m);R(19,26,4,9,d);R(21,30,3,5,d);R(4,33,5,3,m);R(2,35,3,1,h);R(4,33,5,1,h);
+    for(let x=2;x<24;x++){const y=35+((x>>1)%2);P(x,y,a);P(x,y+1,((x>>1)%2)?w:g);if(x>7)R(x,35,1,y-35,x>18?d:m);}
+    for(const [x,y] of [[10,28],[12,30],[17,28],[19,31],[14,32]])P(x,y,h);for(const x of [11,15,19])P(x,33,w);
+    R(9,15,14,11,m);R(19,15,4,11,d);R(10,16,2,8,h);R(14,15,4,2,a);for(const [x,y] of [[15,18],[16,20],[15,22]])P(x,y,w);
+    R(9,24,14,2,a);R(9,25,14,1,h);R(15,24,2,2,w);
+    R(5,15,8,6,m);R(5,15,8,1,a);R(5,20,8,1,d);for(const [x,n] of [[5,5],[8,7],[11,5]]){R(x,15-n,2,n,a);R(x,15-n,1,n,g);}}
+]};
+function bodyX(at,tr,bt,btr){const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),plate=at==='plate',f=ARM32X[at][tr];
+  const bm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):{m:'#4a3324',d:'#2a1c12',h:'#6e4528'};
+  const pm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):plate?p:{m:'#4a4560',d:'#2e2a40',h:'#6e6680'};
+  if(plate){R(10,27,12,2,pm.m);R(10,29,5,6,pm.m);R(17,29,5,6,pm.m);R(13,29,2,6,pm.d);R(20,29,2,6,pm.d);R(10,29,1,6,pm.h);R(17,29,1,6,pm.h);R(15,27,2,2,pm.d);
+    if(bt&&bt!=='shoes'){R(10,33,5,2,bm.m);R(17,33,5,2,bm.m);R(10,33,5,1,bm.h);R(17,33,5,1,bm.h);}
+    if(bt==='greaves'){R(10,30,5,5,bm.m);R(17,30,5,5,bm.m);R(10,30,5,1,bm.h);R(17,30,5,1,bm.h);R(13,31,2,4,bm.d);R(20,31,2,4,bm.d);}
+    else{R(10,31,5,2,p.m);R(17,31,5,2,p.m);R(10,31,5,1,p.h);R(17,31,5,1,p.h);}}
+  R(9,35,6,4,bm.m);R(9,35,6,1,bm.h);R(17,35,7,4,bm.m);R(17,35,7,1,bm.h);R(22,37,2,2,bm.m);R(9,38,6,1,bm.d);R(17,38,7,1,bm.d);
+  if(bt==='treads'){R(9,36,6,1,bm.d);R(17,36,7,1,bm.d);}
+  f(R,P,false);
+  if(btr===4&&bt&&plate){for(const x0 of [9,17]){P(x0-1,35,bm.h);P(x0-2,34,bm.h);P(x0-3,33,bm.g||'#c4ecff');}}
+  head32(R,P);f(R,P,true);return g;}
+// item icon: the chest piece alone, without skin, centered at the same size as other icons
+function armIcon(at,tr,s){const key='aic'+at+tr;let c=SC[key];if(!c){const g=hgrid(),[R,P]=hpen(g),f=ARM32X[at][tr];f(R,P,false);f(R,P,true);let t=HH,b=0,l=HW,r=0;
+    for(let y=0;y<HH;y++)for(let x=0;x<HW;x++){if(g[y][x]===SKIN.s||g[y][x]===SKIN.S)g[y][x]=null;if(g[y][x]){t=Math.min(t,y);b=Math.max(b,y);l=Math.min(l,x);r=Math.max(r,x);}}
+    c=document.createElement('canvas');c.width=32;c.height=32;const x=c.getContext&&c.getContext('2d');if(x)x.drawImage(gcanvas(g),Math.round((32-(r-l+1))/2)-l-1,Math.round((32-(b-t+1))/2)-t-1);SC[key]=c;}
+  return '<img class="spr" src="'+canvasURL(key,c)+'" width="'+16*s+'" height="'+16*s+'" alt="">';}
+const ARMN={plate:['Scrap Plate','Iron Plate','Obsidian Plate','Bone Plate','Abyssal Plate'],leather:['Patched Hide','Nomad Leathers','Ashhide','Gravehide','Sharkskin'],robe:['Ragweave Robe','Sandwrap Robe','Cinder Robe','Funeral Robe','Tidecaller Robe']};
+function body32(at,tr,bt,btr){if(ARM32X[at]&&ARM32X[at][tr])return bodyX(at,tr,bt,btr);const g=hgrid(),[R,P]=hpen(g),p=armP(at,tr),robe=at==='robe',plate=at==='plate',lea=at==='leather';
   const bm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):{m:'#4a3324',d:'#2a1c12',h:'#6e4528'};
   // legs and boots
   const pm=bt==='greaves'?armP('plate',btr):bt==='shoes'?armP('leather',btr):bt==='treads'?armP('robe',btr):plate?armP('plate',tr):lea?{m:'#5a3a22',d:'#3a2416',h:'#7a5232'}:{m:'#4a4560',d:'#2e2a40',h:'#6e6680'};
@@ -1065,7 +1178,7 @@ const MATICON={soulflux:['m_gem','#e8fbff','#9cc8ff','#3a5ea8'],emberflux:['m_ge
 function matImg(id,scale=3){const m=MATICON[id]||MATICON.essence;return sprImg(m[0],scale,'',{1:m[1],2:m[2],3:m[3]});}
 const coinImg=(s=2)=>sprImg('coin',s);
 const ITEMSPR={firestaff:['i_firestaff',STAFFPAL.firestaff],frostwand:['i_frostwand',STAFFPAL.frostwand],stormrod:['i_stormrod',STAFFPAL.stormrod],band:['i_ring',{y:'#c9c2d6',Y:'#f4efe4',c:'#6aa84f',C:'#b6e36a'}],mantle:['i_cape',{R:'#3a5ea8',r:'#1d2b52',y:'#f4efe4'}],shroud:['i_cape',{R:'#7a3fb0',r:'#3b1f5a',y:'#c08cff'}]};
-const itemImg=(it,s=3)=>{if(it.slot==='gem'){const p=(GEMS[it.type]||GEMS.ruby).pal;return sprImg('gem'+(it.g||0),s,'',{1:p[0],2:p[1],3:p[2]});}
+const itemImg=(it,s=3)=>{if(it.slot==='armor'&&ARM32X[it.type])return armIcon(it.type,it.tier||0,s);if(it.slot==='gem'){const p=(GEMS[it.type]||GEMS.ruby).pal;return sprImg('gem'+(it.g||0),s,'',{1:p[0],2:p[1],3:p[2]});}
   const m=ITEMSPR[it.type];const base=m?m[0]:'i_'+it.type,pal=m?m[1]:undefined;const t=it.tier||0;
   if(it.slot==='weapon'){const au=wepAura(it);if(!(t||it.uq||it.al||au.length||/staff|wand|rod/.test(base)))return sprImg(base,s,'',pal);const P=wepPal(base,t,it.uq,pal,it.al),ts=tierSprite(base,t,it.uq);if(!au.length||RM)return sprImg(ts,s,'',P);
     const fk='wi:'+pkey(ts,P)+au.join(),urls=[];for(let i=0;i<NF;i++){const k=fk+':'+i;if(!SC[k]){const f=wepFrame(ts,P,au,i),c=document.createElement('canvas');c.width=f.width-AM*2;c.height=f.height-AM*2;const x=c.getContext&&c.getContext('2d');if(x)x.drawImage(f,-AM,-AM);SC[k]=c;}urls.push(canvasURL(k,SC[k]));}
@@ -1081,7 +1194,7 @@ const PS=()=>innerWidth>=1080?4:innerWidth>=800?3:2;
 
 /* ============ data ============ */
 const CRYS={crys2:{r:2},crys3:{r:3},crys4:{r:4},crys5:{r:5}};
-const MATS={soulflux:'Soul Flux',emberflux:'Ember Flux',bloodflux:'Blood Flux',astral:'Abyssal Ore',voidsilk:'Siren Scale',starshard:'Storm Pearl',riftcore:'Leviathan Heart',cshard:'Crystal Shard',crys2:'Rare Crystal',crys3:'Epic Crystal',crys4:'Legendary Crystal',crys5:'Mythic Crystal',moss:'Moss Fiber',scrap:'Goblin Scrap',wing:'Bat Wing',wardenheart:"Warden's Heart",shard:'Glass Shard',steel:'Steel Fragment',hollow:'Hollow Iron',shroud:'Court Shroud',gargstone:'Gargoyle Stone',kingsoul:"King's Soul",venom:'Scorpion Venom',silk:'Wraith Silk',crown:'Shard Crown',ember:'Ember Core',scale:'Drake Scale',obsidian:'Obsidian Chunk',flame:'Tyrant Flame',essence:'Arcane Essence'};
+const MATS={soulflux:'Soul Flux',emberflux:'Ember Flux',bloodflux:'Blood Flux',astral:'Abyssal Ore',voidsilk:'Siren Scale',starshard:'Storm Pearl',riftcore:'Leviathan Heart',cshard:'Crystal Shard',crys2:'Rare Crystal',crys3:'Epic Crystal',crys4:'Legendary Crystal',crys5:'Mythic Crystal',moss:'Moss Fiber',scrap:'Goblin Scrap',wing:'Bat Wing',wardenheart:"Warden's Heart",shard:'Glass Shard',steel:'Iron Fragment',hollow:'Hollow Iron',shroud:'Court Shroud',gargstone:'Gargoyle Stone',kingsoul:"King's Soul",venom:'Scorpion Venom',silk:'Wraith Silk',crown:'Shard Crown',ember:'Ember Core',scale:'Drake Scale',obsidian:'Obsidian Chunk',flame:'Tyrant Flame',essence:'Arcane Essence'};
 const AREA_MATS=[['moss','scrap','wing'],['steel','shard','venom','silk'],['ember','scale','obsidian'],['hollow','shroud','gargstone'],['astral','voidsilk','starshard']];
 const EL={phys:{n:'Physical',c:'#c9c2d6'},fire:{n:'Fire',c:'#e2782a'},frost:{n:'Frost',c:'#6fb7e8'},storm:{n:'Storm',c:'#f2c14e'},venom:{n:'Venom',c:'#b6e36a'}};
 /* Enemy numbers are per-unit; mkEnemy scales them by level. */
@@ -1156,7 +1269,7 @@ const RARW=[1,1.1,1.15,1.2,1.25,1.3],RARA=[1,1.05,1.1,1.15,1.2,1.3];
 const TM=[1,3,8,18,36];          // base stat multiplier per tier
 const TMA=[1,1.8,3,4.5,6.5];       // flat bonus multiplier per tier
 const SCALED=['atk','def','hp','mp'];
-const TIERN=['Iron','Steel','Obsidian','Hollow','Abyssal'];
+const TIERN=['Scrap','Iron','Obsidian','Hollow','Abyssal'];
 const RAR=[{n:'Common'},{n:'Uncommon'},{n:'Rare'},{n:'Epic'},{n:'Legendary'},{n:'Mythic'}];
 const RCOL=['#a8a4b4','#7bd95a','#5a9cf0','#c08cff','#f2c14e','#ff4fd8'];
 const QUAL=[["Crude",0.9],["Standard",1],["Fine",1.05],["Superior",1.12],["Masterwork",1.2]];
@@ -1449,7 +1562,7 @@ const CONSD={potion:'Restores 40% of max HP. Uses your turn in battle.',ether:'R
 
 /* ============ items ============ */
 function rollAff(id,tier){const a=AFF[id];return {id,v:Math.max(1,Math.round((a.lo+Math.random()*(a.hi-a.lo))*TMA[Math.min(4,tier)])),r:1};}
-function itemName(it){if(it.slot==='gem')return it.name;const T=TYPES[it.slot][it.type].n,rf='';if(it.uq&&UNIQ[it.uq])return rf+UNIQ[it.uq].n;
+function itemName(it){if(it.slot==='gem')return it.name;const T=TYPES[it.slot][it.type].n,rf='';if(it.uq&&UNIQ[it.uq])return rf+UNIQ[it.uq].n;if(ARMN[it.type])return ARMN[it.type][it.tier||0];
   return `${rf}${it.al&&ALLOYS[it.al]?ALLOYS[it.al].n:TIERN[it.tier]} ${T}`;}
 function mkItem(slot,type,tier,rar,affixes,extra){const it={uid:uid(),slot,type,tier,rar,plus:0,q:1,qn:'Standard',affixes,ench:[],fx:[],...(extra||{})};it.name=itemName(it);return it;}
 function pickType(slot){return pick(Object.keys(TYPES[slot]));}
@@ -1478,6 +1591,7 @@ function findAny(u){return findItem(u)||null;}
 const isWorn=it=>SLOTS.some(s=>S.gear[s]===it);
 const equipSlotFor=it=>it.slot!=='gem'?it.slot:GEMSLOTS.find(s=>S.gear[s]&&S.gear[s].type===it.type)||GEMSLOTS.filter(gemOpen).find(s=>!S.gear[s])||'gem1';
 // old saves: rebuild gem stats (Ruby and Emerald are percents now, Perfect is Legendary) and unequip a second gem of the same type
+function renameGear(s){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.slot!=='gem'&&!it.uq&&TYPES[it.slot]&&TYPES[it.slot][it.type])it.name=itemName(it);}
 function fixGems(s){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.slot==='gem'&&GEMS[it.type]){const g=mkGem(it.type,it.g||0);it.affixes=g.affixes;it.rar=g.rar;}
   const seen=new Set();for(const sl of GEMSLOTS){const g=s.gear&&s.gear[sl];if(!g)continue;if(seen.has(g.type)){(s.bag=s.bag||[]).push(g);s.gear[sl]=null;}else seen.add(g.type);}}
 function mkGem(type,g){const G=GEMS[type];const affs=Object.entries(G.s).map(([k,v])=>({id:k,v:Math.max(1,Math.round(v*GMUL[g])),r:0}));
@@ -1513,7 +1627,7 @@ function migrate(s){const d=fresh();for(const k in d)if(!(k in s))s[k]=d[k];for(
   for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.uq&&!UNIQ[it.uq]){it.uq=null;it.rar=3;it.name=itemName(it);}
   if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&(s.combat.ctx==='duel'||s.combat.ctx==='pvp'))s.combat=null;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
-  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);if(!s.treeV){s.stars=(s.stars||[]).filter(x=>!/^m1/.test(x)&&x!=='mDc');}if((s.treeV||0)<2){s.treeV=2;s.tree={};s.treeSync=1;}if(s.treeV<3){s.treeV=3;s.stars=['mO','gO'];s.treeSync=1;}if(!s.atkGone){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.affixes)it.affixes=it.affixes.filter(a=>a.id!=='atk');s.atkGone=1;}return s;}
+  if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);renameGear(s);if(!s.treeV){s.stars=(s.stars||[]).filter(x=>!/^m1/.test(x)&&x!=='mDc');}if((s.treeV||0)<2){s.treeV=2;s.tree={};s.treeSync=1;}if(s.treeV<3){s.treeV=3;s.stars=['mO','gO'];s.treeSync=1;}if(!s.atkGone){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.affixes)it.affixes=it.affixes.filter(a=>a.id!=='atk');s.atkGone=1;}return s;}
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();pvpPost();}}
 /* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
 // The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
@@ -1734,8 +1848,8 @@ const GRP=[0,.5,1,1.5,2,2.5,3,3.5,4],GSTEP=[0,1,1,1,2,2];
 const wepStat=t=>{const g=WT[t]?WT[t].g:{};return Object.keys(g).sort((a,b)=>g[b]-g[a])[0]||'str';};
 const gradeStart=it=>(it.rar||0)>=5?5:(it.rar||0)>=4?4:(it.tier||0)>=2?3:2;
 const wepGrade=it=>Math.min(8,gradeStart(it)+GSTEP[Math.min(5,it.plus||0)]);
-const SETS={0:{n:'Iron set',d2:'+5% max HP',d4:'Take 5% less damage',b2:{hpPct:5},b4:{dr:5}},
-  1:{n:'Steel set',d2:'+4% crit',d4:'+10% crit damage, +5% damage',b2:{crit:4},b4:{critd:.1,pdmg:5,sdmg:5}},
+const SETS={0:{n:'Scrap set',d2:'+5% max HP',d4:'Take 5% less damage',b2:{hpPct:5},b4:{dr:5}},
+  1:{n:'Iron set',d2:'+4% crit',d4:'+10% crit damage, +5% damage',b2:{crit:4},b4:{critd:.1,pdmg:5,sdmg:5}},
   2:{n:'Obsidian set',d2:'+8% damage',d4:'+5% lifesteal',b2:{pdmg:8,sdmg:8},b4:{ls:5}},
   3:{n:'Hollow set',d2:'+10% max HP',d4:'+12% damage, take 8% less damage',b2:{hpPct:10},b4:{pdmg:12,sdmg:12,dr:8}}};
 const SETSLOTS=['armor','helm','boots','cloak'];
@@ -2730,15 +2844,15 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
   const metals=Object.keys(METAL).filter(m=>METAL[m]<S.unlocked).map(m=>mB('fgmetal',m,f.metal===m,4,`${TIERN[METAL[m]]} · Tier ${METAL[m]+1}`)).join('');
   const catB=(c,n)=>`<button class="btn ${cat===c?'primary':''}" data-a="fgcat" data-v="${c}">${n}</button>`;
   const tpB=(sl,k,n)=>{const v=sl+':'+k,m=ITEMSPR[k],base=m?m[0]:'i_'+k,W=sl==='weapon'?WT[k]:null;
-    const img=W?sprImg(tierSprite(base,tier,null),2,'',wepPal(base,tier,null,m?m[1]:undefined)):sprImg(base,2,'',gearPal({type:k,tier})||(m?m[1]:undefined));
+    const img=W?sprImg(tierSprite(base,tier,null),2,'',wepPal(base,tier,null,m?m[1]:undefined)):ARM32X[k]?armIcon(k,tier,2):sprImg(base,2,'',gearPal({type:k,tier})||(m?m[1]:undefined));
     if(W&&(W.ft||0)>tier)return `<button class="pick off" disabled>${img}<span>${n}<small>Needs ${TIERN[W.ft]}</small></span></button>`;
     return `<button class="pick ${f.type===v?'on':''}" data-a="fgtype" data-v="${v}">${img}<span>${n}${W?`<small>${W.trn||EL[W.el].n}</small>`:''}</span></button>`;};
-  const types=cat==='weapon'?Object.entries(WT).map(([k,W])=>tpB('weapon',k,W.n)).join(''):cat==='armor'?[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].map(([sl,T])=>Object.entries(T).map(([k,X])=>tpB(sl,k,X.n)).join('')).join(''):'';
+  const types=cat==='weapon'?Object.entries(WT).map(([k,W])=>tpB('weapon',k,W.n)).join(''):cat==='armor'?[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].map(([sl,T])=>Object.entries(T).map(([k,X])=>tpB(sl,k,ARMN[k]?ARMN[k][tier]:X.n)).join('')).join(''):'';
   const alloys=Object.entries(ALLOYOF).map(([r,k])=>{const A=ALLOYS[k],have=S.mats[r]||0;if(!alloyOpen(k))return `<button class="pick off" disabled>${matImg(r,2)}<span>???<small>Opens in ${AREAS[A.ar].name}</small></span></button>`;
     return `<button class="pick ${f.alloy===r?'on':''} ${have<A.q?'short':''}" data-a="fgalloy" data-v="${r}">${matImg(r,2)}<span>${A.n}<small class="num">${have}/${A.q} ${MATS[r]}</small><small>${A.short}</small></span></button>`;}).join('');
   const sups=Object.keys(SUP).filter(m=>(S.mats[m]||0)>0&&m!==f.metal&&SUP[m].to===cat).map(m=>mB('fgsup',m,(f.sups||[]).includes(m),SUP[m].q,supLine(m,tier))).join('');
   const crys=Object.keys(CRYS).filter(m=>(S.mats[m]||0)>0).map(m=>mB('fgcrys',m,f.crystal===m,1,'Makes it '+RAR[CRYS[m].r].n+': +'+Math.round((RARA[CRYS[m].r]-1)*100)+'% armor, +'+Math.round((RARW[CRYS[m].r]-1)*100)+'% weapon base'+(m==='crys5'?', second supplement and enchant':m==='crys4'?', second supplement':''))).join('');
-  let prev=null;if(sp.cat&&sp.type&&sp.base){prev=forgedItem(sp,1);prev.qn='Quality: your strikes';prev.name=`${sp.al?ALLOYS[sp.al].n:TIERN[prev.tier]} ${TYPES[prev.slot][prev.type].n}`;}
+  let prev=null;if(sp.cat&&sp.type&&sp.base){prev=forgedItem(sp,1);prev.qn='Quality: your strikes';prev.name=itemName(prev);}
   const need=!sp.base?'Choose a core metal. It sets the tier.':!cat?'Choose weapons or armor.':!sp.type?'Choose what to make.':'';
   const parts=sp.base?[[MATS[sp.base],`Tier ${tier+1} base stats`],sp.al?[ALLOYS[sp.al].n,ALLOYS[sp.al].short]:null,...sp.sup.map(s=>[MATS[s],supLine(s,tier)]),sp.cr?[MATS[sp.cr],RAR[CRYS[sp.cr].r].n+' rarity']:null,['Your 3 strikes','Quality: 0.9× to 1.2× base stats']].filter(Boolean):[];
   return `<div class="forgegrid"><div style="display:flex;flex-direction:column;gap:10px;min-width:0">
@@ -2987,7 +3101,7 @@ function vInv(){
   const mats=Object.entries(S.mats).filter(([,q])=>q>0).map(([m,q])=>`<div data-tip="mat:${m}">${matImg(m,2)}<span>${MATS[m]}</span><b class="num">${q}</b></div>`).join('');
   const junk=S.bag.filter(it=>it.rar<=1&&!it.lock).length;
   return `<section class="px panel"><div class="invgrid">
-    <div class="sub" style="align-items:center"><h3>Equipped</h3><div class="doll">${doll}<div class="dollhero">${heroImg(innerWidth<440?4:innerWidth<500?6:8).replace('idle','')}</div></div></div>
+    <div class="sub" style="align-items:center"><h3>Equipped</h3><div class="doll">${doll}<div class="dollhero">${heroImg(innerWidth<440?4:6).replace('idle','')}</div></div></div>
     <div class="sub" style="min-width:0"><div class="row" style="justify-content:space-between"><h3>Bag · <span class="num">${S.bag.length}/${bagMax()}</span></h3><div class="row">${(S.bagx||0)<5?`<button class="btn sm" data-a="bagx" ${S.gold>=bagCost()?'':'disabled'} data-tip="txt:Ten more bag slots">+10 slots ${coinImg(2)}<span class="num">${bagCost()}</span></button>`:''}<button class="btn sm ${UI.ms?'tab on':''}" data-a="msel">Select</button></div></div>
       <div class="row">${fb('all','All')}${fb('weapon','Weapons')}${fb('armor','Armor')}${fb('helm','Helms')}${fb('boots','Boots')}${fb('cloak','Cloaks')}${fb('gem','Gems')}</div>
       <div class="row"><span class="dim small">Sort</span>${sbn('rarity','Rarity')}${sbn('tier','Tier')}${sbn('new','Newest')}${sbn('custom','Custom')}<span class="dim small">Drag to arrange or onto a slot to equip · right-click to lock</span></div>
