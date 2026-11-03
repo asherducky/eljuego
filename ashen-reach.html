@@ -2085,7 +2085,8 @@ const ACH=[
 ];
 function checkAch(){for(const [id,n,d,f,rw] of ACH)if(!S.ach.includes(id)&&f()){S.ach.push(id);if(rw.gold)S.gold+=rw.gold;if(rw.ess)S.mats.essence=(S.mats.essence||0)+rw.ess;
   toast(`Achievement: ${n}${rw.gold?` · +${rw.gold}g`:''}${rw.ess?` · +${rw.ess} essence`:''}`);fx('ach');}}
-const MG={active:false,pos:0,dir:1,speed:0,strikes:[],spec:null,last:null};
+const MG={active:false,pos:0,dir:1,speed:0,c:50,strikes:[],spec:null,last:null};
+const mgSpot=(p,t)=>{const z=[16,15,14,13,12][t];let c;do{c=z+Math.random()*(100-2*z);}while(Math.abs(c-p)<20);return c;};
 const ACT={
   begin:()=>{if(!S.pendingWep)return;const el=document.getElementById('nm');const v=(el&&el.value||S.name||'').trim().slice(0,16);S.name=v||'Wanderer';S.diff='normal';S.hc=!!S.pendingHC;
     applyStart(S.pendingWep);S.named=true;delete S.pendingWep;delete S.pendingHC;},
@@ -2193,10 +2194,10 @@ const ACT={
   fuse:v=>{const [t,g0]=v.split(':');const g=+g0;if(g>=4||S.gold<FUSEG[g])return;const pile=S.bag.filter(it=>it.slot==='gem'&&it.type===t&&it.g===g&&!it.lock).slice(0,3);if(pile.length<3)return;
     S.gold-=FUSEG[g];S.bag=S.bag.filter(it=>!pile.includes(it));const out=mkGem(t,g+1);addToBag([out]);fx('strike',{perfect:true});busyUntil=Date.now()+600;fx('forge',{item:out.uid,delay:400});},
   forge:()=>{const sp=forgeSpec();if(!canForge(sp))return;if(S.bag.length>=bagMax()){toast('Your bag is full');return;}payMats(sp.cost);S.gold-=sp.g;sp.equip=null;const f=S.fg,has=m=>(S.mats[m]||0)>0;
-    f.sups=(f.sups||[]).filter(has);if(f.crystal&&!has(f.crystal))f.crystal=null;if(f.alloy&&!has(f.alloy))f.alloy=null;clampVitals();Object.assign(MG,{active:true,pos:0,dir:1,speed:.5,strikes:[],spec:sp,last:null});},
-  strike:()=>{if(!MG.active)return;const zone=[16,15,14,13,12][MG.spec.tier];const off=Math.abs(MG.pos-50);const acc=Math.max(0,1-off/(zone*2.6));
-    MG.strikes.push(acc);MG.last=off<=zone*.35?'Perfect!':off<=zone?'Good':acc>0?'Off':'Miss';fx('strike',{perfect:off<=zone*.35});
-    if(MG.strikes.length>=3){const avg=MG.strikes.reduce((a,b)=>a+b,0)/3;const qi=avg>=.9?4:avg>=.75?3:avg>=.55?2:avg>=.3?1:0;
+    f.sups=(f.sups||[]).filter(has);if(f.crystal&&!has(f.crystal))f.crystal=null;if(f.alloy&&!has(f.alloy))f.alloy=null;clampVitals();Object.assign(MG,{active:true,pos:0,dir:1,speed:[.9,.95,1,1.05,1.1][sp.tier],c:mgSpot(0,sp.tier),strikes:[],spec:sp,last:null});},
+  strike:()=>{if(!MG.active)return;const zone=[16,15,14,13,12][MG.spec.tier];const off=Math.abs(MG.pos-MG.c);const acc=Math.max(0,1-off/(zone*2.6));
+    MG.strikes.push(acc);MG.last=off<=zone*.35?'Perfect!':off<=zone?'Good':acc>0?'Off':'Miss';fx('strike',{perfect:off<=zone*.35});MG.speed*=1.2;MG.c=mgSpot(MG.c,MG.spec.tier);
+    if(MG.strikes.length>=3){const avg=MG.strikes.reduce((a,b)=>a+b,0)/3;const qi=avg>=.95?4:avg>=.75?3:avg>=.55?2:avg>=.3?1:0;
       const it=forgedItem(MG.spec,qi);if(qi===4)S.flags.master=true;if(MG.spec.equip){S.gear[MG.spec.equip]=it;clampVitals();}else addToBag([it]);
       if(MG.spec.al&&!S.disc.includes(MG.spec.al)){S.disc.push(MG.spec.al);setTimeout(()=>toast(`New alloy discovered: ${ALLOYS[MG.spec.al].n}`),1200);}MG.active=false;busyUntil=Date.now()+700;fx('forge',{item:it.uid,delay:500});}},
   craftsup:v=>{const r=SUPPLY.find(x=>x.id===v);if(!r||S.gold<r.g||!hasMats(r.cost))return;payMats(r.cost);S.gold-=r.g;if(r.mat)S.mats[r.out]=(S.mats[r.out]||0)+r.q;else S.cons[r.out]=(S.cons[r.out]||0)+r.q;fx('strike',{perfect:true});toast(`Crafted ${r.n}`);},
@@ -2744,17 +2745,17 @@ function vCraft(){const f=S.fg;const sp=forgeSpec();const cat=f.cat||null;const 
     ${step(1,'Core metal')}<div class="picks">${metals||'<p class="empty-s">No metals yet.</p>'}</div>
     ${sp.base?`${step(2,'Weapons or armor')}<div class="row">${catB('weapon','Weapons')}${catB('armor','Armor')}</div>`:''}
     ${sp.base&&cat?`${step(3,'What to make')}<div class="picks">${types}</div>`:''}
-    ${sp.type?`${cat==='weapon'?`${step(4,'Alloy')} <span class="dim small">optional · changes how the weapon fights</span><div class="picks">${alloys}</div>`:''}
-      ${step(cat==='weapon'?5:4,'Supplements')} <span class="dim small">${supSlots(f)>1?'2 slots with this crystal':'1 slot · a Legendary or Mythic crystal adds a second'} · stronger at higher tiers · only one with a special effect · dodge caps at 30%</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
-      ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}`:''}</div>
+    ${sp.type?`${step(4,'Supplements')} <span class="dim small num">${sp.sup.length}/${supSlots(f)}</span><div class="picks">${sups||'<p class="empty-s">No supplements yet.</p>'}</div>
+      ${crys?`<h3>Rarity crystal <span class="dim small">optional</span></h3><div class="picks">${crys}</div>`:''}
+      ${cat==='weapon'?`${step(5,'Alloy')}<div class="picks">${alloys}</div>`:''}`:''}</div>
     <div class="sub anvil"><div class="row" style="justify-content:space-between"><h3>The anvil</h3>${sp.type||f.metal?'<button class="btn sm" data-a="fgclear">Clear</button>':''}</div>
       ${prev?itemCard(prev,''):`<p class="empty-s">${need}</p>`}
       ${parts.length?`<h3>What each part adds</h3><ul class="parts">${parts.map(([a,b])=>`<li><span>${a}</span><b>${b}</b></li>`).join('')}</ul>`:''}
       ${prev?`<div class="cost">${Object.entries(sp.cost).map(([m,q])=>needTag(m,q)).join('')}${goldTag(sp.g)}</div>`:''}
       <button class="btn primary" data-a="forge" ${canForge(sp)?'':'disabled'}>Begin forging ▸</button></div></div>`;}
 
-function vMinigame(){const zone=[16,15,14,13,12][MG.spec.tier];return `<div class="sub mg"><b>Strike ${Math.min(3,MG.strikes.length+1)} of 3</b><span class="dim small">Strike when the marker is in the gold zone. Bright gold is perfect. Space works too.</span>
-  <div class="mgbar"><i class="mgzone" style="left:${50-zone}%;width:${zone*2}%"></i><i class="mgperf" style="left:${50-zone*.35}%;width:${zone*.7}%"></i><i class="mgmark" id="mgmark" style="left:${MG.pos}%"></i></div>
+function vMinigame(){const zone=[16,15,14,13,12][MG.spec.tier];return `<div class="sub mg"><b>Strike ${Math.min(3,MG.strikes.length+1)} of 3</b><span class="dim small">Strike when the marker is in the gold zone. Bright gold is perfect. Each strike moves the zone and speeds up the marker. Space works too.</span>
+  <div class="mgbar"><i class="mgzone" style="left:${MG.c-zone}%;width:${zone*2}%"></i><i class="mgperf" style="left:${MG.c-zone*.35}%;width:${zone*.7}%"></i><i class="mgmark" id="mgmark" style="left:${MG.pos}%"></i></div>
   <div class="row">${MG.strikes.map(a=>`<span class="tag ${a>=.85?'gold':a>=.5?'good':'bad'} num">${Math.round(a*100)}%</span>`).join('')}${MG.last?`<b class="mglast">${MG.last}</b>`:''}</div>
   <button class="btn primary" data-a="strike" id="strikebtn">Strike!</button></div>`;}
 function itemPicker(act,sel,filter){const list=allItems().filter(filter||(()=>true));return `<div class="bag">${list.map(it=>`<button class="cell r${it.rar} ${it.uid===sel?'sel':''}" data-a="${act}" data-v="${it.uid}" data-tip="item:${it.uid}" aria-label="${esc(it.name)}">${itemImg(it,3)}${it.plus?`<b class="pl">+${it.plus}</b>`:''}</button>`).join('')||'<p class="empty-s">No items.</p>'}</div>`;}
