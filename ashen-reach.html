@@ -1594,7 +1594,7 @@ Object.assign(ALLOYS,{starsteel:{n:'Starsteel',base:'astral',r:'starshard',q:2,a
   riftforged:{n:'Riftforged',base:'astral',r:'riftcore',q:1,fx:'erupt',aff:{atk:3},d:'Crits erupt for 50% to all foes',pal:{W:'#fff1a8',w:'#e05aa8',G:'#3b1f5a'}}});
 // the old alloys stay only so items made with them keep their names and colours
 Object.assign(ALLOYS,{emberforged:{n:'Emberforged',r:'emberflux',q:1,ar:2,fx:'emberblade',short:'Hits deal fire damage and add flame stacks',pal:{W:'#ffd36a',w:'#e2782a',G:'#c43c3c'}},
-  bloodforged:{n:'Bloodforged',r:'bloodflux',q:1,ar:1,fx:'bloodblade',short:'+15% damage, +8% lifesteal, −20% max HP',pal:{W:'#ffb3a8',w:'#c43c3c',G:'#5d1f1f'}},
+  bloodforged:{n:'Bloodforged',r:'bloodflux',q:1,ar:1,fx:'bloodblade',short:'+8% damage, +3% lifesteal, −10% max HP',pal:{W:'#ffb3a8',w:'#c43c3c',G:'#5d1f1f'}},
   soulforged:{n:'Soulforged',r:'soulflux',q:1,ar:3,fx:'soulblade',short:'Ignore 35% of defense; kills heal 8% HP',pal:{W:'#e8fbff',w:'#9cc8ff',G:'#3a5ea8'}},
   stormforged:{n:'Stormforged',r:'riftcore',q:1,ar:4,fx:'stormblade',short:'Hits deal storm damage; 35% arc to another enemy',pal:{W:'#fff1a8',w:'#5ec4b0',G:'#1d2b52'}}});
 const ALLOYOF={bloodflux:'bloodforged',emberflux:'emberforged',soulflux:'soulforged',riftcore:'stormforged'};
@@ -1611,7 +1611,7 @@ const UNIQ={
   obsidianedge:{n:'Obsidian Edge',type:'katana',tier:2,from:'golem',fx:'sever',col:'#7a3fb0',a:'Sever',d:'Ignore 30% of enemy defense',affs:{dex:4,str:3}},
 };
 const FXD={emberblade:'Your hits deal fire damage instead of physical (physical damage bonuses still count). Each hit adds a flame stack.',
-  bloodblade:'+15% damage and +8% lifesteal, but −20% max HP.',
+  bloodblade:'+8% damage and +3% lifesteal, but −10% max HP.',
   soulblade:'Hits ignore 35% of enemy defense, and kills restore 8% HP.',stormblade:'Your hits deal storm damage instead of physical (physical damage bonuses still count). 35% of hits arc to another enemy for 50%.',jagged:'Hits have a 20% chance to Bleed'};
 const FXN={emberblade:'Emberforged',bloodblade:'Bloodforged',soulblade:'Soulforged',stormblade:'Stormforged',jagged:'Jagged',soul:'Soulbound',venom:'Venomed',ember:'Smouldering',heart:"Warden's Heart",crown:'Crowned',tyrant:"Tyrant's Flame"};
 const CATS={weapon:'Weapon',armor:'Armor',helm:'Helm',boots:'Boots',cloak:'Cloak'};
@@ -1975,10 +1975,10 @@ function derive(){
   b.crit+=[0,3,6,10][trk('surge')];b.hpPct+=[0,5,10,15][trk('unyield')];b.dr+=[0,3,5,8][trk('unyield')];if(hasP('jugg'))b.hpPct+=30;
   for(const id in (S.tree||{})){const X=CNODE[id];if(X&&X.b&&S.tree[id])for(const k in X.b)b[k]=(b[k]||0)+X.b[k]*S.tree[id];}
   b.pdmg+=2*trk('might');b.critd+=.04*trk('finesse')+.06*trk('geye');b.hpPct+=3*trk('guard');b.spd+=trk('footwork');b.crit+=2*trk('precision')+3*trk('geye');if(trk('iron'))b.dr+=10;if(trk('flowing'))b.critd+=.1;
-  let atk=3;let el='phys';if(fx.includes('bloodblade'))b.ls+=8;
+  let atk=3;let el='phys';if(fx.includes('bloodblade'))b.ls+=3;
   if(w){const W=WT[w.type];const base=itemBase(w).atk||0;const sv=t[wepStat(w.type)];atk=Math.round(base*(1+sv*GRP[wepGrade(w)]/100)+sv*.25+(itemStats(w).atk-base||0));el=W.el||'phys';}if(fx.includes('emberblade'))el='fire';if(fx.includes('stormblade'))el='storm';
   atk+=Math.round(b.atk||0);
-  let hpM=(1+(t.vit+b.hpPct)/100)*(fx.includes('bloodblade')?.8:1);const bb=fx.includes('bloodblade')?1.15:1;
+  let hpM=(1+(t.vit+b.hpPct)/100)*(fx.includes('bloodblade')?.9:1);const bb=fx.includes('bloodblade')?1.08:1;
   return {stats:t,atk,el,fx,ench,maxHp:Math.round((20+S.lvl*8+b.hp)*hpM*(1+Math.min(.6,Math.max(0,S.lvl-8)*.025))),maxMp:Math.round((10+S.lvl*3+b.mp)*(1+t.int/100)*(1+.05*trk('focus'))*(1+(b.mpPct||0)/100)),
     def:Math.round((b.def+S.lvl*.2)*(1+t.vit*.005)*10)/10,crit:Math.min(100,Math.round(5+t.dex*.5+b.crit)),critd:1.6+t.dex*.01+b.critd+(w&&WT[w.type].critd||0),
     dodge:Math.min(30,Math.max(0,Math.round(t.spd*.35+b.dodge))),spd:t.spd+b.spd,ls:Math.min(25,b.ls),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
