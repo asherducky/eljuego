@@ -2049,7 +2049,7 @@ function intentIcon(k){const s=innerWidth<800?2:3;return k==='drain'?sprImg('m_h
 function rollIntent(e){for(const [a,p] of e.ab)if(chance(p))return a;return 'atk';}
 const dmods=()=>S.dungeon&&S.dungeon.mods||[];
 // levels 20-35 grow at 30% so the jump to the Stormsea stays fair; past 35 (the deep Tower) they grow at 65%
-for(const A of AREAS)for(const id of [...A.mobs,A.dungeon.boss])if(MOB[id]){MOB[id].weak=A.weak;MOB[id].res=A.res;}
+for(const A of AREAS)for(const id of [...A.mobs,A.dungeon.boss])if(MOB[id]){MOB[id].weak=A.weak;MOB[id].res=A.res;}MOB.hking.weak=null;
 function mkEnemy(id,L){const b=MOB[id];const Le=L>35?24.5+(L-35)*.65:L>20?20+(L-20)*.3:L;const ph=Math.pow(TUNE.hpG,Le-1),pa=Math.pow(TUNE.atkG,Le-1);const df=DIFF[S.diff||'normal'];const rage=dmods().includes('rage');
   const B=b.boss?{hp:TUNE.bossHp,atk:TUNE.bossAtk,def:TUNE.bossDef,xp:6}:{hp:1,atk:1,def:1,xp:1};const hp=Math.round(b.hp*ph*df.hp*B.hp);
   const e={id,n:b.n,L,hp,max:hp,atk:Math.round(b.atk*pa*df.atk*B.atk*(rage?1.2:1)*10)/10,def:Math.round(b.def*Math.pow(TUNE.defG,Le-1)*B.def*10)/10,spd:Math.round(b.spd+(L-1)*.4),xp:Math.round(b.xp*ph*df.rew*B.xp),
@@ -2069,7 +2069,7 @@ const effDef=e=>e.def*(e.st.brk?.5:1);
 function revealHint(e,el){const m=elMult(e,el);if(m!==1&&!S.known[e.id]){S.known[e.id]=true;log(`${e.n} ${m>1?'is weak to':'resists'} ${EL[el].n}. Its weakness is now known.`,'buff');}}
 function stun(e){if(bossCC(e))return;e.st.stun={t:1};log(`${e.n} is stunned.`,'buff');}
 function freeze(e){if(bossCC(e)){delete e.st.chill;return;}if(trk('coldblood'))S.mp=Math.min(derive().maxMp,S.mp+5);e.st.stun={t:hasP('permafrost')?2:1,frz:1};delete e.st.chill;log(`${e.n} is frozen solid.`,'buff');fx('burst',{t:C().enemies.indexOf(e),col:['#c4ecff','#f4efe4','#6fb7e8'],n:20});}
-function burn(e,s){s+=heatS;const d=derive();const cur=e.st.burn;e.st.burn={s:Math.min(10,(cur?cur.s:0)+s),p:Math.max(1,Math.round(d.atk*.28*(1+.1*trk('heat')+(ctPts('fire')>=15?.15:0))))};}
+function burn(e,s){s+=heatS;heatS=0;const d=derive();const cur=e.st.burn;e.st.burn={s:Math.min(10,(cur?cur.s:0)+s),p:Math.max(1,Math.round(d.atk*.25*(1+.1*trk('heat')+(ctPts('fire')>=15?.15:0))))};}
 function poison(e,s){const d=derive();const cur=e.st.poison;let p=Math.max(1,Math.round(d.atk*.12));
   e.st.poison={t:4,p:Math.max(p,cur?cur.p:0),s:Math.min(8,(cur?cur.s:0)+s)};}
 function hemoBurst(e,frac){const c=C(),i=c.enemies.indexOf(e);const dmg=Math.max(1,Math.round(e.max*(e.boss||e.pvp?.10:.25)*frac*[1,1.2,1.35,1.5][trk('toxic')]));
@@ -2095,7 +2095,7 @@ function swordBonus(e,c,o){let m=1;if((trk('opening')||trk('hopen')||trk('rambus
   const P=ctPts('medium');if(P>=15&&!o.echo){if(c.momE!==e){c.momE=e;c.momN=0;c.momS=c.tn;}else if(c.momS!==c.tn){c.momS=c.tn;c.momN=Math.min(P>=30?8:4,(c.momN||0)+1);}m*=1+.05*(c.momN||0);}return m;}
 function counterHit(e){const cs=trk('counterstance');hit(e,(trk('riposte')>=2?.9:.7)*(cs?1.25:1),{label:'You counter',critBonus:cs?25:0});if(trk('iron'))heal(derive().maxHp*.05);}
 function lastStand(c){if(S.hp<=0&&(trk('laststand')||trk('iceguard')||trk('stormguard')||trk('phoenix'))&&!c.lastSt){c.lastSt=1;S.hp=trk('phoenix')?Math.round(derive().maxHp*.3):1;log('Last Stand! You refuse to fall.','crit');fx('num',{t:'p',txt:'Last Stand',cls:'crit'});}}
-function kingCalls(e,c,i){e.summoned=true;const n=mkEnemy('knight',Math.max(1,e.L-5));n.called=true;c.enemies.push(n);log('The Hollow King calls a knight to his side! He takes half damage while it stands.','boss');fx('enrage',{t:i});fxAt+=300;} function hit(e,mult,o={}){if(!e)return 0;
+function kingCalls(e,c,i){e.summoned=true;const n=mkEnemy('knight',Math.max(1,e.L-5));n.called=true;n.hp=n.max=Math.round(n.max*2);c.enemies.push(n);log('The Hollow King calls a knight to his side! He takes half damage while it stands.','boss');fx('enrage',{t:i});fxAt+=300;} function hit(e,mult,o={}){if(!e)return 0;
   const d=derive(),c=C(),i=c.enemies.indexOf(e);const duel=c.ctx==='duel';if(e.hp<=0&&!duel)return 0;const logHit=x=>{if(duel&&c.duelHits)c.duelHits.push(x);};
   const el=o.el||d.el;c.hits=(c.hits||0)+1;
   const crit=o.crit!==undefined?o.crit:(hasP('wayblade')&&c.hits%3===0)||(trk('onecut')&&!e._cut)||chance(d.crit+(o.critBonus||0));
@@ -2131,7 +2131,7 @@ function kingCalls(e,c,i){e.summoned=true;const n=mkEnemy('knight',Math.max(1,e.
 }
 function tickDots(st,name,apply,t,target){
   for(const k of ['burn','poison','bleed']){const s=st[k];if(!s)continue;let dmg=s.p*(k==='bleed'?1:s.s||1);
-    if(target){const elm=k==='burn'?'fire':k==='poison'?'venom':'phys';dmg=Math.max(1,Math.round(dmg*elMult(target,elm)));}
+    if(target){const elm=k==='burn'?'fire':k==='poison'?'venom':'phys';dmg=Math.max(1,Math.round(dmg*elMult(target,elm)*(target.id==='hking'&&C().enemies.some(x=>x.id==='knight'&&x.hp>0)?.5:1)));}
     apply(dmg);fx('num',{t,txt:dmg,cls:k});fx('hp',{t,hp:target?target.hp:S.hp,max:target?target.max:derive().maxHp});log(`${name} ${name==='You'?'take':'takes'} ${dmg} ${k} damage.`,name==='You'?'hurt':'');
     if(k==='bleed'&&target&&!hasP('linger')&&s.s>0)s.s--;if(k==='burn'){if(trk('slowburn')&&target&&(s.h=!s.h)){}else if(--s.s<=0)delete st[k];}else if(--s.t<=0)delete st[k];}
   if(st.shock&&--st.shock.s<=0)delete st.shock;if(st.brk&&--st.brk.t<=0)delete st.brk;if(st.mark&&--st.mark.t<=0)delete st.mark;}
