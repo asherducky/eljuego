@@ -19,7 +19,7 @@
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:17px;line-height:1.35;-webkit-font-smoothing:none;font-smooth:never}
 *{box-sizing:border-box}
-#devilv{position:fixed;inset:0;background:#000;display:none;flex-direction:column;align-items:center;padding:16px;gap:12px;z-index:9000}#devilv.open{display:flex}#dv-stage{position:relative;flex:1 1 0;min-height:0;width:100%}#dv-stage canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;image-rendering:crisp-edges}#dv-speech{flex:none;width:100%;max-width:640px;height:9.5em;cursor:pointer;visibility:hidden;display:flex;flex-direction:column;gap:8px;color:var(--ink)}#dv-speech.show{visibility:visible}#dv-line{margin:0;font-size:clamp(1.05rem,3vw,1.35rem);min-height:2.8em}#dv-more{color:var(--mute);font-size:.85rem;visibility:hidden;align-self:flex-end}#dv-more.show{visibility:visible}#dv-choices{display:none;gap:10px;flex-wrap:wrap}#dv-choices.show{display:flex}#dv-choices button{font:inherit;color:var(--ink);background:#000;border:3px solid #5a2020;padding:10px 18px;cursor:pointer;flex:1;min-width:90px}#dv-choices button:hover{background:#2a0c0c}#dv-choices button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#devilv{position:fixed;inset:0;background:#000;display:none;flex-direction:column;align-items:center;padding:16px;gap:12px;z-index:9000}#devilv.open{display:flex}#dv-stage{position:relative;flex:1 1 0;min-height:0;width:100%}#dv-stage canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;image-rendering:crisp-edges}#dv-speech{flex:none;width:100%;max-width:640px;height:9.5em;cursor:pointer;visibility:hidden;display:flex;flex-direction:column;gap:8px;color:var(--ink)}#dv-speech.show{visibility:visible}#devilv[data-d=veiled] #dv-speech{padding:10px 14px;box-sizing:border-box;height:auto;min-height:9.5em;border:2px dashed #6f678a;background:repeating-linear-gradient(90deg,#0b0810 0 12px,#100c16 12px 24px);color:#e8e2e4;font-style:italic}#devilv[data-d=veiled] #dv-choices button{border:2px dashed #a39da8;background:#0b0810}#devilv[data-d=veiled] #dv-choices button:hover{background:#1d1826}#devilv[data-d=colossus] #dv-speech{padding:10px 14px;box-sizing:border-box;height:auto;min-height:9.5em;background:#1c0a0c;box-shadow:inset 0 0 0 3px #451a1a,inset 0 0 0 5px #0d0507;color:#f4d8c0}#devilv[data-d=colossus] #dv-line{letter-spacing:.06em}#devilv[data-d=colossus] #dv-choices button{border:0;background:#2e1012;box-shadow:inset 0 0 0 3px #7c3a30}#devilv[data-d=colossus] #dv-choices button:hover{background:#451a1a}#dv-line{margin:0;font-size:clamp(1.05rem,3vw,1.35rem);min-height:2.8em}#dv-more{color:var(--mute);font-size:.85rem;visibility:hidden;align-self:flex-end}#dv-more.show{visibility:visible}#dv-choices{display:none;gap:10px;flex-wrap:wrap}#dv-choices.show{display:flex}#dv-choices button{font:inherit;color:var(--ink);background:#000;border:3px solid #5a2020;padding:10px 18px;cursor:pointer;flex:1;min-width:90px}#dv-choices button:hover{background:#2a0c0c}#dv-choices button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 img.spr,canvas.scene{image-rendering:pixelated;image-rendering:crisp-edges}
 #amb,#pfx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 #amb{z-index:0}#pfx{z-index:35}
@@ -3984,6 +3984,7 @@ document.addEventListener('pointermove',ev=>{const cv=document.querySelector('ca
 /* devil encounters: rare, manual wandering only, after the Hollow Throne. Contracts come later, answers are only recorded for now */
 /* painted fight models: drawn once from soft shapes, then cached as frames */
 const MODELS=(()=>{
+let JAW=null;
 const W=256,H=150,BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
 const hash=(x,y)=>{const v=Math.sin(x*127.1+y*311.7)*43758.5453;return v-Math.floor(v);};
 const vn=(x,y)=>{const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,s=u*u*(3-2*u),t=v*v*(3-2*v);return (hash(i,j)*(1-s)+hash(i+1,j)*s)*(1-t)+(hash(i,j+1)*(1-s)+hash(i+1,j+1)*s)*t;};
@@ -4031,7 +4032,7 @@ function puppet(g,cx,t,faded){const sw=Math.sin(t*.22)*5,sw2=Math.sin(t*.22-.7)*
   const fx=hx+tilt*.2,fy=hy;
   // the face: hollow eyes, a seam jaw hinged like a puppet
   g.fillStyle='#050408';g.fillRect(fx-4,fy-1,3,3);g.fillRect(fx+2,fy-1,3,3);if(!faded&&Math.floor(t)%11){g.fillStyle='#ff5a3c';g.fillRect(fx-3,fy,1,1);g.fillRect(fx+3,fy,1,1);}
-  g.fillStyle='#2a2430';g.fillRect(fx-5,fy+3,1,5);g.fillRect(fx+5,fy+3,1,5);const open=(Math.sin(t*.09)>.7)?2:0;g.fillRect(fx-4,fy+5,9,1);if(open){g.fillStyle='#050408';g.fillRect(fx-4,fy+6,9,open);}for(let i=0;i<4;i++){g.fillStyle='#55505a';g.fillRect(fx-3+i*2,fy+3,1,1);}
+  g.fillStyle='#2a2430';g.fillRect(fx-5,fy+3,1,5);g.fillRect(fx+5,fy+3,1,5);const open=JAW!==null?JAW:(Math.sin(t*.09)>.7)?2:0;g.fillRect(fx-4,fy+5,9,1);if(open){g.fillStyle='#050408';g.fillRect(fx-4,fy+6,9,open);}for(let i=0;i<4;i++){g.fillStyle='#55505a';g.fillRect(fx-3+i*2,fy+3,1,1);}
   // strings: hair running up out of the scene to her head, wrists and one knee
   const str=(p,tx,c)=>drawLine(g,p,[tx,0],c);for(let s=0;s<15;s++){const o=(s/14-.5)*14;const c=s%3?'#2a2636':'#6f678a';for(let y=0;y<hy-6;y+=1){const q=y/(hy-6);g.fillStyle=c;g.fillRect(Math.round(cx+o*1.6*(1-q)+o*.6*q+sw*q+Math.sin(y*.2+s+t*.2)*.6*(1-q)),y,1,1);}}
   str(la2,cx-30,'#a39da8');str(ra2,cx+34,'#a39da8');str(rl1,cx+18,'#a39da8');str(la1,cx-40,'#55505a');
@@ -4071,7 +4072,11 @@ function titan(g,i,far,near){if(!RED)RED=hazy(['#140406','#28080a','#440e0e','#6
 let VB=null;
 function theatre(g,t){if(!VB)VB=veilBack();g.drawImage(VB,0,0);puppet(g,186,t,false);}
 function toy(g,kind,t){spring(g,28,0,62,'#a39da8');mini(g,kind,28,68,t);}
-return {titan,theatre,toy};
+function marionette(g,t,jaw){JAW=jaw;puppet(g,128,t,false);JAW=null;}
+function curtains(g){if(!VB)VB=veilBack();g.drawImage(VB,0,0);}
+function colFace(g,jaw){const cx=128,sym=fn=>{for(const d of [-1,1])fn(d);},lay=fn=>{const Q=[];fn(Q);paint(Q,g,BOX);flushCre(g);};g.fillStyle='#000';g.fillRect(0,0,W,H);lay(Q=>{sym(d=>{capsule(Q,[cx+d*30,40],[cx+d*56,24],9,6.5,'horn',.2);capsule(Q,[cx+d*56,24],[cx+d*74,4],6.5,4,'horn',.15);capsule(Q,[cx+d*74,4],[cx+d*72,-16],4,.5,'horn',.1);});});lay(Q=>{capsule(Q,[cx-22,108+jaw],[cx+22,108+jaw],15,15,'near',.4);capsule(Q,[cx,122+jaw],[cx,122+jaw],14,14,'near',.4);sym(d=>capsule(Q,[cx+d*34,92],[cx+d*26,110+jaw*.7],10,9,'near',.4));});const my=98;g.fillStyle='#050203';g.fillRect(cx-30,my,60,10+jaw);g.fillStyle='#7a1414';g.fillRect(cx-24,my+3,48,4+jaw);lay(Q=>{capsule(Q,[cx-18,44],[cx+18,44],33,33,'near',.5);sym(d=>{capsule(Q,[cx+d*30,50],[cx+d*38,76],16,14,'near',.4);capsule(Q,[cx+d*38,76],[cx+d*30,92],13,9,'near',.3);});capsule(Q,[cx-24,80],[cx+24,80],13,13,'near',.3);capsule(Q,[cx,60],[cx,88],7,8,'near',.2);});lay(Q=>{sym(d=>capsule(Q,[cx+d*44,52],[cx+d*6,66],7,9,'near',.15));});for(let i=-5;i<=5;i++){const x=cx+i*5.2,tall=4+(i%2?2:0);g.fillStyle='#e0d0b0';g.fillRect(x-1,my,3,tall);g.fillStyle='#8a7458';g.fillRect(x+1,my,1,tall);g.fillStyle='#e0d0b0';g.fillRect(x-1,my+9+jaw-(tall-2),3,tall-2);}g.fillStyle='#050203';for(const d of [-1,1]){g.fillRect(cx+d*4-1,84,3,3);}for(let y=112;y<H;y++)for(let x=0;x<W;x++)if(BAYER[y&3][x&3]/16<(y-112)/34){g.fillStyle='#000';g.fillRect(x,y,1,1);}}
+function colEyes(g,k,jaw){const cx=128,blink=k%70>67;for(const d of [-1,1])for(let u=8;u<=34;u++){const x=cx+d*u,mid=70+(u-8)*-.34,hh=Math.round(5*Math.sin((u-6)/30*3.14159));g.fillStyle='#050203';g.fillRect(x,mid-hh,1,hh*2+1);if(blink)continue;const gl=Math.max(1,Math.round(hh*.55));g.fillStyle=(k+u)%9===0?'#ffb070':'#ff5a3c';g.fillRect(x,mid-gl+1,1,gl*2-1);if(u>12&&u<30){g.fillStyle='#ffe9c4';g.fillRect(x,mid,1,1);}}}
+return {titan,theatre,toy,marionette,curtains,colFace,colEyes};
 })();
 const DEVIL=(()=>{
 const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t;
@@ -4222,12 +4227,12 @@ const CAST={
     ask:'Still. I will take what there is. What do you offer?',
     ends:{listen:'Good. I will not be hard to find.',refuse:'You say that as if you were still whole.',fight:'With what? Lose, and you get nothing from me.'},
     after:{listen:'It feels like you agreed to something.',refuse:'Something out there is still watching.',fight:'You are swinging at empty air.'}},
-  colossus:{w:320,h:180,make:colossus,
+  colossus:{w:320,h:180,scene:1,make:colossus,
     lines:['LOOK UP.','That city knelt too. It only asked me for something small.','You have walked in my shadow for a long time, little one.'],
     ask:'Now. Tell me what you want.',
     ends:{listen:'Then we have an understanding. So did they.',refuse:'Ants have refused me before. I did not notice.',fight:'Ha. Reach me first.'},
     after:{listen:'The ground is still shaking.',refuse:'The sky goes back to normal, slowly.',fight:'You are standing alone, fists up, under an empty sky.'}},
-  veiled:{w:176,h:196,make:veiled,
+  veiled:{w:176,h:196,scene:1,make:veiled,
     lines:['Shhh.',"Don't wake the others.",'I know the thing you keep wanting. I can smell it on you.'],
     ask:'Come closer. What would you cut away to have it?',
     ends:{listen:'Good. Good. Hold still.',refuse:'They all say no the first time.',fight:'Oh, you are going to be so much fun later.'},
@@ -4266,21 +4271,44 @@ function droneOn(){const c=au();if(!c)return;const o=c.createOscillator(),o2=c.c
 function droneOff(){if(!UIv.drone)return;try{UIv.drone.o.stop();UIv.drone.o2.stop();}catch(e){}UIv.drone=null;}
 function blip(){const c=au();if(!c)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type='square';o.frequency.value=90+Math.random()*25;g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(g);g.connect(AU.g);o.start();o.stop(t+.05);}
 function say(text,wait=true){return new Promise(res=>{const line=document.getElementById('dv-line'),more=document.getElementById('dv-more');let i=0,done=false;line.textContent='';more.classList.remove('show');
-  const tick=setInterval(()=>{i++;line.textContent=text.slice(0,i);if(i%2&&text[i-1]!==' ')blip();if(i>=text.length)finish();},text==='...'?420:42);
-  function finish(){clearInterval(tick);line.textContent=text;done=true;if(!wait){UIv.advance=null;res();return;}more.classList.add('show');UIv.advance=()=>{UIv.advance=null;res();};}
+  const tick=setInterval(()=>{i++;UIv.talk=i%6<3;line.textContent=text.slice(0,i);if(i%2&&text[i-1]!==' ')blip();if(i>=text.length)finish();},text==='...'?420:42);
+  function finish(){clearInterval(tick);UIv.talk=false;line.textContent=text;done=true;if(!wait){UIv.advance=null;res();return;}more.classList.add('show');UIv.advance=()=>{UIv.advance=null;res();};}
   UIv.advance=()=>{if(!done)finish();};});}
 const choose=()=>new Promise(res=>{const c=document.getElementById('dv-choices');c.classList.add('show');c.querySelector('button').focus();c.onclick=e=>{const v=e.target.dataset.c;if(!v)return;c.onclick=null;c.classList.remove('show');res(v);};});
 function blink(eyes){clearTimeout(UIv.blink);UIv.blink=setTimeout(async()=>{if(!UIv.busy)return;eyes.style.visibility='hidden';await sleep(130);eyes.style.visibility='';blink(eyes);},1800+Math.random()*2600);}
 
+
+/* the painted entrances */
+const SCW=256,SCH=150;let scT=0;
+function sceneCanvas(fn){const c=document.createElement('canvas');c.width=SCW;c.height=SCH;fn(c.getContext('2d'));return c;}
+const stopScene=()=>{clearInterval(UIv.tick);const b=document.getElementById('dv-body');if(b)b.style.marginLeft='';};
+function shakeBody(px,ms){const b=document.getElementById('dv-body');if(RM||!b)return;let n=0;const iv=setInterval(()=>{n++;b.style.marginLeft=(n%2?px:-px)*Math.max(.2,1-n*60/ms)+'px';if(n*60>=ms){clearInterval(iv);b.style.marginLeft='';}},60);}
+async function colossusIn(g,quick){const bd=document.getElementById('dv-body');cur={w:176,h:128};bd.width=176;bd.height=128;fit();g=bd.getContext('2d');g.translate(-40,8);const shut=sceneCanvas(c=>MODELS.colFace(c,0)),open=sceneCanvas(c=>MODELS.colFace(c,5));let lv=quick||RM?16:0,k=0;UIv.talk=false;
+  const M=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+  const draw=()=>{k++;if(lv>0){g.drawImage(UIv.talk?open:shut,0,0);if(lv<16){g.fillStyle='#000';for(let y=0;y<SCH;y++)for(let x=0;x<SCW;x++)if(M[y&3][x&3]>=lv)g.fillRect(x,y,1,1);}}else{g.fillStyle='#000';g.fillRect(0,0,SCW,SCH);}MODELS.colEyes(g,k,UIv.talk?5:0);};
+  draw();UIv.tick=setInterval(draw,150);if(quick||RM)return;
+  // only his eyes in the dark, then the ground shakes and the stone comes up around them
+  await sleep(2200);droneOn();thud();shakeBody(4,400);await sleep(1300);
+  for(let i=1;i<=4;i++){lv=i*4;thud();shakeBody(3+i,420);await sleep(800);}}
+async function veiledIn(g,quick){const shut=[],open=[];for(let i=0;i<16;i++){const t=i/16*Math.PI*2/.22;shut.push(sceneCanvas(c=>MODELS.marionette(c,t,0)));open.push(sceneCanvas(c=>MODELS.marionette(c,t,2)));}const VB=sceneCanvas(c=>MODELS.curtains(c));let yo=quick||RM?0:-150,lv=quick||RM?16:0,k=0;UIv.talk=false;
+  const draw=()=>{const f=(UIv.talk?open:shut)[k%16];k++;g.fillStyle='#000';g.fillRect(0,0,SCW,SCH);if(lv>0){g.drawImage(VB,0,0);if(lv<16){const M=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];g.fillStyle='#000';for(let y=0;y<SCH;y++)for(let x=0;x<SCW;x++)if(M[y&3][x&3]>=lv)g.fillRect(x,y,1,1);}}g.drawImage(f,0,yo);};
+  draw();UIv.tick=setInterval(draw,150);if(quick||RM)return;
+  // nothing, then single strings fall into the dark
+  await sleep(1100);clearInterval(UIv.tick);const strs=[108,146,120,134,96,160];for(let s=0;s<strs.length;s++){for(let y=0;y<=SCH;y+=15){g.fillStyle='#a39da8';g.fillRect(strs[s],0,1,y);await sleep(16);}blip();await sleep(240);}droneOn();await sleep(500);
+  UIv.tick=setInterval(draw,150);for(let i=0;i<14;i++){yo=-150+150*(1-Math.pow(1-(i+1)/14,2));await sleep(150);}yo=0;thud();await sleep(450);
+  for(let i=1;i<=8;i++){lv=i*2;await sleep(110);}await sleep(300);}
+async function entrance(name,quick){const body=document.getElementById('dv-body'),eyes=document.getElementById('dv-eyes');cur={w:SCW,h:SCH};for(const c of [body,eyes]){c.width=SCW;c.height=SCH;}eyes.style.opacity=0;body.style.opacity=1;fit();const g=body.getContext('2d');if(name==='colossus')await colossusIn(g,quick);else await veiledIn(g,quick);}
 async function meet(name){if(UIv.busy||!CAST[name])return;if(AB.on)autoStop();const D=state(),d=CAST[name];D.now=name;D.last=name;save();UIv.busy=true;cur=d;
   const v=build(),body=document.getElementById('dv-body'),eyes=document.getElementById('dv-eyes'),speech=document.getElementById('dv-speech'),eg=eyes.getContext('2d'),bg=body.getContext('2d');
   speech.classList.remove('show');document.getElementById('dv-line').textContent='';document.getElementById('dv-more').classList.remove('show');document.getElementById('dv-choices').classList.remove('show');
   body.style.opacity=0;eyes.style.opacity=0;eyes.style.visibility='';v.classList.add('open');document.documentElement.style.overflow='hidden';thud();
+  v.dataset.d=name;
   await sleep(40);   // the black is up: painting the art here can't be seen
-  if(!d.bodyC){d.bodyC=document.createElement('canvas');d.eyeC=document.createElement('canvas');paint(d.bodyC,d.w,d.h,d.make(),d.eyeC);if(d.live)d.cells=hollowCells();}
-  for(const [c,s] of [[body,d.bodyC],[eyes,d.eyeC]]){c.width=d.w;c.height=d.h;const g=c.getContext('2d');g.clearRect(0,0,d.w,d.h);g.drawImage(s,0,0);}fit();
   let flame=false,crawling=false,t=0;
   const frame=()=>{t++;if(!d.live)return;eg.clearRect(0,0,d.w,d.h);if(flame)ghostFlame(eg,t);if(crawling)crawl(bg,t,d.cells);};
+  if(d.scene){await entrance(name);}else{
+  if(!d.bodyC){d.bodyC=document.createElement('canvas');d.eyeC=document.createElement('canvas');paint(d.bodyC,d.w,d.h,d.make(),d.eyeC);if(d.live)d.cells=hollowCells();}
+  for(const [c,s] of [[body,d.bodyC],[eyes,d.eyeC]]){c.width=d.w;c.height=d.h;const g=c.getContext('2d');g.clearRect(0,0,d.w,d.h);g.drawImage(s,0,0);}fit();
   if(d.live&&!RM)UIv.tick=setInterval(frame,120);
   await sleep(1760);   // nothing at all for a moment
   flame=d.live;if(d.live)frame();eyes.style.opacity=1;if(!d.live)blink(eyes);droneOn();
@@ -4288,6 +4316,7 @@ async function meet(name){if(UIv.busy||!CAST[name])return;if(AB.on)autoStop();co
   if(d.live&&!RM)crawling=true;
   for(const o of [.15,.4,.7,1]){body.style.opacity=o;await sleep(450);}
   flame=false;if(d.live)frame();   // the flame dies once the face is there
+  }
   speech.classList.add('show');
   for(const l of d.lines)await say(l);
   await say(d.ask,false);
@@ -4319,7 +4348,7 @@ function bossImg(e,up,ps){const big=e.id==='hollowd',u=Math.max(1,Math.floor(ps/
 function terms(){return new Promise(res=>{const l=document.getElementById('dv-line'),c=document.getElementById('dv-choices'),m=document.getElementById('dv-more');m.classList.remove('show');l.innerHTML='<b>You give up</b> your whole skill tree and class skills, 20% of your max HP, and all your MP.<br><b>You gain</b> the Shadow tree, Malice, +10% dodge with a 40% cap, and immunity to every status effect.';const old=c.innerHTML;c.innerHTML='<button data-s="1">Sign</button><button data-s="0">Walk away</button>';c.classList.add('show');c.querySelector('button').focus();c.onclick=e=>{const v=e.target.dataset.s;if(v===undefined)return;c.onclick=null;c.classList.remove('show');c.innerHTML=old;res(v==='1');};});}
 function sign(){const D=state();D.pact='hollow';D.fam=wepFam();D.old={tree:S.tree,stars:S.stars,equip:S.equip};S.tree={};S.stars=[...ORIGINS];S.equip=[];S.sp=spLeft();recomputeSkills();if(canRank('gnaw'))ACT.tadd('gnaw');S.mp=0;clampVitals();}
 function unsign(){const D=state();if(!D.pact)return;D.pact=null;if(D.old){S.tree=D.old.tree;S.stars=D.old.stars;S.equip=D.old.equip;}D.old=null;S.sp=spLeft();recomputeSkills();clampVitals();}
-async function offer(name='hollow'){if(UIv.busy)return;const d=CAST[name],v=build();UIv.busy=true;cur=d;const body=document.getElementById('dv-body'),eyes=document.getElementById('dv-eyes'),speech=document.getElementById('dv-speech');if(!d.bodyC){d.bodyC=document.createElement('canvas');d.eyeC=document.createElement('canvas');paint(d.bodyC,d.w,d.h,d.make(),d.eyeC);if(d.live)d.cells=hollowCells();}if(d.live&&!d.cells)d.cells=hollowCells();body.width=d.w;body.height=d.h;eyes.width=d.w;eyes.height=d.h;const bg=body.getContext('2d');bg.drawImage(d.bodyC,0,0);eyes.getContext('2d').drawImage(d.eyeC,0,0);body.style.opacity=1;eyes.style.opacity=d.live?0:1;v.classList.add('open');document.documentElement.style.overflow='hidden';fit();droneOn();let t=0;if(!RM&&d.live)UIv.tick=setInterval(()=>{t++;crawl(bg,t,d.cells);},120);document.getElementById('dv-choices').classList.remove('show');speech.classList.add('show');let signed;if(name==='veiled'){await say('Oh. You found me.');await say('Nobody has ever found me. Come here. I made you something.');signed=await bladeTerms();if(signed)signBlade();await say(signed?'Good. Good. Hold still.':'Next time, then. I can smell where you sleep.');}else if(name==='colossus'){await say('YOU ARE STILL STANDING.');await say('THEN I WILL EAT SOMETHING ELSE OF YOURS.');const cut=await cutTerms();signed=!!cut;if(signed)signVeil(cut);await say(signed?'Then we have an understanding. So did they.':'Grow first. I can wait.');}else{await say('So there is something left of you after all.');await say('Most of them stop moving by now. I could use that.');signed=await terms();if(signed)sign();await say(signed?'It is done. You will not miss it.':'Then go. You will walk this way again.');}speech.classList.remove('show');body.style.opacity=0;droneOff();clearInterval(UIv.tick);await sleep(900);v.classList.remove('open');document.documentElement.style.overflow='';UIv.busy=false;cur=null;if(signed)S.note=name==='veiled'?'There is a blade in your hand. You did not pick it up.':name==='colossus'?'Something is missing. You keep reaching for it.':'Something is missing. Open your skills.';render();}
+async function offer(name='hollow'){if(UIv.busy)return;const d=CAST[name],v=build();UIv.busy=true;cur=d;const body=document.getElementById('dv-body'),eyes=document.getElementById('dv-eyes'),speech=document.getElementById('dv-speech');if(!d.bodyC){d.bodyC=document.createElement('canvas');d.eyeC=document.createElement('canvas');paint(d.bodyC,d.w,d.h,d.make(),d.eyeC);if(d.live)d.cells=hollowCells();}v.dataset.d=name;const bg=body.getContext('2d');if(d.scene){await entrance(name,true);}else{if(d.live&&!d.cells)d.cells=hollowCells();body.width=d.w;body.height=d.h;eyes.width=d.w;eyes.height=d.h;bg.drawImage(d.bodyC,0,0);eyes.getContext('2d').drawImage(d.eyeC,0,0);body.style.opacity=1;eyes.style.opacity=d.live?0:1;}v.classList.add('open');document.documentElement.style.overflow='hidden';fit();droneOn();let t=0;if(!RM&&d.live)UIv.tick=setInterval(()=>{t++;crawl(bg,t,d.cells);},120);document.getElementById('dv-choices').classList.remove('show');speech.classList.add('show');let signed;if(name==='veiled'){await say('Oh. You found me.');await say('Nobody has ever found me. Come here. I made you something.');signed=await bladeTerms();if(signed)signBlade();await say(signed?'Good. Good. Hold still.':'Next time, then. I can smell where you sleep.');}else if(name==='colossus'){await say('YOU ARE STILL STANDING.');await say('THEN I WILL EAT SOMETHING ELSE OF YOURS.');const cut=await cutTerms();signed=!!cut;if(signed)signVeil(cut);await say(signed?'Then we have an understanding. So did they.':'Grow first. I can wait.');}else{await say('So there is something left of you after all.');await say('Most of them stop moving by now. I could use that.');signed=await terms();if(signed)sign();await say(signed?'It is done. You will not miss it.':'Then go. You will walk this way again.');}speech.classList.remove('show');body.style.opacity=0;droneOff();clearInterval(UIv.tick);await sleep(900);v.classList.remove('open');document.documentElement.style.overflow='';UIv.busy=false;cur=null;if(signed)S.note=name==='veiled'?'There is a blade in your hand. You did not pick it up.':name==='colossus'?'Something is missing. You keep reaching for it.':'Something is missing. Open your skills.';render();}
 function resume(){const D=S&&S.devils;if(D&&D.now&&CAST[D.now])meet(D.now);}
 return {roll,meet,resume,chanceNow,names:Object.keys(CAST),offer,contractImg,markImg,veilImg,bossImg,colBg,stageBg,toyImg,signBlade,signCut:signVeil,colImg,sign,unsign,noise,faceW:HW,faceH:HH,face:()=>{const f=CAST.hollow;if(!f.cells)f.cells=hollowCells();return f.cells;}};
 })();
