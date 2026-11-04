@@ -2248,7 +2248,7 @@ function win(){
   if(tw){const T=S.tower,f=T.floor;T.cd={...(c.cd||{})};loot.xp=Math.round(loot.xp*.3);loot.gold=Math.round(loot.gold*.6);if(T.mod==='gild')loot.gold=Math.round(loot.gold*1.6);loot.mats.essence=(loot.mats.essence||0)+Math.ceil(f/5);
     if(f%5===0){loot.items.push(genItem(tier,1,undefined,RCAP[tier]));if(chance(50))loot.items.push(mkGem(pick(Object.keys(GEMS)),Math.min(4,Math.floor(f/15))));}
     if(T.mod==='bless'){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.25));S.mp=Math.min(d.maxMp,S.mp+Math.round(d.maxMp*.25));}
-    if(f>(S.towerBest||0)){S.towerBest=f;if(f%10===0)grantStar(loot);if(f%5===0)addMat(f>=50&&f%10===0?'crys5':f>=45?'crys4':f>=30?'crys3':'crys2',1);spirePost();}loot.tower=f;T.floor++;ctrHook('tower',f);}
+    if(f>(S.towerBest||0)){S.towerBest=f;if(f%10===0)grantStar(loot);if(f%5===0)addMat(f>=50&&f%10===0?'crys5':f>=45?'crys4':f>=30?'crys3':'crys2',1);spirePost();}if(f>50&&chance(f>100?5:2))addMat('crys5',1);loot.tower=f;T.floor++;ctrHook('tower',f);}
   else if(c.ctx==='wild')ctrHook('wins',S.area);
   for(const id in (S.brews||{})){if(S.brews[id]>0)S.brews[id]--;if(S.brews[id]<=0)delete S.brews[id];}
   if(S.rested>0){loot.xp=Math.round(loot.xp*1.1);S.rested--;loot.rested=true;S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.08));}
