@@ -19,6 +19,7 @@
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:17px;line-height:1.35;-webkit-font-smoothing:none;font-smooth:never}
 *{box-sizing:border-box}
+#devilv{position:fixed;inset:0;background:#000;display:none;flex-direction:column;align-items:center;padding:16px;gap:12px;z-index:9000}#devilv.open{display:flex}#dv-stage{position:relative;flex:1 1 0;min-height:0;width:100%}#dv-stage canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;image-rendering:crisp-edges}#dv-speech{flex:none;width:100%;max-width:640px;height:9.5em;cursor:pointer;visibility:hidden;display:flex;flex-direction:column;gap:8px;color:var(--ink)}#dv-speech.show{visibility:visible}#dv-line{margin:0;font-size:clamp(1.05rem,3vw,1.35rem);min-height:2.8em}#dv-more{color:var(--mute);font-size:.85rem;visibility:hidden;align-self:flex-end}#dv-more.show{visibility:visible}#dv-choices{display:none;gap:10px;flex-wrap:wrap}#dv-choices.show{display:flex}#dv-choices button{font:inherit;color:var(--ink);background:#000;border:3px solid #5a2020;padding:10px 18px;cursor:pointer;flex:1;min-width:90px}#dv-choices button:hover{background:#2a0c0c}#dv-choices button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 img.spr,canvas.scene{image-rendering:pixelated;image-rendering:crisp-edges}
 #amb,#pfx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 #amb{z-index:0}#pfx{z-index:35}
@@ -2339,6 +2340,7 @@ const ACT={
   tab:v=>{S.tab=v;if(v==='town')S.loc=null;S.newf=S.newf.filter(x=>x!==v);},
   area:v=>{S.area=+v;S.note=`You travel to ${AREAS[+v].name}.`;},
   wander:()=>{const a=AREAS[S.area];if(!S.wins){startCombat([mkEnemy(a.mobs[0],a.lv[0])],'first');return;}
+    if(DEVIL.roll())return;
     const lvE=()=>R(a.lv[0],Math.min(a.lv[1],Math.max(a.lv[0],S.lvl+1)));
     if(S.wins>=3&&chance(5)){startCombat([mkElite(pick(a.mobs),a.lv[1]+1)],'wild');log('An elite blocks your path!','boss');return;}
     const r=Math.random();
@@ -3299,12 +3301,14 @@ function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date
     ${NET.lbErr?`<p class="dim">${esc(NET.lbErr)}</p>`:!NET.lb?'<p class="dim">Loading…</p>':rows?`<table class="lb"><tbody>${rows}</tbody></table>`:`<p class="dim">${g?'Nobody is on the board yet.':'No climbs yet. Be the first.'}</p>`}
     ${NET.user?'':'<p class="small dim">Sign in under Settings to put your best floor on the board.</p>'}</div>`;}
 /* admin panel: unlocked with a passcode for this browser session. It only stops casual use; anyone who edits the page can get in. */
-const ADMHASH='4425eaef2237f7c88c321256ca551dcf66bc4678bd7c2147a7fbe37d344d9658';
+const ADMHASH='6ca13d52ca70c883e0f0bb101e425a89e8624de51db2d2392593af6a84118090';
 async function admTry(){const el=document.getElementById('admc');const v=el?el.value:'';let hex='';try{const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));hex=[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');}catch(e){}
   if(hex===ADMHASH){UI.admOk=true;try{sessionStorage.setItem('eljuego-adm','1');}catch(e){}toast('Admin unlocked');}else toast('Wrong passcode');render(true);}
 const aval=(id,d=0)=>{const el=document.getElementById(id);const v=el?el.value:'';return v===''?d:v;};
 const anum=(id,d=0)=>{const n=Math.floor(+aval(id,d));return isFinite(n)?n:d;};
 const ADM={
+  devil:v=>{DEVIL.meet(v);},
+  devilw:()=>{const el=document.getElementById('a_devilw');const n=Math.max(0,Math.floor(+(el&&el.value)||0));S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};S.devils.w=n;toast('Wanders set to '+n);},
   tab:v=>{UI.admTab=v;},
   gold:()=>{S.gold=Math.max(0,S.gold+anum('a_gold',1000));},
   goldset:()=>{S.gold=Math.max(0,anum('a_gold',0));},
@@ -3347,6 +3351,8 @@ function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm
   else{const mobs=Object.entries(MOB).map(([k,m])=>[k,m.n+(m.boss?' (boss)':'')]);
     body=`<div class="optrow"><b>Fight</b>${sel('a_mob',mobs,'goblin')}<b>Lv</b>${num('a_mlv',S.lvl,70)}<b>×</b>${num('a_mn',1,60)}${sel('a_kind',[['normal','Normal'],['elite','Elite']],'normal')}${b('fight','Start fight','primary')}</div>
       <div class="optrow">${C()&&!C().over?b('win','Win this fight')+b('cds','Clear cooldowns'):'<span class="dim small">Win / clear cooldowns appear during a fight.</span>'}</div>
+      <div class="optrow"><b>Devils</b>${b('devil:hollow','The Hollow')}${b('devil:colossus','The Colossus')}${b('devil:veiled','The Veiled')}</div>
+      <div class="optrow"><b>Wanders since last devil</b>${num('a_devilw',(S.devils&&S.devils.w)||0,80)}${b('devilw','Set')}<span class="dim small">next wander ${DEVIL.chanceNow(((S.devils&&S.devils.w)||0)+1).toFixed(1)}%</span></div>
       <div class="optrow"><b>Best Tower floor</b>${num('a_spire',S.towerBest||0,80)}${b('spire','Set')}</div>
       <div class="optrow">${b('unlock','Unlock all regions')}${b('disc','Discover all alloys')}${b('ctr','New daily contracts')}${b('cloud','Clear cloud-load cooldown')}</div>`;}
   return `<div class="row" style="justify-content:space-between"><div class="row">${tb('player','Player')}${tb('items','Items')}${tb('world','World')}</div>${b('lock','Lock admin')}</div>${body}`;}
@@ -3803,7 +3809,236 @@ const setHover=ev=>{const t=ev.target&&ev.target.closest?ev.target.closest('.hot
 document.addEventListener('pointerover',setHover);document.addEventListener('focusin',setHover);
 document.addEventListener('pointermove',ev=>{const cv=document.querySelector('canvas[data-scene="sanctum"]');if(!cv){SCN.mouse=null;return;}const r=cv.getBoundingClientRect();SCN.mouse={x:(ev.clientX-r.left)/r.width*256,y:(ev.clientY-r.top)/r.height*120};});
 
-function start(data){S=(data&&data.S)||load();if(!S)S=fresh();S=migrate(S);buildChart();render();if(SUPA.url&&SUPA.key)net();
+/* devil encounters: rare, manual wandering only, after the Hollow Throne. Contracts come later, answers are only recorded for now */
+const DEVIL=(()=>{
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t;
+const ss=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
+const hash=(x,y)=>{const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);};
+function noise(x,y){const i=Math.floor(x),j=Math.floor(y),f=x-i,g=y-j,u=f*f*(3-2*f),v=g*g*(3-2*g);
+  return lerp(lerp(hash(i,j),hash(i+1,j),u),lerp(hash(i,j+1),hash(i+1,j+1),u),v);}
+const fbm=(x,y)=>noise(x,y)*.55+noise(x*2.1+7,y*2.1+3)*.3+noise(x*4.3+1,y*4.3+9)*.15;
+const bump=(x,y,cx,cy,sx,sy)=>Math.exp(-(((x-cx)/sx)**2)-(((y-cy)/sy)**2));
+// half width of a mirrored shape at row y, from a table of [y,halfWidth]
+function prof(t,y){if(y<t[0][0]||y>t[t.length-1][0])return -1;for(let i=1;i<t.length;i++)if(y<=t[i][0]){const a=t[i-1],b=t[i];return lerp(a[1],b[1],(y-a[0])/(b[0]-a[0]||1));}return -1;}
+// tapered curve: cubic bezier sampled into circles
+function curve(p0,p1,p2,p3,r0,r1,n=48){const s=[];for(let i=0;i<=n;i++){const t=i/n,m=1-t;s.push([m*m*m*p0[0]+3*m*m*t*p1[0]+3*m*t*t*p2[0]+t*t*t*p3[0],m*m*m*p0[1]+3*m*m*t*p1[1]+3*m*t*t*p2[1]+t*t*t*p3[1],lerp(r0,r1,Math.pow(t,1.2)),t]);}return s;}
+function inCurve(s,x,y){let best=null;for(const c of s){const d=Math.hypot(x-c[0],y-c[1]),k=d/c[2];if(k<1&&(!best||k<best.k))best={k,t:c[3],u:(x-c[0])/c[2],w:(y-c[1])/c[2]};}return best;}
+function inPoly(p,x,y){let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){if((p[i][1]>y)!==(p[j][1]>y)&&x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0])c=!c;}return c;}
+const segD=(x,y,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],t=clamp(((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy));return Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t);};
+// slanted eye with a flat, angry upper lid. 2 inside, 1 rim, 0 outside
+function eyeShape(ax,y,e){const c=Math.cos(e.ang),s=Math.sin(e.ang),dx=ax-e.x,dy=y-e.y,u=dx*c+dy*s,v=-dx*s+dy*c;
+  const inside=(uu,vv)=>(uu*uu)/(e.a*e.a)+(vv*vv)/(e.b*e.b)<1&&vv>-e.b*(e.lid??.35);
+  if(inside(u,v))return {z:2,u,v};const t=e.rim??1.3;
+  for(const [a,b] of [[t,0],[-t,0],[0,t],[0,-t],[t*.7,t*.7],[-t*.7,t*.7],[t*.7,-t*.7],[-t*.7,-t*.7]])if(inside(u+a,v+b))return {z:1,u,v};
+  return {z:0,u,v};}
+
+const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const R={
+  void:['#000000'],
+  bone:['#6b6358','#a89c88','#d9cfb8','#f4efe4'],
+  rim:['#3a3440','#6e6776','#b4adb8','#e8e2da'],
+  blood:['#3d0606','#7c0b0b','#c81414','#ff3030','#ffc0a8'],
+  ember:['#5a2a06','#c66f14','#ffb020'],
+  shade:['#000000','#07060a','#0e0c13','#17141e','#231f2c','#35303f','#4f4957'],
+  stone:['#060507','#100e12','#1d1a1f','#2c282d','#3f393f','#5a5257','#7d7377','#a89da0'],
+  pale:['#000000','#0b0a0e','#17151b','#26232b','#3a363f','#55505a','#7a7480','#a39da8'],
+  claw:['#120304','#2a0a0b','#48201c','#6b4238','#8f7264','#b8a692','#ded4bf'],
+  talon:['#260709','#4a1a18','#6e3e34','#94796a','#bdb09c','#e4dcc8','#f4efe4'],
+  hface:['#100e15','#1a1720','#25202c','#322b3a','#42394a'],
+  hhorn:['#120b12','#1e111b','#2b1724','#3a1f2e','#4a2739'],
+  hbody:['#0b0c12','#12141c','#1a1d28','#232735'],
+  flesh:['#120507','#2a0c10','#4a181b','#6f2a2b','#964441','#bb6a60','#dd978a'],
+  hair:['#050304','#0f080a','#1d1013','#2e1a1c','#452a2a','#604038'],
+  sky:['#1a0202','#2d0404','#440606','#5e0808','#7c0c0c','#971212','#ad1a16'],
+  giant:['#000000','#090103','#150306','#23060a','#36090e','#500e12','#731818','#9c3a38'],
+  city:['#090102','#160304','#260507','#39090b','#4f0d0e'],
+};
+function paint(cv,w,h,fn,eyeCv){cv.width=w;cv.height=h;const g=cv.getContext('2d'),lay=[];let eg=null;if(eyeCv){eyeCv.width=w;eyeCv.height=h;eg=eyeCv.getContext('2d');}
+  for(let y=0;y<h;y++){const row=[];for(let x=0;x<w;x++)row.push(fn(x+.5,y+.5));lay.push(row);}
+  g.fillStyle='#000';g.fillRect(0,0,w,h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const p=lay[y][x];if(!p)continue;const ramp=R[p[0]],d=p[3]??.9;
+    const f=clamp(p[1])*(ramp.length-1)+(BAYER[y%4][x%4]/16-.47)*d;g.fillStyle=ramp[Math.round(clamp(f,0,ramp.length-1))];g.fillRect(x,y,1,1);if(eg&&p[4]){eg.fillStyle=g.fillStyle;eg.fillRect(x,y,1,1);}}}
+
+/* A. no teeth, no mask: a rotted, broken thing with an open black mouth */
+function hollowShade(){const W=176,H=196,cx=88;
+  const head=[[58,7],[63,18],[72,27],[90,31],[106,31],[118,30],[130,28],[142,24],[150,18],[156,10],[160,0]];
+  const eye={x:14,y:100,a:8.5,b:5,ang:-.5,lid:.15,rim:1};
+  const fade=y=>.28+.72*ss(30,96,y);
+  return (x,y)=>{const sway=(fbm(y*.04+4,x*.02)-.5)*5,sx=x-cx+sway,ax=Math.abs(sx),hw=prof(head,y)+(fbm(x*.09,y*.09)-.5)*3;
+    if(hw>0&&ax<hw){const eZ=eyeShape(ax,y,eye),d=hw-ax;
+      if(eZ.z)return['void',0];
+      const t=ax/28,jag=(fbm(x*.35,y*.35)-.5)*1.5,lipT=133-13*t*t+jag,lipB=147-27*t*t+jag;
+      if(t<1.03&&y>lipT&&y<lipB)return['void',0];
+      let v=.3+.72*ss(4,0,d)*(.4+fbm(x*.22,y*.22)*.9);
+      v+=.56*bump(ax,y,15,88,14,3)+.48*bump(ax,y,23,118,5,5)+.46*bump(ax,y,0,108,1.8,9)+.34*bump(ax,y,0,76,22,13);if(ax<5&&y>118&&y<121)v=0;
+      v+=(fbm(x*.38,y*.38)-.5)*.3;v*=.58*fade(y)*(ss(166,146,y)*.3+.7);
+      const c=fbm(x*.06+21,y*.045+14);if(Math.abs(c-.5)<.012)v=0;
+      return['hface',v,0,0];}
+    return null;};}
+/* The Hollow is only spaced marks on black: Xs where it catches light, dots where it doesn't */
+const HW=112,HH=132,HX=32,HY=44,HC=4;
+function hollowCells(){const inner=hollowShade(),out=[];
+  for(let gy=0;gy*HC<HH;gy++){const ox=gy%2?2:0;for(let gx=0;(gx*HC-ox)<HW;gx++){const p=inner((gx+.5)*HC-ox+HX,(gy+.5)*HC+HY);
+    if(p&&p[0]!=='void'){const v=clamp(p[1]*2.1);if(v>.08+hash(gx,gy)*.08)out.push({gx,gy,ox,r:p[0],v,x:v>.34});}}}
+  return out;}
+function hollow(){const cells=new Map(hollowCells().map(c=>[c.gx+','+c.gy,c]));
+  return (x,y)=>{const gy=Math.floor(y/HC),ox=gy%2?2:0,gx=Math.floor((x+ox)/HC),s=cells.get(gx+','+gy);
+    if(!s)return null;const lx=Math.floor(x+ox)-gx*HC,ly=Math.floor(y)-gy*HC;
+    const on=s.x?lx<3&&ly<3&&(lx===ly||lx+ly===2):lx===1&&ly===1;
+    return on?[s.r,s.v,0,0]:null;};}
+
+/* C. so big only the top of him fits on screen, claws raised around his head, a tiny city at his chest */
+function colossus(){const W=320,H=180,cx=160,Z=1.75,TOP=3;
+  const sag=(a,b,s,n=12)=>{const o=[],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy);for(let i=0;i<n;i++){const t=i/n,k=Math.sin(t*Math.PI)*s;o.push([a[0]+dx*t-dy/l*k,a[1]+dy*t+dx/l*k]);}return o;};
+  const wrist=[72,14],tips=[[154,44],[150,112],[116,160],[70,152]],pit=[32,108],sh=[24,62];
+  const wing=[...sag(sh,wrist,-5),...sag(wrist,tips[0],-9),...sag(tips[0],tips[1],17),...sag(tips[1],tips[2],14),...sag(tips[2],tips[3],12),...sag(tips[3],pit,7),...sag(pit,sh,0,4)];
+  const fingers=[curve(wrist,[100,12],[132,22],tips[0],2.6,.5,28),curve(wrist,[108,40],[136,72],tips[1],2.6,.5,28),curve(wrist,[92,60],[108,110],tips[2],2.6,.5,28),curve(wrist,[74,60],[76,106],tips[3],2.6,.5,28),curve(sh,[38,34],[58,22],wrist,6,2.8,22)];
+  const head=[[24,4],[28,9],[34,12.5],[44,14.5],[54,13.5],[60,10],[65,5],[68,0]];
+  const body=[[44,14],[49,32],[55,46],[64,54],[78,52],[92,44],[108,34],[130,30]];
+  const arm=[curve([50,66],[70,70],[88,84],[92,112],16,13,30),curve([92,112],[96,92],[88,72],[75,57],13,9,30)];
+  const armSpikes=[curve([95,92],[100,86],[104,82],[109,76],3.4,.3,12),curve([91,78],[96,71],[100,67],[105,60],3,.3,12),curve([85,67],[89,60],[92,56],[97,48],2.6,.3,12)];
+  const palm=curve([75,57],[73,54],[71,52],[69,50],10,8.5,10);
+  const talons=[curve([62,56],[50,62],[40,58],[29,64],5.4,.5,24),curve([60,48],[48,48],[38,41],[27,44],5.6,.5,24),curve([63,41],[54,31],[45,25],[34,26],5.6,.5,24),curve([70,39],[67,27],[62,18],[52,12],5.4,.5,24),curve([80,48],[88,39],[90,29],[85,20],5,.5,20)];
+  const horn=curve([9,34],[18,27],[24,17],[17,3],3.8,.3,24);
+  const eye={x:6,y:47,a:4,b:2,ang:-.42,lid:.3,rim:0};
+  const figure=(x,y)=>{const wx=(fbm(x*.05+11,y*.05)-.5)*5,wy=(fbm(x*.05+2,y*.05+17)-.5)*5,ax=Math.abs(x-cx+wx),yy=y+wy,rx=Math.abs(x-cx),hy=y+wy*.3;
+    const hw=prof(head,hy);
+    if(hw>0&&ax<hw){if(eyeShape(rx,hy,eye).z===2)return['bone',.85,0,0,'eye'];
+      let v=.09+.42*bump(rx,hy,0,53,2,8)+.5*bump(rx,hy,7,42.5,7,1.8)+.34*bump(rx,hy,8,54,3,3)+.24*bump(rx,hy,0,34,7,5)+.5*ss(2,0,hw-ax)*fbm(x*.5,y*.5);return['giant',v+(fbm(x*.9,y*.9)-.5)*.16,0,.6];}
+    let h=inCurve(horn,rx,hy);if(h)return['giant',.3+.45*(h.w<0?1:.2)*(1-h.k*.4),0,.5];
+    let lim=null,kind=0;for(const c of talons){const q=inCurve(c,ax,yy);if(q&&(!lim||q.k<lim.k)){lim=q;kind=1;}}
+    for(const [c,n] of [[palm,2],[arm[1],3],[arm[0],4]]){const q=inCurve(c,ax,yy);if(q&&(!lim||q.k<lim.k)){lim=q;kind=n;}}
+    if(lim){const t=lim.t,k=lim.k,bed=.42+.1*(1-k*k);
+      if(kind===1&&t>bed){const band=lim.w+.3,light=ss(.8,0,Math.abs(band));
+        return['claw',.12+.55*light+.3*ss(.6,1,t)*(lim.w<0?1:.3)-.24*ss(.6,1,k)+.03*Math.sin(t*70),0,.7];}
+      const m=.5+.5*Math.sin(t*20+fbm(x*.2,y*.2)*6),ms=kind===4?1:kind===3?ss(1,.6,t):0;
+      let v=.07+.68*ss(.5,1,k)*(.35+fbm(x*.35,y*.35))*(lim.w<0?1:.4)+.2*m*ms*(1-k);
+      if(kind===1){v+=.08;if(Math.abs(t-.14)<.012||Math.abs(t-.29)<.012)v*=.5;else if(Math.abs(t-.18)<.02||Math.abs(t-.33)<.02)v+=.1;if(t>bed-.04)v*=.42;}
+      return['giant',v,0,.8];}
+    for(const c of armSpikes){h=inCurve(c,ax,yy);if(h)return['giant',.28+.5*(h.u>0?1:.25)*(1-h.k*.4),0,.5];}
+    const bw=prof(body,yy);if(bw>0&&ax<bw){const d=bw-ax;let v=.06+.55*ss(3.5,0,d)*fbm(x*.3,y*.3);
+      v+=.5*bump(ax,yy,17,78,14,9)+.62*bump(ax,yy,40,62,11,8)+.3*bump(ax,yy,9,102,7,5)+.16*bump(ax,yy,24,98,4,14)+.2*bump(ax,yy,34,92,10,5);
+      v+=(fbm(x*.4,y*.4)-.5)*.26+.42*ss(90,107,y);if(ax<.8)v*=.25;return['giant',v,0,.8];}
+    if(inPoly(wing,ax,yy)){let onF=null;for(const f of fingers){const q=inCurve(f,ax,yy);if(q&&(!onF||q.k<onF.k))onF=q;}
+      if(onF)return['giant',onF.u>0?.5:.16,0,.5];
+      const fan=Math.atan2(yy-wrist[1],ax-wrist[0]),fold=.5+.5*Math.sin(fan*40+fbm(x*.07,y*.07)*7);
+      if(fbm(x*.05+3,y*.09+8)<.7+ss(150,70,ax)*.3)return['giant',.12+.14*fold+(fbm(x*.14,y*.14)-.5)*.24,0,.75];}
+    return null;};
+  return (x,y)=>{const rx=Math.abs(x-cx);
+    const fo=noise(x*.05,5)*8,fc=Math.floor((x+fo)/6);let ft=5+hash(fc,12)*11;if(hash(fc,13)>.82)ft+=7*ss(1.2,.4,Math.abs((x+fo)%6-3));
+    if(y>180-ft){if(hash(Math.floor(x/2),Math.floor(y/3)+40)>.72&&x%2<1&&y%3<1)return['ember',hash(x,y),0,0];return['city',.02+hash(fc,15)*.1,0,.6];}
+    const p=figure(cx+(x-cx)/Z,TOP+y/Z);if(p)return p;
+    const m=Math.hypot(x-172,y-54),cl=fbm(x*.014+3,y*.07+1);
+    let v=(m<84?.78:.3)+ss(80,180,y)*.28-ss(70,170,m)*.18+(fbm(x*.02,y*.05)-.5)*.3;if(cl>.57)v-=(cl-.57)*2.6;
+    return['sky',v,0,1];};}
+
+/* D. long hair, sick flesh, sunken black eyes with slit pupils */
+function veiled(){const W=176,H=196,cx=88;
+  const horn=curve([28,58],[44,44],[44,24],[32,4],13,2.5,36);
+  const head=[[42,8],[46,20],[54,29],[72,34],[94,33],[110,29],[126,23],[140,16],[148,8],[152,0]];
+  const neck=[[140,11],[158,13],[168,26],[180,52],[196,72]];
+  const sockets=[{x:16,y:88,a:11.5,b:8.5,ang:-.24,lid:1,rim:1}];
+  return (x,y)=>{const ax=Math.abs(x-cx),hw=prof(head,y);
+    const strand=noise(x*.42,y*.012),fall=fbm(x*.09,y*.02);
+    if(hw>0&&ax<hw&&!(ax>hw-7-fall*7&&strand>.5&&y>58)){const d=hw-ax,eZ=eyeShape(ax,y,sockets[0]);
+      if(eZ.z===2){const q=Math.hypot(eZ.u+1,eZ.v-1),r=x<cx?1.6:1;if(q<r)return['ember',1,0,0,'eye'];if(q<r+1)return['ember',0,0,0,'eye'];return['void',0];}
+      let v=.56+.26*bump(ax,y,15,74,16,5)+.17*bump(ax,y,0,62,14,10)+.2*bump(ax,y,27,108,6,8)+.26*bump(ax,y,0,105,3,11);
+      v-=.5*bump(ax,y,17,88,16,14)+.34*bump(ax,y,7,113,5,3.5)+.4*ss(6,0,d)+.2*bump(ax,y,19,118,7,10);
+      v+=(fbm(x*.34,y*.34)-.5)*1.1;
+      if(y>124&&y<136){const m=prof([[124,4],[130,17],[136,5]],y);if(m>0&&ax<m){if(Math.abs(y-130)<1.2||Math.floor(ax/3)%2&&Math.abs(y-130)<3.5)return['void',0];return['flesh',.72,0,.5];}}
+      return['flesh',v,0,1];}
+    const h=inCurve(horn,ax,y);if(h){const band=.5+.5*Math.sin(h.t*70);let v=.28+.45*band*(1-h.k*.5)+(fbm(x*.55,y*.55)-.5)*.75-.28*ss(.7,1,h.k);return['flesh',v,0,1];}
+    const nw=prof(neck,y);if(nw>0&&ax<nw&&!(strand>.6&&ax>6)){let v=.3+(fbm(x*.45,y*.3)-.5)*.8-.34*ss(nw*.45,nw,ax)+.26*bump(ax,y,18,172,16,3);
+      if(y>176)v+=.17*Math.sin(y*.75)*ss(6,18,ax);v*=ss(196,172,y)*.8+.2;return['flesh',v,0,1];}
+    let v=.07+.75*ss(.54,.85,strand)*(.55+fall*.6);if(ax>60)v*=ss(88,64,ax)*.95+.05;return['hair',v,0,.3];};}
+
+
+const CAST={
+  hollow:{w:HW,h:HH,make:hollow,live:true,
+    lines:['...','You did not hear me follow you.','No one ever does.','There is so little left of you to want.'],
+    ask:'Still. I will take what there is. What do you offer?',
+    ends:{listen:'Good. I will not be hard to find.',refuse:'You say that as if you were still whole.',fight:'With what? I have already started.'},
+    after:{listen:'It feels like you agreed to something.',refuse:'Something out there is still watching.',fight:'You are swinging at empty air.'}},
+  colossus:{w:320,h:180,make:colossus,
+    lines:['LOOK UP.','That city knelt too. It only asked me for something small.','You have walked in my shadow for a long time, little one.'],
+    ask:'Now. Tell me what you want.',
+    ends:{listen:'Then we have an understanding. So did they.',refuse:'Ants have refused me before. I did not notice.',fight:'Ha. Grow first. I can wait.'},
+    after:{listen:'The ground is still shaking.',refuse:'The sky goes back to normal, slowly.',fight:'You are standing alone, fists up, under an empty sky.'}},
+  veiled:{w:176,h:196,make:veiled,
+    lines:['Shhh.',"Don't wake the others.",'I know the thing you keep wanting. I can smell it on you.'],
+    ask:'Come closer. What would you cut away to have it?',
+    ends:{listen:'Good. Good. Hold still.',refuse:'They all say no the first time.',fight:'Oh, you are going to be so much fun later.'},
+    after:{listen:'There is a long black hair on your sleeve.',refuse:'You can still smell it.',fight:'You are alone, breathing too hard.'}},
+};
+const COLD=['#12222e','#24465a','#4b8296','#9fd0d8','#e8fbff'],EX=70,EY=55;
+const col=(ramp,v)=>ramp[Math.round(clamp(v)*(ramp.length-1))];
+const mark=(g,px,py,isX,c)=>{g.fillStyle=c;if(isX){g.fillRect(px,py,1,1);g.fillRect(px+2,py,1,1);g.fillRect(px+1,py+1,1,1);g.fillRect(px,py+2,1,1);g.fillRect(px+2,py+2,1,1);}else g.fillRect(px+1,py+1,1,1);};
+// a cold flame in the same stitched grid as the Hollow's face
+function ghostFlame(g,t){const tall=27;for(let gy=0;gy*HC<HH;gy++){const ox=gy%2?2:0;for(let gx=0;gx*HC-ox<HW;gx++){const x=gx*HC-ox+1.5,y=gy*HC+1.5,up=EY-y;if(up<-7||up>tall+10||Math.abs(x-EX)>14)continue;
+    const top=tall*(.72+.28*noise(t*.55,3)),sway=Math.sin(up*.32-t*.8)*(up/top)*3,w=up<0?8+up*.8:8*(1-up/top);if(w<=0)continue;
+    const f=1-Math.abs(x-EX-sway)/w+(noise(gx*.8,gy*.8-t*1.3)-.5)*.55;if(f<=.08)continue;
+    mark(g,gx*HC-ox,gy*HC,f>.3,col(COLD,clamp(f*(1.05-Math.max(up,0)/top*.55))));}}}
+// the face will not hold still: marks drift and swap between Xs and dots
+function crawl(g,t,cells){g.clearRect(0,0,HW,HH);for(const s of cells){const n=noise(s.gx*.2+t*.05,s.gy*.2-t*.09),v=clamp(s.v+(n-.5)*.7);if(v<.1)continue;mark(g,s.gx*HC-s.ox,s.gy*HC,v>.34,col(R[s.r],v));}}
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const UIv={el:null,busy:false,advance:null,drone:null,tick:0,blink:0};
+function state(){return S.devils||(S.devils={w:0,seen:{},said:{},bag:[],now:null});}
+function nextName(){const D=state();if(!D.bag||!D.bag.length){const b=Object.keys(CAST);for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}if(b[0]===D.last)b.push(b.shift());D.bag=b;}return D.bag.shift();}
+// about one in a thousand, then doubling every 50 wanders past 500, so everyone finds one by 1000
+function chanceNow(w){return w<=500?.1:Math.min(100,.1*Math.pow(2,(w-500)/50));}
+function roll(){if(AB.on||UIv.busy||!S.cleared.includes(3))return false;const D=state();D.w=(D.w||0)+1;if(Math.random()*100>=chanceNow(D.w))return false;meet(nextName());return true;}
+function build(){if(UIv.el)return UIv.el;const v=document.createElement('div');v.id='devilv';v.setAttribute('role','dialog');v.setAttribute('aria-label','A devil appears');
+  v.innerHTML='<div id="dv-stage"><canvas id="dv-body"></canvas><canvas id="dv-eyes"></canvas></div><div id="dv-speech"><p id="dv-line" aria-live="polite"></p><span id="dv-more">click to continue</span><div id="dv-choices"><button data-c="listen">Listen</button><button data-c="refuse">Refuse</button><button data-c="fight">Fight</button></div></div>';
+  document.body.appendChild(v);UIv.el=v;
+  document.getElementById('dv-speech').addEventListener('click',e=>{if(!e.target.closest('#dv-choices')&&UIv.advance)UIv.advance();});
+  addEventListener('keydown',e=>{if(UIv.busy&&(e.key===' '||e.key==='Enter')&&!(e.target.closest&&e.target.closest('#dv-choices'))&&UIv.advance){e.preventDefault();UIv.advance();}});
+  addEventListener('resize',fit);return v;}
+let cur=null;
+function fit(){if(!cur)return;const r=document.getElementById('dv-stage').getBoundingClientRect(),raw=Math.min(r.width/cur.w,r.height/cur.h),s=raw>=1?Math.floor(raw):raw;
+  for(const id of ['dv-body','dv-eyes']){const c=document.getElementById(id);c.style.width=cur.w*s+'px';c.style.height=cur.h*s+'px';}}
+function thud(){const c=au();if(!c)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type='square';o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(28,t+.5);g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.6);o.connect(g);g.connect(AU.g);o.start();o.stop(t+.6);}
+function droneOn(){const c=au();if(!c)return;const o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type=o2.type='sawtooth';o.frequency.value=41;o2.frequency.value=41.7;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+2);o.connect(g);o2.connect(g);g.connect(AU.g);o.start();o2.start();UIv.drone={o,o2};}
+function droneOff(){if(!UIv.drone)return;try{UIv.drone.o.stop();UIv.drone.o2.stop();}catch(e){}UIv.drone=null;}
+function blip(){const c=au();if(!c)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type='square';o.frequency.value=90+Math.random()*25;g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(g);g.connect(AU.g);o.start();o.stop(t+.05);}
+function say(text,wait=true){return new Promise(res=>{const line=document.getElementById('dv-line'),more=document.getElementById('dv-more');let i=0,done=false;line.textContent='';more.classList.remove('show');
+  const tick=setInterval(()=>{i++;line.textContent=text.slice(0,i);if(i%2&&text[i-1]!==' ')blip();if(i>=text.length)finish();},text==='...'?420:42);
+  function finish(){clearInterval(tick);line.textContent=text;done=true;if(!wait){UIv.advance=null;res();return;}more.classList.add('show');UIv.advance=()=>{UIv.advance=null;res();};}
+  UIv.advance=()=>{if(!done)finish();};});}
+const choose=()=>new Promise(res=>{const c=document.getElementById('dv-choices');c.classList.add('show');c.querySelector('button').focus();c.onclick=e=>{const v=e.target.dataset.c;if(!v)return;c.onclick=null;c.classList.remove('show');res(v);};});
+function blink(eyes){clearTimeout(UIv.blink);UIv.blink=setTimeout(async()=>{if(!UIv.busy)return;eyes.style.visibility='hidden';await sleep(130);eyes.style.visibility='';blink(eyes);},1800+Math.random()*2600);}
+
+async function meet(name){if(UIv.busy||!CAST[name])return;if(AB.on)autoStop();const D=state(),d=CAST[name];D.now=name;D.last=name;save();UIv.busy=true;cur=d;
+  const v=build(),body=document.getElementById('dv-body'),eyes=document.getElementById('dv-eyes'),speech=document.getElementById('dv-speech'),eg=eyes.getContext('2d'),bg=body.getContext('2d');
+  speech.classList.remove('show');document.getElementById('dv-line').textContent='';document.getElementById('dv-more').classList.remove('show');document.getElementById('dv-choices').classList.remove('show');
+  body.style.opacity=0;eyes.style.opacity=0;eyes.style.visibility='';v.classList.add('open');document.documentElement.style.overflow='hidden';thud();
+  await sleep(40);   // the black is up: painting the art here can't be seen
+  if(!d.bodyC){d.bodyC=document.createElement('canvas');d.eyeC=document.createElement('canvas');paint(d.bodyC,d.w,d.h,d.make(),d.eyeC);if(d.live)d.cells=hollowCells();}
+  for(const [c,s] of [[body,d.bodyC],[eyes,d.eyeC]]){c.width=d.w;c.height=d.h;const g=c.getContext('2d');g.clearRect(0,0,d.w,d.h);g.drawImage(s,0,0);}fit();
+  let flame=false,crawling=false,t=0;
+  const frame=()=>{t++;if(!d.live)return;eg.clearRect(0,0,d.w,d.h);if(flame)ghostFlame(eg,t);if(crawling)crawl(bg,t,d.cells);};
+  if(d.live&&!RM)UIv.tick=setInterval(frame,120);
+  await sleep(1760);   // nothing at all for a moment
+  flame=d.live;if(d.live)frame();eyes.style.opacity=1;if(!d.live)blink(eyes);droneOn();
+  await sleep(2400);
+  if(d.live&&!RM)crawling=true;
+  for(const o of [.15,.4,.7,1]){body.style.opacity=o;await sleep(450);}
+  flame=false;if(d.live)frame();   // the flame dies once the face is there
+  speech.classList.add('show');
+  for(const l of d.lines)await say(l);
+  await say(d.ask,false);
+  const pick=await choose();
+  await say(d.ends[pick]);
+  speech.classList.remove('show');body.style.opacity=0;droneOff();flame=d.live;if(d.live)frame();   // only the eyes, or the flame, stay
+  await sleep(900);
+  clearTimeout(UIv.blink);clearInterval(UIv.tick);eyes.style.opacity=0;eyes.style.visibility='';
+  await sleep(1100);
+  v.classList.remove('open');document.documentElement.style.overflow='';UIv.busy=false;cur=null;
+  D.now=null;D.w=0;D.seen=D.seen||{};D.said=D.said||{};D.seen[name]=(D.seen[name]||0)+1;D.said[name]=pick;S.note=d.after[pick];render();}
+function resume(){const D=S&&S.devils;if(D&&D.now&&CAST[D.now])meet(D.now);}
+return {roll,meet,resume,chanceNow,names:Object.keys(CAST)};
+})();
+function start(data){S=(data&&data.S)||load();if(!S)S=fresh();S=migrate(S);buildChart();render();DEVIL.resume();if(SUPA.url&&SUPA.key)net();
   requestAnimationFrame(loop);requestAnimationFrame(sceneLoop);}
 window.claude?.hot?.snapshot?.(()=>({S}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
