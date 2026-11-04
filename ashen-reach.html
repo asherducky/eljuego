@@ -274,7 +274,7 @@ img.spr{max-width:none}
 .ach div{display:flex;flex-direction:column;font-size:.85rem;line-height:1.2}.ach span{font-size:.75rem}
 .ach.got{background:var(--panel2);color:var(--ink);box-shadow:inset 0 0 0 2px var(--gold-lo)}.ach.got img{filter:none}.ach.got span{color:var(--dim)}
 .invgrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}.invgrid>.sub:last-child{grid-column:1/-1}
-.cell.contract{grid-column:3;grid-row:4;display:grid;place-items:center;overflow:hidden;background:#0d0b14;cursor:help}.cell.contract.signed{background:#000;animation:ctrim 1.2s steps(2) infinite}@keyframes ctrim{0%{box-shadow:inset 0 0 0 2px #55505a}50%{box-shadow:inset 0 0 0 2px #9fd0d8}}.cell.contract b{font-size:1.6rem;color:#55505a;font-weight:normal}.cell.contract.lost b{color:#3b3450;text-decoration:line-through}
+.cell.contract{grid-column:3;grid-row:4;display:grid;place-items:center;overflow:hidden;background:#0d0b14;cursor:help}.cell.contract.signed{background:#000;animation:ctrim 1.2s steps(2) infinite}@keyframes ctrim{0%{box-shadow:inset 0 0 0 2px #55505a}50%{box-shadow:inset 0 0 0 2px #9fd0d8}}.cell.contract b{font-size:1.6rem;color:#55505a;font-weight:normal}
 .doll{display:grid;grid-template-columns:64px auto 64px;grid-template-areas:"helm hero gem1" "weapon hero gem2" "armor hero gem3" "cloak boots .";gap:6px}
 .dollhero{grid-area:hero;display:grid;place-items:center;align-self:center}
 .bag{display:grid;grid-template-columns:repeat(auto-fill,64px);gap:6px}
@@ -2283,7 +2283,7 @@ function win(){
   if(c.ctx==='pvp'||c.ctx==='duel'){loot.gold=40+S.lvl*12;S.gold+=loot.gold;loot.mats.essence=(loot.mats.essence||0)+3;S.mats.essence=(S.mats.essence||0)+3;loot.pvp=true;pvpResult(true);}
   if(c.ctx==='devil'&&c.enemies.some(e=>e.id==='hollowd')){const D=S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};if(!D.beat){D.beat=1;loot.ghost=1;S.mats.crys5=(S.mats.crys5||0)+1;loot.mats.crys5=1;}}c.over={win:true,loot};fxAt+=200;fx('win',{big:c.ctx==='devil'||!!loot.cleared,n:c.ctx==='devil'?'The Hollow':loot.cleared});
 }
-function lose(){const c=C();if(c.ctx==='pvp'||c.ctx==='duel')pvpResult(false);if(c.ctx==='devil'&&!PACT()){const Dv=S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};Dv.forfeit=1;}const lost=c.ctx==='tower'||c.ctx==='pvp'||c.ctx==='duel'||c.ctx==='devil'?0:Math.round(S.gold*.1);S.gold-=lost;if(c.ctx==='tower'&&S.tower){c.towerEnd=S.tower.floor;S.tower=null;}if(c.lastHit==='bat')S.flags.bat=true;c.over={win:false,lost,dungeon:!!S.dungeon,hc:!!S.hc};S.dungeon=null;fx('shake',{p:10});fxAt+=300;fx('lose');}
+function lose(){const c=C();if(c.ctx==='pvp'||c.ctx==='duel')pvpResult(false);const lost=c.ctx==='tower'||c.ctx==='pvp'||c.ctx==='duel'||c.ctx==='devil'?0:Math.round(S.gold*.1);S.gold-=lost;if(c.ctx==='tower'&&S.tower){c.towerEnd=S.tower.floor;S.tower=null;}if(c.lastHit==='bat')S.flags.bat=true;c.over={win:false,lost,dungeon:!!S.dungeon,hc:!!S.hc};S.dungeon=null;fx('shake',{p:10});fxAt+=300;fx('lose');}
 function gainXp(x){if(S.lvl>=MAXLV)return;S.xp+=x;while(S.lvl<MAXLV&&S.xp>=xpNeed(S.lvl)){S.xp-=xpNeed(S.lvl);S.lvl++;S.pts+=3;S.sp+=1;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;toast(`Level ${S.lvl}! +3 stat points, +1 star`);FXQ.push({type:'levelup',at:fxAt+1100,lvl:S.lvl});}}
 /* the Vault: gems come from here and the Tower. Each difficulty opens with its region */
 const VAULTN='The Vault',VAULTF=3,VAULT={hollow:{n:'Hollow',area:3,lv:19,g:2},abyss:{n:'Abyss',area:4,lv:34,g:3}};
@@ -2393,7 +2393,7 @@ const ACT={
   retreat:()=>{S.dungeon=null;S.combat=null;S.note='You retreat from the dungeon.';fullRest();},
   done:()=>{const c=C();
     if(c.over.hc){const old=S.name;S=migrate(fresh());S.name=old;toast(`${old} has fallen for good`);return;}
-    if(c.ctx==='devil')S.note=c.over.win?'The dark gives you back. Something out there stopped watching.':'You wake at camp. Something is laughing, very far off. It will not come back.';else if(!c.over.win)S.note=c.over.lost?`You wake at camp. Lost ${c.over.lost} gold.`:'You wake at camp.';
+    if(c.ctx==='devil')S.note=c.over.win?'The dark gives you back. Something out there stopped watching.':'You wake at camp. Something is laughing, very far off.';else if(!c.over.win)S.note=c.over.lost?`You wake at camp. Lost ${c.over.lost} gold.`:'You wake at camp.';
     else if(c.ctx!=='devil'&&c.over.loot.cleared)S.note=`${c.over.loot.cleared} is cleared.${c.over.loot.unlock?` ${c.over.loot.unlock} is open.`:''}`;
     else if(c.ctx!=='devil')S.note='The way is clear.';const wonHollow=c.ctx==='devil'&&c.over.win&&!PACT();if(c.ctx==='duel')duelClose();S.combat=null;fullRest();if(wonHollow)DEVIL.offer();},
   target:v=>{if(C().enemies[+v].hp>0)C().target=+v;},
@@ -3321,7 +3321,7 @@ function vInv(){
   const mats=Object.entries(S.mats).filter(([,q])=>q>0).map(([m,q])=>`<div data-tip="mat:${m}">${matImg(m,2)}<span>${MATS[m]}</span><b class="num">${q}</b></div>`).join('');
   const junk=S.bag.filter(it=>it.rar<=1&&!it.lock).length;
   return `<section class="px panel"><div class="invgrid">
-    <div class="sub" style="align-items:center"><h3>Equipped</h3><div class="doll">${doll}${(()=>{const Dv=S.devils||{};return PACT()?'<div class="cell contract signed" data-tip="txt:The Hollow Pact: your skill tree is gone and something else grew there. Shadow tree, Malice, +10% dodge, status immunity, -20% HP. An Orb of Rebirth destroys it.">'+DEVIL.contractImg()+'</div>':Dv.forfeit?'<div class="cell contract lost" data-tip="txt:You fought The Hollow and lost. It will not offer again."><b>?</b></div>':'<div class="cell contract" data-tip="txt:Contract: none. Something out there might offer one."><b>?</b></div>';})()}<div class="dollhero">${heroImg(innerWidth<440?4:6).replace('idle','')}</div></div></div>
+    <div class="sub" style="align-items:center"><h3>Equipped</h3><div class="doll">${doll}${(()=>{return PACT()?'<div class="cell contract signed" data-tip="txt:The Hollow Pact: your skill tree is gone and something else grew there. Shadow tree, Malice, +10% dodge, status immunity, -20% HP. An Orb of Rebirth destroys it.">'+DEVIL.contractImg()+'</div>':'<div class="cell contract" data-tip="txt:Contract: none. Something out there might offer one."><b>?</b></div>';})()}<div class="dollhero">${heroImg(innerWidth<440?4:6).replace('idle','')}</div></div></div>
     <div class="sub" style="min-width:0"><div class="row" style="justify-content:space-between"><h3>Bag · <span class="num">${S.bag.length}/${bagMax()}</span></h3><div class="row">${(S.bagx||0)<5?`<button class="btn sm" data-a="bagx" ${S.gold>=bagCost()?'':'disabled'} data-tip="txt:Ten more bag slots">+10 slots ${coinImg(2)}<span class="num">${bagCost()}</span></button>`:''}<button class="btn sm ${UI.ms?'tab on':''}" data-a="msel">Select</button></div></div>
       <div class="row">${fb('all','All')}${fb('weapon','Weapons')}${fb('armor','Armor')}${fb('helm','Helms')}${fb('boots','Boots')}${fb('cloak','Cloaks')}${fb('gem','Gems')}</div>
       <div class="row"><span class="dim small">Sort</span>${sbn('rarity','Rarity')}${sbn('tier','Tier')}${sbn('new','Newest')}${sbn('custom','Custom')}<span class="dim small">Drag to arrange or onto a slot to equip · right-click to lock</span></div>
@@ -4080,7 +4080,7 @@ const CAST={
   hollow:{w:HW,h:HH,make:hollow,live:true,
     lines:['...','You did not hear me follow you.','No one ever does.','There is so little left of you to want.'],
     ask:'Still. I will take what there is. What do you offer?',
-    ends:{listen:'Good. I will not be hard to find.',refuse:'You say that as if you were still whole.',fight:'With what? Lose, and I will never offer you anything again.'},
+    ends:{listen:'Good. I will not be hard to find.',refuse:'You say that as if you were still whole.',fight:'With what? Lose, and you get nothing from me.'},
     after:{listen:'It feels like you agreed to something.',refuse:'Something out there is still watching.',fight:'You are swinging at empty air.'}},
   colossus:{w:320,h:180,make:colossus,
     lines:['LOOK UP.','That city knelt too. It only asked me for something small.','You have walked in my shadow for a long time, little one.'],
@@ -4111,7 +4111,7 @@ function state(){return S.devils||(S.devils={w:0,seen:{},said:{},bag:[],now:null
 function nextName(){const D=state();if(!D.bag||!D.bag.length){const b=[...WANDER];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}if(b[0]===D.last)b.push(b.shift());D.bag=b;}return D.bag.shift();}
 // about one in a thousand, then doubling every 50 wanders past 500, so everyone finds one by 1000
 function chanceNow(w){return w<=500?.1:Math.min(100,.1*Math.pow(2,(w-500)/50));}
-function roll(){if(AB.on||UIv.busy||!S.cleared.includes(3)||S.devils&&(S.devils.pact||S.devils.forfeit))return false;const D=state();D.w=(D.w||0)+1;if(Math.random()*100>=chanceNow(D.w))return false;meet(nextName());return true;}
+function roll(){if(AB.on||UIv.busy||!S.cleared.includes(3)||S.devils&&S.devils.pact)return false;const D=state();D.w=(D.w||0)+1;if(Math.random()*100>=chanceNow(D.w))return false;meet(nextName());return true;}
 function build(){if(UIv.el)return UIv.el;const v=document.createElement('div');v.id='devilv';v.setAttribute('role','dialog');v.setAttribute('aria-label','A devil appears');
   v.innerHTML='<div id="dv-stage"><canvas id="dv-body"></canvas><canvas id="dv-eyes"></canvas></div><div id="dv-speech"><p id="dv-line" aria-live="polite"></p><span id="dv-more">click to continue</span><div id="dv-choices"><button data-c="listen">Listen</button><button data-c="refuse">Refuse</button><button data-c="fight">Fight</button></div></div>';
   document.body.appendChild(v);UIv.el=v;
@@ -4153,7 +4153,7 @@ async function meet(name){if(UIv.busy||!CAST[name])return;if(AB.on)autoStop();co
   await say(d.ask,false);
   const pick=await choose();
   let line=d.ends[pick],signed=false;
-  if(pick==='listen'&&name==='hollow'&&!D.pact&&!D.forfeit){signed=await terms();line=signed?'It is done. You will not miss it.':'Then go. You will walk this way again.';if(signed)sign();}
+  if(pick==='listen'&&name==='hollow'&&!D.pact){signed=await terms();line=signed?'It is done. You will not miss it.':'Then go. You will walk this way again.';if(signed)sign();}
   await say(line);
   speech.classList.remove('show');body.style.opacity=0;droneOff();flame=d.live;if(d.live)frame();   // only the eyes, or the flame, stay
   await sleep(900);
