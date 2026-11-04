@@ -3970,6 +3970,7 @@ const CAST={
     ends:{listen:'Good. Good. Hold still.',refuse:'They all say no the first time.',fight:'Oh, you are going to be so much fun later.'},
     after:{listen:'There is a long black hair on your sleeve.',refuse:'You can still smell it.',fight:'You are alone, breathing too hard.'}},
 };
+const WANDER=['hollow'];   // only these can appear while wandering; admin can still call any devil
 const COLD=['#12222e','#24465a','#4b8296','#9fd0d8','#e8fbff'],EX=70,EY=55;
 const col=(ramp,v)=>ramp[Math.round(clamp(v)*(ramp.length-1))];
 const mark=(g,px,py,isX,c)=>{g.fillStyle=c;if(isX){g.fillRect(px,py,1,1);g.fillRect(px+2,py,1,1);g.fillRect(px+1,py+1,1,1);g.fillRect(px,py+2,1,1);g.fillRect(px+2,py+2,1,1);}else g.fillRect(px+1,py+1,1,1);};
@@ -3984,7 +3985,7 @@ function crawl(g,t,cells){g.clearRect(0,0,HW,HH);for(const s of cells){const n=n
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const UIv={el:null,busy:false,advance:null,drone:null,tick:0,blink:0};
 function state(){return S.devils||(S.devils={w:0,seen:{},said:{},bag:[],now:null});}
-function nextName(){const D=state();if(!D.bag||!D.bag.length){const b=Object.keys(CAST);for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}if(b[0]===D.last)b.push(b.shift());D.bag=b;}return D.bag.shift();}
+function nextName(){const D=state();if(!D.bag||!D.bag.length){const b=[...WANDER];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}if(b[0]===D.last)b.push(b.shift());D.bag=b;}return D.bag.shift();}
 // about one in a thousand, then doubling every 50 wanders past 500, so everyone finds one by 1000
 function chanceNow(w){return w<=500?.1:Math.min(100,.1*Math.pow(2,(w-500)/50));}
 function roll(){if(AB.on||UIv.busy||!S.cleared.includes(3))return false;const D=state();D.w=(D.w||0)+1;if(Math.random()*100>=chanceNow(D.w))return false;meet(nextName());return true;}
