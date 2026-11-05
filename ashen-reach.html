@@ -1306,7 +1306,7 @@ if(!RM)setInterval(()=>{FRI++;for(const im of document.querySelectorAll('img[dat
 
 function gearPal(it){const t=it.tier||0,ty=it.type;const pm=(k,map)=>{const p=armP(k,t),o={};for(const L in map)if(p[map[L]])o[L]=p[map[L]];return o;};
   if(ty==='plate'||ty==='greaves')return pm('plate',{W:'h',w:'m',G:'d',y:'a'});
-  if(ty==='helm')return {...pm('plate',{W:'h',w:'m',G:'d',y:'a'}),R:['#c43c3c','#f2c14e','#e8dcc4','#fffaf0'][t],K:t>=2?armP('plate',t).g:'#1f1a2b'};
+  if(ty==='helm')return {...pm('plate',{W:'h',w:'m',G:'d',y:'a'}),R:['#c43c3c','#f2c14e','#e8dcc4','#fffaf0','#fffaf0','#d9ccff'][t],K:t>=2?armP('plate',t).g:'#1f1a2b'};
   if(ty==='leather'||ty==='cap'||ty==='shoes')return pm('leather',{n:'h',B:'m',b:'d'});
   if(ty==='robe'||ty==='hood'||ty==='treads')return pm('robe',{v:'h',P:'m',p:'d',y:'a'});
   const c=CLOAK32[ty];return c?{R:c.m,r:c.d,y:TRIM[t]||c.h}:null;}
@@ -1782,7 +1782,7 @@ function pickType(slot){return pick(Object.keys(TYPES[slot]));}
 for(const k in UNIQ){FXN[UNIQ[k].fx]=UNIQ[k].a;FXD[UNIQ[k].fx]=UNIQ[k].d;}
 function mkUnique(id){const U=UNIQ[id];const affs=Object.entries(U.affs).map(([k,v])=>({id:k,v:Math.round(v*TMA[U.tier]),r:0}));
   const it=mkItem('weapon',U.type,U.tier,4,affs,{q:1.2,qn:'Superior',uq:id,fx:[U.fx]});it.name=U.n;return it;}
-const RCAP=[1,2,2,3,3],RFLOOR=[0,0,1,2,2];
+const RCAP=[1,2,2,3,3,4],RFLOOR=[0,0,1,2,2,2];
 function genItem(tier,minRar=0,slot,maxRar){
   slot=slot||pick(['weapon','weapon','armor','armor','helm','boots','cloak']);const type=pickType(slot);
   const hi=maxRar!==undefined?maxRar:RCAP[tier],lo=Math.min(hi,Math.max(minRar,RFLOOR[tier]||0));
@@ -1836,7 +1836,7 @@ function fresh(){
     named:false,unl:{explore:true},newf:[],wins:0,diff:'normal',hc:false,flags:{},chal:[],ach:[],bounties:0,dmods:[],known:{},
     rested:0,key:false,sanctum:false,bounty:null,stock:null,loc:null,showLog:false,fg:{tab:'craft',tpl:null,mats:[]},disc:[],starTab:'melee'};
 }
-function migrate(s){const d=fresh();if((s.cleared||[]).includes(5)&&s.devils&&s.devils.pact){const D=s.devils;D.free=D.free||{};D.free[D.pact]=1;if(D.pact==='hollow')D.shadow=1;D.pact=null;D.cut=null;}if(s.gear&&s.gear.weapon&&s.gear.weapon.veil){const w=s.gear.weapon,v=w.vr||[];w.rar=6;w.tier=v.length?Math.max(0,BC.METALS.indexOf(v[v.length-1])):0;w.plus=w.plus||0;}if((s.cleared||[]).includes(4))s.unlocked=Math.max(s.unlocked||1,6);if(s.devils&&s.devils.pact==='veiled'&&s.devils.cut){s.devils.pact=null;s.devils.cut=null;}if(s.tree)for(const k of Object.keys(s.tree))if(!CNODE[k]){s.sp=(s.sp||0)+s.tree[k];delete s.tree[k];}if(s.skills)for(const k of Object.keys(s.skills))if(!SK[k])delete s.skills[k];if(s.equip)s.equip=s.equip.filter(k=>SK[k]);for(const k in d)if(!(k in s))s[k]=d[k];for(const sl of SLOTS)if(!(sl in s.gear))s.gear[sl]=null;
+function migrate(s){const d=fresh();{const fix=it=>{if(it&&typeof it==='object'&&!(typeof it.rar==='number'&&isFinite(it.rar)))it.rar=3;};(s.bag||[]).forEach(fix);Object.values(s.gear||{}).forEach(fix);if(s.combat&&s.combat.over&&s.combat.over.loot)(s.combat.over.loot.items||[]).forEach(fix);}if((s.cleared||[]).includes(5)&&s.devils&&s.devils.pact){const D=s.devils;D.free=D.free||{};D.free[D.pact]=1;if(D.pact==='hollow')D.shadow=1;D.pact=null;D.cut=null;}if(s.gear&&s.gear.weapon&&s.gear.weapon.veil){const w=s.gear.weapon,v=w.vr||[];w.rar=6;w.tier=v.length?Math.max(0,BC.METALS.indexOf(v[v.length-1])):0;w.plus=w.plus||0;}if((s.cleared||[]).includes(4))s.unlocked=Math.max(s.unlocked||1,6);if(s.devils&&s.devils.pact==='veiled'&&s.devils.cut){s.devils.pact=null;s.devils.cut=null;}if(s.tree)for(const k of Object.keys(s.tree))if(!CNODE[k]){s.sp=(s.sp||0)+s.tree[k];delete s.tree[k];}if(s.skills)for(const k of Object.keys(s.skills))if(!SK[k])delete s.skills[k];if(s.equip)s.equip=s.equip.filter(k=>SK[k]);for(const k in d)if(!(k in s))s[k]=d[k];for(const sl of SLOTS)if(!(sl in s.gear))s.gear[sl]=null;
   for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.uq&&!UNIQ[it.uq]){it.uq=null;it.rar=3;it.name=itemName(it);}
   if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&(s.combat.ctx==='duel'||s.combat.ctx==='pvp'))s.combat=null;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
@@ -2455,7 +2455,7 @@ const ACH=[
 function checkAch(){for(const [id,n,d,f,rw] of ACH)if(!S.ach.includes(id)&&f()){S.ach.push(id);if(rw.gold)S.gold+=rw.gold;if(rw.ess)S.mats.essence=(S.mats.essence||0)+rw.ess;
   toast(`Achievement: ${n}${rw.gold?` · +${rw.gold}g`:''}${rw.ess?` · +${rw.ess} essence`:''}`);fx('ach');}}
 const MG={active:false,pos:0,dir:1,speed:0,c:50,strikes:[],spec:null,last:null};
-const mgSpot=(p,t)=>{const z=[16,15,14,13,12][t];let c;do{c=z+Math.random()*(100-2*z);}while(Math.abs(c-p)<20);return c;};
+const mgSpot=(p,t)=>{const z=[16,15,14,13,12,11][t];let c;do{c=z+Math.random()*(100-2*z);}while(Math.abs(c-p)<20);return c;};
 const ACT={
   begin:()=>{if(!S.pendingWep)return;const el=document.getElementById('nm');const v=(el&&el.value||S.name||'').trim().slice(0,16);S.name=v||'Wanderer';S.diff='normal';S.hc=!!S.pendingHC;
     applyStart(S.pendingWep);S.named=true;delete S.pendingWep;delete S.pendingHC;},
