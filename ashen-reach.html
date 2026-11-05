@@ -1932,8 +1932,8 @@ async function cloudUp(force){if(UI.admEd){toast('Go back to your own save first
   const {data:cur,error:e0}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
   if(e0){NET.busy=false;NET.msg='Could not reach your cloud save: '+e0.message;render(true);return;}NET.cloud=cur||null;if(cur&&cur.adm&&cur.adm!==S.admEd){NET.busy=false;NET.msg='';admPull();return;}
   if(!force&&cur&&cur.updated_at!==S.cloudAt){NET.busy=false;NET.msg='';NET.askUp=true;render(true);return;}
-  const at=new Date().toISOString();S.cloudAt=at;const row={user_id:NET.user.id,data:S,name:S.name,level:S.lvl,updated_at:at};
-  const {error}=await sb.from('saves').upsert(row);NET.busy=false;spirePost();NET.askUp=false;if(error){S.cloudAt=cur?cur.updated_at:undefined;NET.msg='Upload failed: '+error.message;toast('Upload failed');}else{NET.cloud={level:S.lvl,name:S.name,updated_at:at};NET.msg='Uploaded.';toast('Saved to the cloud');}
+  const at=new Date().toISOString();S.cloudAt=at;const row={user_id:NET.user.id,data:S,name:pname().slice(0,16),level:S.lvl,updated_at:at};
+  const {error}=await sb.from('saves').upsert(row);NET.busy=false;spirePost();NET.askUp=false;if(error){S.cloudAt=cur?cur.updated_at:undefined;NET.msg='Upload failed: '+error.message;toast('Upload failed');}else{NET.cloud={level:S.lvl,name:pname().slice(0,16),updated_at:at};NET.msg='Uploaded.';toast('Saved to the cloud');}
   try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}render(true);}
 async function cloudDown(){if(UI.admEd){toast('Go back to your own save first');return;}const sb=await net();if(!sb||!NET.user)return;let last=0;try{last=+localStorage.getItem('eljuego-cloudload')||0;}catch(e){}
   const wait=600000-(Date.now()-last);if(wait>0){NET.ask=false;NET.msg=`You can load from the cloud again in ${Math.ceil(wait/60000)} min.`;render(true);return;}const {data,error}=await sb.from('saves').select('data,updated_at').eq('user_id',NET.user.id).maybeSingle();
@@ -2609,7 +2609,7 @@ const ACT={
     if(!S.ctr.bonus&&S.ctr.list.every(x=>x.claimed)){S.ctr.bonus=true;S.mats.essence=(S.mats.essence||0)+20;toast('All contracts done: +20 essence');}else toast(`Contract paid: +${c.gold} gold`);},
   retreat:()=>{S.dungeon=null;S.combat=null;S.note='You retreat from the dungeon.';fullRest();},
   done:()=>{const c=C();
-    if(c.over.hc){const old=S.name;S=migrate(fresh());S.name=old;toast(`${old} has fallen for good`);return;}
+    if(c.over.hc){const old=S.name;S=migrate(fresh());S.name=old;toast('Your character has fallen for good');return;}
     if(c.ctx==='devil')S.note=c.over.win?'The dark gives you back. Something out there stopped watching.':'You wake at camp. Something is laughing, very far off.';else if(!c.over.win)S.note=c.over.lost?`You wake at camp. Lost ${c.over.lost} gold.`:'You wake at camp.';
     else if(c.ctx!=='devil'&&c.over.loot.cleared)S.note=`${c.over.loot.cleared} is cleared.${c.over.loot.unlock?` ${c.over.loot.unlock} is open.`:''}`;
     else if(c.ctx!=='devil')S.note='The way is clear.';const wonD=c.dv&&c.over.win?(FRC(c.dv)?null:c.dv):c.ctx==='devil'&&c.over.win&&!END()&&!(S.devils&&S.devils.pact)?(c.enemies.some(e=>e.id==='veild')?'veiled':c.enemies.some(e=>e.id==='colface')?'colossus':'hollow'):null;if(c.ctx==='duel')duelClose();S.combat=null;fullRest();if(wonD)DEVIL.offer(wonD);else if(c.dv&&c.over&&!c.over.win&&!FRC(c.dv)&&!(S.devils&&S.devils.pact===c.dv))DEVIL.offer(c.dv,true);},
@@ -2750,7 +2750,7 @@ const ACT={
   exp:()=>{exportSave();},
   imp:()=>{const f=document.getElementById('impf');if(f)f.click();return 'async';},
   impno:()=>{IMP=null;},
-  impyes:()=>{if(!IMP)return;S=migrate(IMP);IMP=null;UI.set=false;PRE=null;toast(`Loaded ${S.name}`);},
+  impyes:()=>{if(!IMP)return;S=migrate(IMP);IMP=null;UI.set=false;PRE=null;toast('Save loaded');},
   reset:()=>{S._confirm=true;},
   resetNo:()=>{S._confirm=false;},
   resetYes:()=>{if(NET.user&&NET.sb){NET.sb.from('saves').delete().eq('user_id',NET.user.id).then(()=>{NET.cloud=null;});}S=migrate(fresh());UI.set=false;PRE=null;toast('Save wiped');},
@@ -3114,7 +3114,7 @@ function bar(cls,v,m,label,hb){const p=Math.max(0,Math.min(100,v/m*100));return 
 function estHit(e,ab){const d=derive();const M=e.big&&BOSSMECH[e.id];const raw=Math.max(.5,e.atk*(M?M.mult:ab==='heavy'?1.6:1));return Math.max(1,Math.round(calc(raw,d.def*(1-(e.pierce||0)))*(1-d.dr/100)));}
 function vTop(){const d=derive();
   return `<div class="brand">${sprImg('i_sword',3)}<h1>El Juego</h1></div>
-  <div class="hud"><div class="who" data-tip="hero">${esc(S.name)} <span class="dim">Lv ${S.lvl}</span></div>
+  <div class="hud"><div class="who" data-tip="hero">${esc(pname())} <span class="dim">Lv ${S.lvl}</span></div>
   <div class="bars">${bar('hp',PRE?PRE.p:S.hp,d.maxHp,'HP','p')}${bar(PACT()?(S.mp>=100?'mal full':'mal'):'mp',PRE?PRE.pm:S.mp,d.maxMp,MPN())}${bar('xp',S.xp,xpNeed(S.lvl),'XP')}</div>
   ${S.rested?`<span class="tag rest">Rested ×${S.rested}</span>`:''}${S.key?`<span class="tag arc">${sprImg('key',2)}</span>`:''}
   <div class="goldc num" id="goldc">${coinImg(3)}${S.gold}</div></div>`;}
@@ -3122,7 +3122,6 @@ function vIntro(){
   const picks=STARTS.map(t=>{const f=famOf(t),sb=SUBS[f];return `<button class="sub clsbtn ${S.pendingWep===t?'on':''}" data-a="pickwep" data-v="${t}">${heroImg(4,t,'leather')}<b style="color:${sb.col}">${WT[t].n}</b></button>`;}).join('');
   return `<section class="px panel" style="max-width:820px;margin:16px auto;width:100%;align-items:center;text-align:center">${sceneHTML('wild0')}
   <h1 style="font-size:2.6rem">El Juego</h1>
-  <label class="dim" for="nm">Name your wanderer</label><input class="inp" id="nm" maxlength="16" value="${esc(S.name)}" autocomplete="off" spellcheck="false">
   <h3>Starting weapon</h3><div class="row" style="justify-content:center;align-items:stretch">${picks}</div>
   <div class="row" style="justify-content:center"><button class="btn sm ${S.pendingHC?'danger':''}" data-a="togglehc" aria-pressed="${!!S.pendingHC}">Hardcore: ${S.pendingHC?'On':'Off'}</button></div>
   ${S.pendingHC?'<span class="dim small">Death deletes this character</span>':''}
@@ -3162,7 +3161,7 @@ const locHead=(t)=>`<div class="lochead"><button class="btn sm" data-a="loc" dat
 /* tooltips */
 const tipEl=document.createElement('div');tipEl.className='tip';tipEl.hidden=true;document.body.appendChild(tipEl);
 function tipHTML(key){const [k,v]=[key.slice(0,key.indexOf(':')),key.slice(key.indexOf(':')+1)];
-  if(key==='hero'){const d=derive();return `<b>${esc(S.name)}</b><div class="dim small">Lv ${S.lvl}</div><div class="tg">ATK <b>${d.atk}</b> DEF <b>${d.def}</b> SPD <b>${d.spd}</b> Crit <b>${d.crit}%</b> Dodge <b>${d.dodge}%</b></div>`;}
+  if(key==='hero'){const d=derive();return `<b>${esc(pname())}</b><div class="dim small">Lv ${S.lvl}</div><div class="tg">ATK <b>${d.atk}</b> DEF <b>${d.def}</b> SPD <b>${d.spd}</b> Crit <b>${d.crit}%</b> Dodge <b>${d.dodge}%</b></div>`;}
   if(k==='txt')return esc(v);
   if(k==='item'){const it=findAny(v);return it?itemCard(it,'',isWorn(it),true):'';}
   if(k==='st')return STDESC[v]||'';
@@ -3259,7 +3258,7 @@ function vBattle(){
         <button class="btn" data-a="use" data-v="potion" ${S.cons.potion&&!dmods().includes('nopot')?'':'disabled'}>${matImg('potion',2)} Potion ×${S.cons.potion}</button>
         <button class="btn" data-a="use" data-v="ether" ${S.cons.ether?'':'disabled'}>${matImg('ether',2)} Ether ×${S.cons.ether}</button>
         <button class="btn danger" data-a="retreat">Retreat</button>`:`<button class="btn primary" data-a="done">Continue ▸</button>`}</div></div>`;
-    } else lower=o.hc?`<div class="px panel result lose"><h2>${esc(S.name)} has fallen</h2><p>Hardcore: this character is gone.</p><div class="row"><button class="btn danger" data-a="done">Start over</button></div></div>`
+    } else lower=o.hc?`<div class="px panel result lose"><h2>${esc(pname())} has fallen</h2><p>Hardcore: this character is gone.</p><div class="row"><button class="btn danger" data-a="done">Start over</button></div></div>`
       :`<div class="px panel result lose"><h2>Defeated</h2>${c.ctx==='duel'||c.ctx==='pvp'?ratingLine():''}<p>${c.towerEnd?`The Tower throws you out on floor ${c.towerEnd}. Best: ${S.towerBest||0}.`:`Lost ${o.lost} gold${o.dungeon?' and your dungeon progress':''}.`}</p><div class="row"><button class="btn primary" data-a="done">Return to camp</button></div></div>`;
   } else {
     const bossUp=c.enemies.some(e=>e.boss&&e.hp>0);let menu;const dw=c.ctx==='duel'&&!c.myTurn;
@@ -3275,7 +3274,7 @@ function vBattle(){
     if(dw)menu=`<div class="mi off">Waiting for ${esc(c.enemies[0].n)}…</div><button class="mi" data-a="flee">Forfeit<small>leave</small></button>`;
     lower=`<div class="cmdgrid ${wait||c.over?'wait':''}">
       <div class="px panel msg">${lastLines}<div style="margin-top:auto"><button class="btn sm" data-a="togglelog">${S.showLog?'Hide':'Full'} log</button></div></div>
-      <div class="px panel party"><div class="row" style="justify-content:space-between"><b>${esc(S.name)}</b><span class="dim small">SPD <span class="num">${d.spd}</span> · Quick <span class="num">${quickChance()}%</span></span></div>${bar('hp big',wait?PRE.p:S.hp,d.maxHp,'HP','p')}${bar(PACT()?(mpNow>=100?'mal full':'mal'):'mp',mpNow,d.maxMp,MPN())}<div class="sts" style="justify-content:flex-start">${stIcons(c.ps)}</div></div>
+      <div class="px panel party"><div class="row" style="justify-content:space-between"><b>${esc(pname())}</b><span class="dim small">SPD <span class="num">${d.spd}</span> · Quick <span class="num">${quickChance()}%</span></span></div>${bar('hp big',wait?PRE.p:S.hp,d.maxHp,'HP','p')}${bar(PACT()?(mpNow>=100?'mal full':'mal'):'mp',mpNow,d.maxMp,MPN())}<div class="sts" style="justify-content:flex-start">${stIcons(c.ps)}</div></div>
       <div class="px panel menu-box"><div class="menu">${menu}</div></div></div>`;
   }
   const fullLog=S.showLog||over?`<div class="log" id="log">${c.log.map(([t,k])=>`<div class="${k}">${esc(t)}</div>`).join('')}</div>`:'';
@@ -3402,7 +3401,7 @@ function vChar(){const d=derive(),t=d.stats;
   S.loads=S.loads||[null,null,null];const tot=s=>Object.values(s.stats).reduce((a,b)=>a+b,0)+s.pts;const myTot=tot({stats:S.stats,pts:S.pts});
   const loads=S.loads.map((L,i)=>`<div class="brow"><b>Build ${i+1}</b><span class="bchips">${L?Object.keys(STATL).map(k=>`<span class="tag">${STATL[k]} <b class="num">${L.stats[k]}</b></span>`).join(''):'<span class="dim small">Empty</span>'}</span>
     <span class="sb"><button class="btn sm" data-a="lsave" data-v="${i}">Save</button>${L?`<button class="btn sm" data-a="lload" data-v="${i}" ${tot(L)===myTot&&S.gold>=respecCost()?'':'disabled'} data-tip="txt:${tot(L)===myTot?'Costs '+respecCost()+' gold, like a respec':'Saved at a different level'}">Load</button>`:''}</span></div>`).join('');
-  return `<div class="chargrid"><section class="px panel"><div class="row" style="gap:12px">${heroImg(3).replace('idle','')}<div><h2>${esc(S.name)}</h2>${S.pts?`<span class="tag gold">${S.pts} points to spend</span>`:'<span class="tag">No points to spend</span>'}</div></div>
+  return `<div class="chargrid"><section class="px panel"><div class="row" style="gap:12px">${heroImg(3).replace('idle','')}<div><h2>${esc(pname())}</h2>${S.pts?`<span class="tag gold">${S.pts} points to spend</span>`:'<span class="tag">No points to spend</span>'}</div></div>
     <div class="stats2">${rows}</div>
     <div class="row"><button class="btn sm" data-a="respec" ${S.gold>=respecCost()?'':'disabled'}>Respec stats + stars ${coinImg(2)}<span class="num">${respecCost()}</span></button><span class="dim small">Orbs do it for free, one side at a time if you like.</span></div>
     <h3>Builds</h3><div class="stats2">${loads}</div></section>
@@ -3623,7 +3622,7 @@ function vAccount(){if(NET.user&&NET.sb&&Date.now()-(NET.peekT||0)>15000)cloudPe
   const c=NET.cloud;
   const un=NET.user.user_metadata&&NET.user.user_metadata.username;
   return `<p>Signed in as <b>${esc(un||NET.user.email||'player')}</b></p>
-    <div class="row"><span class="tag">This device: ${esc(S.name)} · Lv ${S.lvl}</span><span class="tag ${c?'gold':''}">Cloud: ${c?`${esc(c.name||'?')} · Lv ${c.level} · ${esc(new Date(c.updated_at).toLocaleString())}`:'empty'}</span></div>
+    <div class="row"><span class="tag">This device: ${esc(pname())} · Lv ${S.lvl}</span><span class="tag ${c?'gold':''}">Cloud: ${c?`${esc(c.name||'?')} · Lv ${c.level} · ${esc(new Date(c.updated_at).toLocaleString())}`:'empty'}</span></div>
     ${NET.askUp&&c?`<div class="row"><span class="tag bad">The cloud has a different save (${esc(c.name||'?')} · Lv ${c.level}, ${esc(new Date(c.updated_at).toLocaleString())}) from another device or session. Replace it with this one?</span><button class="btn danger sm" data-a="cupyes">Yes, replace it</button><button class="btn sm" data-a="cupno">No</button></div>`
     :NET.ask?`<div class="row"><span class="tag bad">Replace this device's save with the cloud save?</span><button class="btn danger sm" data-a="cdown">Yes, load it</button><button class="btn sm" data-a="cno">No</button></div>`
     :`<div class="row"><button class="btn primary" data-a="cup" ${NET.busy?'disabled':''}>Upload this save</button><button class="btn" data-a="cask" ${c?'':'disabled'}>Load cloud save</button>
@@ -3686,7 +3685,7 @@ const ADM={
 };
 async function admList(){const sb=await net();if(!sb||!NET.user){UI.admPl={err:'Sign in on the Online tab first.'};render(true);return;}UI.admPl={busy:1};render(true);const q=sb.from('saves').select('user_id,name,level,updated_at').order('updated_at',{ascending:false}).limit(100);const {data,error}=await q;if(error){UI.admPl={err:error.message};render(true);return;}const list=data||[];UI.admPl={list,err:list.filter(r=>r.user_id!==NET.user.id).length?'':'You can only see your own save. Run supabase/admin.sql in Supabase to get access to the others.'};render(true);}
 async function admOpen(uid){if(admBusy())return;const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('data,name,updated_at').eq('user_id',uid).maybeSingle();if(error||!data||!data.data||data.data.v!==3){toast('Could not read that save');return;}if(!UI.admEd){save();UI.admOwn=S;}UI.admEd={uid,name:data.name||'Player',at:data.updated_at};S=migrate(data.data);PRE=null;toast('Editing '+UI.admEd.name);render(true);}
-async function admWrite(){const E=UI.admEd;if(!E)return;const sb=await net();if(!sb||!NET.user)return;const at=new Date().toISOString();S.admEd=at;S.cloudAt=at;const {data,error}=await sb.from('saves').update({data:S,name:S.name,level:S.lvl,updated_at:at}).eq('user_id',E.uid).select('user_id');if(error||!data||!data.length){toast(error?'Save failed: '+error.message:'The server refused. Run supabase/admin.sql first.');return;}E.at=at;toast('Saved to '+E.name);admList();}
+async function admWrite(){const E=UI.admEd;if(!E)return;const sb=await net();if(!sb||!NET.user)return;const at=new Date().toISOString();S.admEd=at;S.cloudAt=at;const {data,error}=await sb.from('saves').update({data:S,name:E.name,level:S.lvl,updated_at:at}).eq('user_id',E.uid).select('user_id');if(error||!data||!data.length){toast(error?'Save failed: '+error.message:'The server refused. Run supabase/admin.sql first.');return;}E.at=at;toast('Saved to '+E.name);admList();}
 function admBack(){if(!UI.admEd)return;S=UI.admOwn;UI.admOwn=null;UI.admEd=null;PRE=null;save();toast('Back to your own save');render(true);}
 async function admPull(){const sb=await net();if(!sb||!NET.user||UI.admEd)return;const {data}=await sb.from('saves').select('data,updated_at').eq('user_id',NET.user.id).maybeSingle();if(!data||!data.data||data.data.v!==3)return;const s=data.data;S=migrate(s);S.admEd=s.admEd;S.cloudAt=data.updated_at;PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}toast('An admin changed your save, so it was loaded from the cloud');render(true);}
 function admBeast(){S.kc=S.kc||{};for(const a of AREAS)for(const id of [...a.mobs,a.dungeon.boss])if(MOB[id]){const m=(MOB[id].boss?BBOSS:BMILE).slice(-1)[0];S.kc[id]=Math.max(S.kc[id]||0,m);}toast('Bestiary maxed');}
