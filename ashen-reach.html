@@ -3001,7 +3001,7 @@ function extrasHTML(it){if(!it)return '';const n=Math.max(enchSlots(it),(it.ench
   return st+(TW&&TW.tr?`<div class="xl">▸ ${TW.trn}: ${TW.tr}</div>`:'')+(it.fx||[]).map(f=>`<div class="xl gold">✦ ${FXN[f]}: ${f==='heart'?`Regenerate ${Math.round(heartPct(it.tier||0)*0.35*100)/100}% HP each turn`:FXD[f]||(Object.values(SUP).find(x=>x.fx===f)||{}).d}</div>`).join('')
    +Array.from({length:n},(_,i)=>{const e=it.ench[i];if(!e)return '<div class="xl dim">· empty enchant slot</div>';const E=ENCH[e.id];return `<div class="xl arc" style="color:${ENCHCOL[E.el]||'var(--arc)'}">◆ ${e.g?'Greater ':''}${E.n}: ${e.g&&ENCHG[e.id]||E.d}</div>`;}).join('');}
 function headHTML(it){const W=it.slot==='weapon'?WT[it.type]:null;return `<div class="ih"><span class="icbox">${itemImg(it,3)}</span><div><div class="iname">${it.plus?`+${it.plus} `:''}${esc(it.name)}</div>
-  <div class="rar">${it.veil?'Unbound · Relic · Hybrid':it.slot==='gem'?`${RAR[it.rar].n} · Gem`:`${RAR[it.rar].n} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W&&!it.veil?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
+  <div class="rar">${it.veil?'Unbound · Relic · Hybrid':it.slot==='gem'?`${(RAR[it.rar]||RAR[0]).n} · Gem`:`${(RAR[it.rar]||RAR[0]).n} · Tier ${it.tier+1} · ${it.qn||'Standard'}`}${W&&!it.veil?` · ${TREES[treeOf(W.sub)].n}`:''}${W&&W.el?` · <span style="color:${EL[W.el].c}">${EL[W.el].n}</span>`:''}</div></div></div>`;}
 function itemCard(it,actions,equipped,tip){const rows=statRows(it);const W=it.slot==='weapon'?WT[it.type]:null;
   const ws=W?wepStat(it.type):null,gg=W?wepGrade(it):0;const grades=W?`<div class="grades">${['str','dex','int'].map(k=>{const g=k===ws||it.veil?gg:0;return `<span class="gr g${g}">${STATL[k]} <span class="grd">${GR[g]}</span></span>`;}).join('')}</div>`:'';
   return `<div class="item r${it.rar}">${headHTML(it)}${equipped?'<span class="eqtag">Equipped</span>':''}
@@ -4052,7 +4052,7 @@ const PLAY={
 };
 function reveal(e){if(!e.item){toast(e.msg);return;}const it=findItem(e.item);if(!it)return;
   const d=document.createElement('div');d.className=`reveal r${it.rar}`;d.setAttribute('role','dialog');d.setAttribute('aria-label','Item forged');
-  d.innerHTML=`<div class="rv"><div class="eyebrow">${RAR[it.rar].n}</div>${itemCard(it,`<span class="eqtag">${isWorn(it)?'Equipped':'Sent to bag'} · tap to close</span>`)}</div>`;document.body.appendChild(d);
+  d.innerHTML=`<div class="rv"><div class="eyebrow">${(RAR[it.rar]||RAR[0]).n}</div>${itemCard(it,`<span class="eqtag">${isWorn(it)?'Equipped':'Sent to bag'} · tap to close</span>`)}</div>`;document.body.appendChild(d);
   const card=d.querySelector('.item');card.animate([{transform:'scale(.4)'},{transform:'scale(1.08)',offset:.6},{transform:'scale(1)'}],{duration:360,easing:'steps(6)'});
   setTimeout(()=>{const c=ctr(card);burst(c.x,c.y,{n:it.rar>=3?80:40,col:[RCOL[it.rar],'#f4efe4'],spd:it.rar>=3?9:6,life:50});if(it.rar>=3)shake(6);},200);d.onclick=()=>d.remove();}
 function playUnlock(){sfx('unlock');SCN.unlock={t0:performance.now()};
