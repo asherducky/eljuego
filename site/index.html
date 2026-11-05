@@ -2354,6 +2354,7 @@ function afterPlayer(){const c=C();
   if(c.enemies[c.target].hp<=0)c.target=c.enemies.findIndex(e=>e.hp>0);}
 function startTurn(){const d=derive();const cc=C();if(trk('firewithin')&&cc&&cc.enemies.some(x=>x.hp>0&&x.st.burn))S.mp=Math.min(d.maxMp,S.mp+2);if(cc&&cc.cd)for(const k in cc.cd)if(cc.cd[k]>0)cc.cd[k]--;if(!PACT())S.mp=Math.min(d.maxMp,S.mp+(wepTree()==='magic'?2:1));if(d.regen){const h=Math.round(d.maxHp*d.regen/100);if(h&&S.hp<d.maxHp){S.hp=Math.min(d.maxHp,S.hp+h);fx('num',{t:'p',txt:'+'+h,cls:'heal'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp});}}}
 function xpFor(e){const diff=S.lvl-e.L;return diff>0?Math.max(.1,1-.25*diff):1+.1*Math.min(5,-diff);}
+const cdTick=o=>{for(const k in o)if(o[k]>0)o[k]--;return o;};
 function win(){
   const c=C();if(c.ctx==='duel'){c.over={win:true,loot:{xp:0,gold:0,mats:{},items:[],pvp:true}};pvpResult(true);fxAt+=200;fx('win',{});return;}const d=derive();const tw=c.ctx==='tower'&&S.tower;const tier=Math.min(5,tw?Math.min(S.unlocked-1,Math.floor((S.tower.floor-1)/10)):S.area);const addMat=(m,q)=>{loot.mats[m]=(loot.mats[m]||0)+q;};const loot={xp:0,gold:0,mats:{},items:[]};const hard=S.diff==='hard';
   if(!S.wins){const sb=SUBS[wepFam()];const w=S.gear.weapon;loot.items.push(mkItem('weapon',w?w.type:sb.weapons[0],0,1,[],{q:QUAL[2][1],qn:QUAL[2][0]}));}
@@ -2367,7 +2368,7 @@ function win(){
 }
     const uq=Object.keys(UNIQ).filter(k=>UNIQ[k].from===e.id);if(uq.length&&chance(e.boss?7:.15))loot.items.push(mkUnique(pick(uq)));}
   if(c.enemies.some(e=>e.boss)&&!c.pots)S.flags.nopot=true;if(S.hp<=Math.max(1,Math.ceil(d.maxHp*.05)))S.flags.clutch=true;
-  if(tw){const T=S.tower,f=T.floor;T.cd={...(c.cd||{})};loot.xp=Math.round(loot.xp*.3);loot.gold=Math.round(loot.gold*.6);if(T.mod==='gild')loot.gold=Math.round(loot.gold*1.6);loot.mats.essence=(loot.mats.essence||0)+Math.ceil(f/5);
+  if(tw){const T=S.tower,f=T.floor;T.cd=cdTick({...(c.cd||{})});loot.xp=Math.round(loot.xp*.3);loot.gold=Math.round(loot.gold*.6);if(T.mod==='gild')loot.gold=Math.round(loot.gold*1.6);loot.mats.essence=(loot.mats.essence||0)+Math.ceil(f/5);
     if(f%5===0){loot.items.push(genItem(tier,1,undefined,RCAP[tier]));if(chance(50))loot.items.push(mkGem(pick(Object.keys(GEMS)),Math.min(4,Math.floor(f/15))));}
     if(T.mod==='bless'){S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.25));S.mp=Math.min(d.maxMp,S.mp+Math.round(d.maxMp*.25));}
     if(f>(S.towerBest||0)){S.towerBest=f;if(f%10===0)grantStar(loot);if(f%5===0)addMat(f>=50&&f%10===0?'crys5':f>=45?'crys4':f>=30?'crys3':'crys2',1);spirePost();}if(f>50&&chance(f>100?5:2))addMat('crys5',1);loot.tower=f;T.floor++;ctrHook('tower',f);}
@@ -2376,7 +2377,7 @@ function win(){
   if(S.rested>0){loot.xp=Math.round(loot.xp*1.1);S.rested--;loot.rested=true;S.hp=Math.min(d.maxHp,S.hp+Math.round(d.maxHp*.08));}
   if(S.gear.weapon&&S.gear.weapon.veil&&c.ctx!=='devil'&&!FRC('veiled')){loot.gold=Math.round(loot.gold*.85);loot.xp=Math.round(loot.xp*.85);loot.items=loot.items.filter(()=>!chance(15));}S.gold+=loot.gold;for(const m in loot.mats)S.mats[m]=(S.mats[m]||0)+loot.mats[m];addToBag(loot.items);if(S.stock)S.stock.fights++;S.wins=(S.wins||0)+1;
   const bm=c.ctx==='dungeon'&&S.dungeon&&!S.dungeon.gem?dmods().length:0;if(bm)loot.xp=Math.round(loot.xp*(1+.1*bm));const lv0=S.lvl;gainXp(loot.xp);loot.lvl=S.lvl>lv0?S.lvl:0;
-  const D=S.dungeon;if(c.ctx==='dungeon'&&D)D.cd={...(c.cd||{})};
+  const D=S.dungeon;if(c.ctx==='dungeon'&&D)D.cd=cdTick({...(c.cd||{})});
   if(c.ctx==='dungeon'&&D&&D.gem){if(D.stage>=VAULTF-1){vaultLoot(D,loot);S.dungeon=null;}}
   else if(c.ctx==='dungeon'&&D){const A=AREAS[D.area];if(D.stage>=A.dungeon.floors.length){loot.cleared=A.dungeon.name;if(D.area===5)setTimeout(()=>{freeAll();render(true);},0);questHook('clear',D.area);if(!S.cleared.includes(D.area))S.cleared.push(D.area);
     S.unlocked=Math.min(AREAS.length,Math.max(S.unlocked,D.area+2));loot.unlock=D.area+1<AREAS.length?AREAS[D.area+1].name:null;
