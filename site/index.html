@@ -1916,7 +1916,7 @@ function migrate(s){const d=fresh();{const AM={greysteel:'ashforged',ghoststeel:
   if(s.flags)delete s.flags.god;delete s.title;delete s.titles;delete s.track;if(s.combat&&(s.combat.ctx==='duel'||s.combat.ctx==='pvp'))s.combat=null;if(s.combat&&!s.combat.menu)s.combat.menu='main';if(s.cleared&&s.cleared.includes(0))s.flags.analyze=true;s.diff='normal';if(!s.fg||!s.fg.mats)s.fg={tab:'craft',tpl:null,mats:[]};
   for(const sl of ['trinket','trinket2'])if(s.gear[sl]){s.bag.push(convTrinket(s.gear[sl]));delete s.gear[sl];}
   if(s.bag)s.bag=s.bag.map(it=>it.slot==='trinket'?convTrinket(it):it);if(s.stock&&(s.stock.items||[]).length)s.stock=null;migrateRf(s);fixGems(s);renameGear(s);if(!s.treeV){s.stars=(s.stars||[]).filter(x=>!/^m1/.test(x)&&x!=='mDc');}if(s.tree&&s.tree.emberward){s.tree.overheat=s.tree.emberward;delete s.tree.emberward;}if(s.skills&&s.skills.emberward){s.skills.overheat=s.skills.emberward;delete s.skills.emberward;}if(s.equip)s.equip=s.equip.map(k=>k==='emberward'?'overheat':k);if((s.treeV||0)<2){s.treeV=2;s.tree={};s.treeSync=1;}if(s.treeV<3){s.treeV=3;s.stars=['mO','gO'];s.treeSync=1;}if(!s.atkGone){for(const it of [...Object.values(s.gear||{}).filter(Boolean),...(s.bag||[])])if(it.affixes)it.affixes=it.affixes.filter(a=>a.id!=='atk');s.atkGone=1;}return s;}
-function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();pvpPost();}}
+function save(){if(UI.admEd)return;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}if(NET.user&&!S.combat&&Date.now()-(NET.lbPost||0)>60000){NET.lbPost=Date.now();spirePost();pvpPost();}}
 /* ============ online: Supabase accounts + cloud saves (off until SUPA is filled in) ============ */
 // The anon key is public by design; row level security in supabase/schema.sql keeps each save private.
 const SUPA={url:'https://gtktyabyczoouwgwpxlr.supabase.co',key:'sb_publishable_a-2GjUCLeKHkFbTlajLZwg_23JAHuKd'};
@@ -1926,23 +1926,23 @@ async function net(){if(NET.sb)return NET.sb;if(!SUPA.url||!SUPA.key||NET.tried)
     const {data}=await NET.sb.auth.getSession();NET.user=data.session?data.session.user:null;
     NET.sb.auth.onAuthStateChange((ev,s)=>{NET.user=s?s.user:null;if(ev==='SIGNED_IN'){cloudPeek();spirePost();pvpPost();}render(true);});if(NET.user)cloudPeek();}
   catch(e){NET.msg='Could not reach the server.';}render(true);return NET.sb;}
-async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;NET.peekT=Date.now();const {data,error}=await sb.from('saves').select('level,name,updated_at').eq('user_id',NET.user.id).maybeSingle();
-  if(error)NET.msg='Could not read your cloud save: '+error.message;else NET.cloud=data||null;render(true);}
-async function cloudUp(force){const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.msg='Checking the cloud…';render(true);
-  const {data:cur,error:e0}=await sb.from('saves').select('level,name,updated_at').eq('user_id',NET.user.id).maybeSingle();
-  if(e0){NET.busy=false;NET.msg='Could not reach your cloud save: '+e0.message;render(true);return;}NET.cloud=cur||null;
+async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;NET.peekT=Date.now();const {data,error}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
+  if(error)NET.msg='Could not read your cloud save: '+error.message;else{NET.cloud=data||null;if(data&&data.adm&&S&&data.adm!==S.admEd&&!UI.admEd){admPull();return;}}render(true);}
+async function cloudUp(force){if(UI.admEd){toast('Go back to your own save first');return;}const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.msg='Checking the cloud…';render(true);
+  const {data:cur,error:e0}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
+  if(e0){NET.busy=false;NET.msg='Could not reach your cloud save: '+e0.message;render(true);return;}NET.cloud=cur||null;if(cur&&cur.adm&&cur.adm!==S.admEd){NET.busy=false;NET.msg='';admPull();return;}
   if(!force&&cur&&cur.updated_at!==S.cloudAt){NET.busy=false;NET.msg='';NET.askUp=true;render(true);return;}
   const at=new Date().toISOString();S.cloudAt=at;const row={user_id:NET.user.id,data:S,name:S.name,level:S.lvl,updated_at:at};
   const {error}=await sb.from('saves').upsert(row);NET.busy=false;spirePost();NET.askUp=false;if(error){S.cloudAt=cur?cur.updated_at:undefined;NET.msg='Upload failed: '+error.message;toast('Upload failed');}else{NET.cloud={level:S.lvl,name:S.name,updated_at:at};NET.msg='Uploaded.';toast('Saved to the cloud');}
   try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}render(true);}
-async function cloudDown(){const sb=await net();if(!sb||!NET.user)return;let last=0;try{last=+localStorage.getItem('eljuego-cloudload')||0;}catch(e){}
+async function cloudDown(){if(UI.admEd){toast('Go back to your own save first');return;}const sb=await net();if(!sb||!NET.user)return;let last=0;try{last=+localStorage.getItem('eljuego-cloudload')||0;}catch(e){}
   const wait=600000-(Date.now()-last);if(wait>0){NET.ask=false;NET.msg=`You can load from the cloud again in ${Math.ceil(wait/60000)} min.`;render(true);return;}const {data,error}=await sb.from('saves').select('data,updated_at').eq('user_id',NET.user.id).maybeSingle();
   if(error||!data){toast('No cloud save found');return;}const s=data.data;if(!s||s.v!==3||!s.stats){toast('That cloud save cannot be read');return;}
   try{localStorage.setItem('eljuego-cloudload',String(Date.now()));}catch(e){}S=migrate(s);S.cloudAt=data.updated_at;PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}NET.ask=false;NET.msg='Loaded.';toast('Cloud save loaded');render(true);}
 async function signIn(email){const sb=await net();if(!sb)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){NET.msg='Enter a valid email.';render(true);return;}
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});NET.msg=error?error.message:'Check your email for a sign-in link.';render(true);}
 function pvpSnap(){const d=derive();return {lvl:S.lvl,hp:d.maxHp,atk:d.atk,def:d.def,spd:d.spd,crit:d.crit,dodge:d.dodge,el:d.el,parts:heroParts()};}
-async function pvpPost(extra){const sb=await net();if(!sb||!NET.user||!S||!S.named)return;const row={user_id:NET.user.id,name:pname().slice(0,16),level:S.lvl,snap:pvpSnap(),updated_at:new Date().toISOString(),...(extra||{})};
+async function pvpPost(extra){const sb=await net();if(!sb||!NET.user||!S||!S.named||UI.admEd)return;const row={user_id:NET.user.id,name:pname().slice(0,16),level:S.lvl,snap:pvpSnap(),updated_at:new Date().toISOString(),...(extra||{})};
   const {error}=await sb.from('pvp').upsert(row);NET.pvpErr=error?(error.code==='PGRST205'?'The arena is not set up on the server yet.':error.message):'';}
 async function pvpMe(){const sb=await net();if(!sb||!NET.user)return;const {data}=await sb.from('pvp').select('rating,wins,losses').eq('user_id',NET.user.id).maybeSingle();NET.pvpMe=data||{rating:1000,wins:0,losses:0};render(true);}
 async function pvpFind(){const sb=await net();if(!sb||!NET.user)return;NET.pvpBusy=true;render(true);await pvpPost();if(!NET.pvpMe)await pvpMe();const r=(NET.pvpMe||{}).rating||1000;
@@ -1955,7 +1955,7 @@ function mkPvp(o){const s=o.snap||{},el=s.el||'phys';const ab=[['heavy',22],['st
 const ratingLine=()=>{if(!NET.user)return '';const me=NET.pvpMe,d=NET.pvpDelta;return me&&d!=null?`<p>Rating <b class="num">${me.rating}</b> <span class="tag ${d>=0?'good':'bad'}">${d>=0?'+':''}${d}</span></p>`:'<p class="small dim">Updating your rating…</p>';};
 async function pvpResult(won){const sb=await net();if(!sb||!NET.user)return;const me=NET.pvpMe||{rating:1000,wins:0,losses:0},opp=NET.pvpLast||1000;const ex=1/(1+Math.pow(10,(opp-me.rating)/400));
   const delta=Math.round(32*((won?1:0)-ex));const next={rating:Math.max(0,me.rating+delta),wins:me.wins+(won?1:0),losses:me.losses+(won?0:1)};NET.pvpMe=next;NET.pvpDelta=delta;await pvpPost(next);render(true);}
-async function spirePost(){const sb=await net();if(!sb||!NET.user||!S||!S.named)return;
+async function spirePost(){const sb=await net();if(!sb||!NET.user||!S||!S.named||UI.admEd)return;
   const row={user_id:NET.user.id,name:pname().slice(0,16),best:S.towerBest||0,level:S.lvl,gold:Math.max(0,Math.floor(S.gold||0)),updated_at:new Date().toISOString()};
   let {error}=await sb.from('spire').upsert(row);if(error&&/gold/.test(error.message||'')){delete row.gold;({error}=await sb.from('spire').upsert(row));}if(!error)NET.lbT=0;}
 async function spireLoad(){const sb=await net();if(!sb||NET.lbBusy)return;NET.lbBusy=true;NET.lbT=Date.now();
@@ -3655,7 +3655,12 @@ const ADM={
   dfed:()=>{admD().fed=Math.max(0,anum('a_dfed',0));},
   dforget:()=>{const D=admD();D.seen={};D.said={};toast('They forgot you');},
   devilw:()=>{const el=document.getElementById('a_devilw');const n=Math.max(0,Math.floor(+(el&&el.value)||0));S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};S.devils.w=n;toast('Wanders set to '+n);},
-  tab:v=>{UI.admTab=v;},
+  tab:v=>{UI.admTab=v;if(v==='players'&&!UI.admPl)admList();},
+  plist:()=>{admList();},
+  pedit:v=>{admOpen(v);},
+  psave:()=>{admWrite();},
+  pback:()=>{admBack();},
+  beast:()=>{admBeast();},
   gold:()=>{S.gold=Math.max(0,S.gold+anum('a_gold',1000));},
   goldset:()=>{S.gold=Math.max(0,anum('a_gold',0));},
   lvl:()=>{const to=Math.max(1,Math.min(MAXLV,anum('a_lvl',S.lvl)));while(S.lvl<to)gainXp(xpNeed(S.lvl)-S.xp);},
@@ -3679,6 +3684,12 @@ const ADM={
   cloud:()=>{try{localStorage.removeItem('eljuego-cloudload');}catch(e){}toast('Cloud load cooldown cleared');},
   lock:()=>{UI.admOk=false;try{sessionStorage.removeItem('eljuego-adm');}catch(e){}},
 };
+async function admList(){const sb=await net();if(!sb||!NET.user){UI.admPl={err:'Sign in on the Online tab first.'};render(true);return;}UI.admPl={busy:1};render(true);const q=sb.from('saves').select('user_id,name,level,updated_at').order('updated_at',{ascending:false}).limit(100);const {data,error}=await q;if(error){UI.admPl={err:error.message};render(true);return;}const list=data||[];UI.admPl={list,err:list.filter(r=>r.user_id!==NET.user.id).length?'':'You can only see your own save. Run supabase/admin.sql in Supabase to get access to the others.'};render(true);}
+async function admOpen(uid){if(admBusy())return;const sb=await net();if(!sb||!NET.user)return;const {data,error}=await sb.from('saves').select('data,name,updated_at').eq('user_id',uid).maybeSingle();if(error||!data||!data.data||data.data.v!==3){toast('Could not read that save');return;}if(!UI.admEd){save();UI.admOwn=S;}UI.admEd={uid,name:data.name||'Player',at:data.updated_at};S=migrate(data.data);PRE=null;toast('Editing '+UI.admEd.name);render(true);}
+async function admWrite(){const E=UI.admEd;if(!E)return;const sb=await net();if(!sb||!NET.user)return;const at=new Date().toISOString();S.admEd=at;S.cloudAt=at;const {data,error}=await sb.from('saves').update({data:S,name:S.name,level:S.lvl,updated_at:at}).eq('user_id',E.uid).select('user_id');if(error||!data||!data.length){toast(error?'Save failed: '+error.message:'The server refused. Run supabase/admin.sql first.');return;}E.at=at;toast('Saved to '+E.name);admList();}
+function admBack(){if(!UI.admEd)return;S=UI.admOwn;UI.admOwn=null;UI.admEd=null;PRE=null;save();toast('Back to your own save');render(true);}
+async function admPull(){const sb=await net();if(!sb||!NET.user||UI.admEd)return;const {data}=await sb.from('saves').select('data,updated_at').eq('user_id',NET.user.id).maybeSingle();if(!data||!data.data||data.data.v!==3)return;const s=data.data;S=migrate(s);S.admEd=s.admEd;S.cloudAt=data.updated_at;PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}toast('An admin changed your save, so it was loaded from the cloud');render(true);}
+function admBeast(){S.kc=S.kc||{};for(const a of AREAS)for(const id of [...a.mobs,a.dungeon.boss])if(MOB[id]){const m=(MOB[id].boss?BBOSS:BMILE).slice(-1)[0];S.kc[id]=Math.max(S.kc[id]||0,m);}toast('Bestiary maxed');}
 const admD=()=>S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};
 const admBusy=()=>{if(C()&&!C().over){toast('Finish the fight first');return true;}return false;};
 function admBreak(){const D=admD();if(D.free){if(D.free.hollow&&D.shadow&&D.old){S.tree=D.old.tree;S.stars=D.old.stars;S.equip=D.old.equip;}if(D.free.hollow)D.old=null;if(D.free.veiled){if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;S.bag=S.bag.filter(x=>!x.veil);}D.free=null;D.shadow=0;D.fam=null;S.sp=spLeft();recomputeSkills();clampVitals();}if(!D.pact)return;if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;DEVIL.unsign();D.fam=null;D.cut=null;}
@@ -3704,12 +3715,14 @@ function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm
     body=`<div class="optrow">${sel('a_type',types,'weapon:greatsword')}${sel('a_tier',TIERN.map((t,i)=>[String(i),t+' (tier '+(i+1)+')']),'3')}${sel('a_rar',RAR.slice(0,6).map((r,i)=>[String(i),r.n]),'4')}</div>
       <div class="optrow"><b>Temper</b>${sel('a_plus',[0,1,2,3,4,5].map(n=>[String(n),'+'+n]),'0')}<b>Reforge</b>${sel('a_rf',[['rand','Random'],['none','None'],...Object.entries(RFS).map(([k,R])=>[k,R.n+(R.w?' (weapon)':' (armor)')])],'rand')}${b('make','Add to bag','primary')}</div>
       <div class="optrow">${b('uniq','All Legendaries')}<span class="dim small">Gems use the tier box for their grade.</span></div>`;}
+  else if(T==='players'){const L=UI.admPl||{};body='<div class="optrow">'+b('plist',L.busy?'Loading…':'Refresh list')+'<span class="dim small">Open a save, change it with the other tabs, then save it back. Their game loads it the next time they open it.</span></div>'+(L.err?'<p class="small bad">'+esc(L.err)+'</p>':'')+(L.list||[]).map(r=>'<div class="optrow"><b>'+esc(r.name||'?')+'</b><span class="num">Lv '+(r.level||1)+'</span><span class="dim small">'+esc(new Date(r.updated_at).toLocaleString())+'</span>'+(NET.user&&r.user_id===NET.user.id?'<span class="dim small">(you)</span>':b('pedit:'+r.user_id,UI.admEd&&UI.admEd.uid===r.user_id?'Reload':'Edit'))+'</div>').join('');}
   else if(T==='devils')body=admDevils(b,sel,num);else{const mobs=Object.entries(MOB).map(([k,m])=>[k,m.n+(m.boss?' (boss)':'')]);
     body=`<div class="optrow"><b>Fight</b>${sel('a_mob',mobs,'goblin')}<b>Lv</b>${num('a_mlv',S.lvl,70)}<b>×</b>${num('a_mn',1,60)}${sel('a_kind',[['normal','Normal'],['elite','Elite']],'normal')}${b('fight','Start fight','primary')}</div>
       <div class="optrow">${C()&&!C().over?b('win','Win this fight')+b('cds','Clear cooldowns'):'<span class="dim small">Win / clear cooldowns appear during a fight.</span>'}</div>
                   <div class="optrow"><b>Best Tower floor</b>${num('a_spire',S.towerBest||0,80)}${b('spire','Set')}</div>
-      <div class="optrow">${b('unlock','Unlock all regions')}${b('disc','Discover all alloys')}${b('ctr','New daily contracts')}${b('cloud','Clear cloud-load cooldown')}</div>`;}
-  return `<div class="row" style="justify-content:space-between"><div class="row">${tb('player','Player')}${tb('items','Items')}${tb('world','World')}${tb('devils','Devils')}</div>${b('lock','Lock admin')}</div>${body}`;}
+      <div class="optrow">${b('unlock','Unlock all regions')}${b('disc','Discover all alloys')}${b('ctr','New daily contracts')}${b('cloud','Clear cloud-load cooldown')}${b('beast','Max bestiary')}</div>`;}
+  const ed=UI.admEd?`<div class="optrow" style="background:#3a1420;padding:8px"><b>Editing ${esc(UI.admEd.name)}'s save</b><span class="dim small">Your own save is put aside. Nothing you do saves until you press Save.</span>${b('psave','Save to '+esc(UI.admEd.name),'primary')}${b('pback','Back to my save')}</div>`:'';
+  return `${ed}<div class="row" style="justify-content:space-between"><div class="row">${tb('player','Player')}${tb('items','Items')}${tb('world','World')}${tb('devils','Devils')}${tb('players','Players')}</div>${UI.admEd?'':b('lock','Lock admin')}</div>${body}`;}
 const LORE={stalker:'It lives in the lightning as much as the water. Fishermen know a storm is close when the eels start to glow.',sentinel:'A knight who went down with his ship and never stopped standing guard. The barnacles took the rest.',
   siren:'Her song carries over the waves for miles. Sailors follow it straight onto the rocks.',unmaker:'The storm has never ended because the Leviathan has never slept. Every wave in the Stormsea is its breathing.',goblin:'Scavengers who strip the Hollow for metal. They fight dirty and flee when hurt.',bat:'Cave bats drawn to warmth. Swarms of them can drain a traveler dry.',thorn:'A bramble that learned to walk. Its thorns carry a sleepy poison.',
   warden:'Once the keeper of the Rootbound Crypt, now rotted into it. The roots still answer him.',scorp:'Glass-shelled hunters of the Dunes. Their stings leave wounds that will not close.',wraith:'Sand given shape by an old grudge. It drinks the strength of the living.',
