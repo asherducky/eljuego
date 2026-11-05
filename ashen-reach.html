@@ -1551,7 +1551,7 @@ const starTotal=()=>S.lvl+S.frags.length+S.chal.length+(S.qst||0);
 const treeSpent=()=>Object.values(S.tree||{}).reduce((a,b)=>a+b,0);
 const spLeft=()=>starTotal()-S.stars.filter(x=>!ORIGINS.includes(x)).length-treeSpent();
 function applyStart(wep){S.stats={...BASESTATS};S.gear.weapon=mkItem('weapon',wep,0,0,[]);S.gear.armor=mkItem('armor','leather',0,0,[]);
-  S.stars=[...ORIGINS];S.starTab=treeOf(famOf(wep));S.pts=3;S.sp=spLeft();S.equip=[];recomputeSkills();S.equip=Object.keys(S.skills);const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;}
+  S.stars=[...ORIGINS];S.starTab=treeOf(famOf(wep));S.pts=3;S.sp=spLeft();S.equip=[];recomputeSkills();S.equip=Object.keys(S.skills);const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;}
 function respecStats(){S.stats={...BASESTATS};S.pts=3+3*(S.lvl-1);clampVitals();}
 function respecStars(){S.stars=[...ORIGINS];S.tree={};S.sp=spLeft();recomputeSkills();clampVitals();}
 function respecAll(){respecStats();respecStars();}
@@ -2102,7 +2102,7 @@ function derive(){
     dodge:Math.min(HOL()?40:30,Math.max(0,Math.round(t.spd*.35+b.dodge)+(HOL()?10:0))),spd:t.spd+b.spd,ls:Math.min(9,Math.round(b.ls*0.35*10)/10),gold:b.gold+t.luk,luck:t.luk*.5+(b.luck||0),xp:b.xp,
     regen:Math.round(b.regen*0.35*100)/100,dr:Math.min(50,b.dr),thorns:b.thorns,resist:Math.min(60,b.resist),pm:(1+(t.str+b.pdmg)/100)*bb,sm:(1+(t.int+b.sdmg)/100)*bb,wel:w&&WT[w.type].el||null,mel:!w||!WT[w.type].el,ign:b.ign||0};
 }
-function fullRest(){const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;}
+function fullRest(){const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;}
 function clampVitals(){const d=derive();S.hp=Math.min(S.hp,d.maxHp);S.mp=Math.min(S.mp,d.maxMp);}
 const xpNeed=l=>Math.round(TUNE.xpNeedA*Math.pow(l,TUNE.xpNeedB));
 const MAXLV=50;
@@ -2172,7 +2172,7 @@ function mkEnemy(id,L){const b=MOB[id];const Le=b.ash?24.5+Math.max(0,L-35)*.3:L
 const maxESpd=()=>Math.max(0,...alive().map(e=>e.spd));
 function startCombat(list,ctx){if(ctx!=='tower'&&ctx!=='duel'&&ctx!=='pvp')for(const e of list){const ai=AREAS.findIndex(a=>a.mobs.includes(e.id)||a.dungeon.boss===e.id);
     if(ai>=3&&!e.r4){e.r4=1;e.atk=Math.round(e.atk*2*10)/10;if(e.boss)e.pierce=.7;}}
-  if(PACT())S.mp=trk('grudge')?15:0;S.combat={enemies:list,log:[],target:0,ps:{},ctx,over:null,menu:'main',hits:0,cd:ctx==='dungeon'&&S.dungeon&&S.dungeon.cd?{...S.dungeon.cd}:ctx==='tower'&&S.tower&&S.tower.cd?{...S.tower.cd}:{}};
+  if(PACT())S.mp=Math.max(S.mp||0,trk('grudge')?15:0);S.combat={enemies:list,log:[],target:0,ps:{},ctx,over:null,menu:'main',hits:0,bm:S.gear.weapon&&S.gear.weapon.veil&&ctx!=='duel'&&ctx!=='pvp'?S.bm||0:0,cd:ctx==='dungeon'&&S.dungeon&&S.dungeon.cd?{...S.dungeon.cd}:ctx==='tower'&&S.tower&&S.tower.cd?{...S.tower.cd}:{}};
   log(`${list.map(e=>e.n).join(', ')} ${list.length>1?'close in':'appears'}!`,'sys');
   const boss=list.find(e=>e.boss);if(boss){log(`${boss.n} blocks the way.`,'boss');fx('boss',{n:boss.n});busyUntil=Date.now()+1400;}
   if(ctx==='first')S.combat.ctx='wild';
@@ -2215,11 +2215,11 @@ function hollowScale(e,d){const raw=Math.max(1,d.atk*Math.max(d.pm,d.sm)*1.5),hi
 const HOLLOWN={hits:18,bite:.075};
 function fightHollow(){const d=derive();S.hp=d.maxHp;S.mp=PACT()?S.mp:d.maxMp;const e=mkEnemy('hollowd',S.lvl);hollowScale(e,d);startCombat([e],'devil');render();}
 function fightColossus(){const d=derive();S.hp=d.maxHp;S.mp=PACT()?S.mp:d.maxMp;const e=mkEnemy('colface',S.lvl);hollowScale(e,d);const mk=()=>{const f=mkEnemy('colhand',S.lvl);f.n='His Arm';f.hp=f.max=Math.round(e.max*.28);f.atk=e.shAtk*1.6;f.def=e.def*.5;f.spd=e.spd;f.pierce=.7;return f;};e.hp=e.max=Math.round(e.max*.6);startCombat([mk(),mk(),e],'devil');C().target=0;render();}
-function fightVeiled(){const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;const e=mkEnemy('veild',S.lvl);hollowScale(e,d);e.hp=e.max=Math.round(e.max*.8);startCombat([e],'devil');C().target=0;render();}
+function fightVeiled(){const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;const e=mkEnemy('veild',S.lvl);hollowScale(e,d);e.hp=e.max=Math.round(e.max*.8);startCombat([e],'devil');C().target=0;render();}
 function veilTurn(c){const R=c.enemies.find(x=>x.id==='veild');if(!R||R.hp<=0)return;c.vt=(c.vt||0)+1;const up=c.enemies.filter(x=>x.id==='vmini'&&x.hp>0);if(c.vt%(R.hp<R.max/2?2:3)!==1||up.length>=3)return;const n=mkEnemy('vmini',R.L),kind=(c.vk=(c.vk||0)+1)%3;n.kind=kind;n.n=['Painted Doll','Sack Doll','Jester'][kind];n.hp=n.max=R.shHp||n.hp;n.atk=R.shAtk||n.atk;n.def=R.def*.5;n.spd=R.spd;n.pierce=.7;n.called=true;for(let i=c.enemies.length-1;i>=0;i--)if(c.enemies[i].id==='vmini'&&c.enemies[i].hp<=0)c.enemies.splice(i,1);c.enemies.unshift(n);if(c.target!=null)c.target=Math.min(c.enemies.length-1,c.target+1);log('Something drops from above on a spring. '+n.n+'.','boss');fx('vdrop',{t:0});fxAt+=500;}
 /* the Ashen Reach: ash cuts your healing the longer a fight runs, and the last boss uses every devil's trick */
 function ashCall(e,c,id,n,line){e.ph=(e.ph||0)+1;for(let k=0;k<n;k++){const m=mkEnemy(id,e.L);m.called=true;m.boss=false;m.hp=m.max=Math.round(e.max*.009);m.atk=Math.round(e.atk*.55*10)/10;m.def=e.def*.5;m.xp=0;m.gold=[0,0];m.drops=[];c.enemies.push(m);fx('frise',{t:c.enemies.length-1});}log(line,'boss');fx('enrage',{t:c.enemies.indexOf(e)});fx('shake',{p:9});fxAt+=300;}
-function ashDevil(e,c){const D0=S.devils||{},D={pact:D0.pact||(FRC('hollow')?'hollow':FRC('veiled')?'veiled':FRC('colossus')?'colossus':null)},d=derive();if(D.pact==='hollow'){const x=Math.round(e.max*.12);e.hp=Math.max(1,e.hp-x);log('The Hollow bites it for 12% of its HP.','boss');fx('num',{t:c.enemies.indexOf(e),txt:String(x),cls:'crit'});}else if(D.pact==='colossus'){const x=Math.round(e.max*.1),y=Math.round(d.maxHp*.15);e.hp=Math.max(1,e.hp-x);S.hp=Math.max(1,S.hp-y);log('The Colossus hits you both.','boss');fx('num',{t:c.enemies.indexOf(e),txt:String(x),cls:'crit'});fx('num',{t:'p',txt:String(y),cls:'crit'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp});}else if(D.pact==='veiled'){const y=Math.round(d.maxHp*.1);S.hp=Math.max(1,S.hp-y);c.bm=100;log('The Veiled fills your Black Moon, for a price.','boss');fx('num',{t:'p',txt:String(y),cls:'crit'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp});}fx('shake',{p:10});}
+function ashDevil(e,c){const D0=S.devils||{},D={pact:D0.pact||(FRC('hollow')?'hollow':FRC('veiled')?'veiled':FRC('colossus')?'colossus':null)},d=derive();if(D.pact==='hollow'){const x=Math.round(e.max*.12);e.hp=Math.max(1,e.hp-x);log('The Hollow bites it for 12% of its HP.','boss');fx('num',{t:c.enemies.indexOf(e),txt:String(x),cls:'crit'});}else if(D.pact==='colossus'){const x=Math.round(e.max*.1),y=Math.round(d.maxHp*.15);e.hp=Math.max(1,e.hp-x);S.hp=Math.max(1,S.hp-y);log('The Colossus hits you both.','boss');fx('num',{t:c.enemies.indexOf(e),txt:String(x),cls:'crit'});fx('num',{t:'p',txt:String(y),cls:'crit'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp});}else if(D.pact==='veiled'){const y=Math.round(d.maxHp*.1);S.hp=Math.max(1,S.hp-y);c.bm=100;S.bm=100;log('The Veiled fills your Black Moon, for a price.','boss');fx('num',{t:'p',txt:String(y),cls:'crit'});fx('hp',{t:'p',hp:S.hp,max:d.maxHp});}fx('shake',{p:10});}
 function ashBoss(e,c,dmg){if(c.enemies.some(x=>x.called&&x.hp>0))dmg=Math.max(1,Math.round(dmg/2));const left=e.hp-dmg,ph=e.ph||0;if(ph===0&&left<e.max*.7){dmg=Math.max(1,e.hp-Math.ceil(e.max*.7));ashCall(e,c,'ashthrall',2,'Two Ash Thralls rise. It takes half damage while they stand.');}else if(ph===1&&left<e.max*.42){dmg=Math.max(1,e.hp-Math.ceil(e.max*.42));ashDevil(e,c);ashCall(e,c,'paleshroud',2,'Two Pale Shrouds rise. It takes half damage while they stand.');}else if(ph===2&&left<e.max*.18){e.ph=3;e.atk=Math.round(e.atk*1.2*10)/10;log('The First Ash breaks open. It hits 20% harder.','boss');e.spr='firstash2';fx('fintro',{});fx('shake',{p:12});}return dmg;}
 function kingCalls(e,c,i){e.summoned=true;const n=mkEnemy('knight',Math.max(1,e.L-5));n.called=true;n.hp=n.max=Math.round(n.max*2);c.enemies.push(n);log('The Hollow King calls a knight to his side! He takes half damage while it stands.','boss');fx('enrage',{t:i});fxAt+=300;} function hit(e,mult,o={}){if(!e)return 0;if(e.id==='colface'&&C().enemies.some(x=>x.id==='colhand'&&x.hp>0)){const fi=C().enemies.indexOf(e);log('You cannot reach him. His arms are in the way.','');fx('num',{t:fi,txt:'Too high',cls:'miss'});return 0;}if(e.id==='veilfake'){const fi=C().enemies.indexOf(e);log('Nothing there. It was only eyes.','');fx('num',{t:fi,txt:'Nothing',cls:'miss'});return 0;}
   const d=derive(),c=C(),i=c.enemies.indexOf(e);const duel=c.ctx==='duel';if(e.hp<=0&&!duel)return 0;const logHit=x=>{if(duel&&c.duelHits)c.duelHits.push(x);};
@@ -2391,7 +2391,7 @@ function win(){
   if(c.ctx==='devil'&&c.enemies.some(e=>e.id==='hollowd')){const D=S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};if(!D.beat){D.beat=1;loot.ghost=1;S.mats.crys5=(S.mats.crys5||0)+1;loot.mats.crys5=1;}}if(c.ctx==='devil'&&c.enemies.some(e=>e.id==='colface')){const D=S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};if(!D.beatc){D.beatc=1;loot.stone=1;S.mats.crys5=(S.mats.crys5||0)+1;loot.mats.crys5=1;}}if(c.ctx==='devil'&&c.enemies.some(e=>e.id==='veild')){const D=S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};if(!D.beatv){D.beatv=1;loot.hair=1;S.mats.crys5=(S.mats.crys5||0)+1;loot.mats.crys5=1;}}c.over={win:true,loot};fxAt+=200;fx('win',{big:c.ctx==='devil'||!!loot.cleared,n:c.ctx==='devil'?(c.enemies.find(x=>x.boss)||c.enemies[0]).n:loot.cleared});
 }
 function lose(){const c=C();if(c.ctx==='pvp'||c.ctx==='duel')pvpResult(false);const lost=c.ctx==='tower'||c.ctx==='pvp'||c.ctx==='duel'||c.ctx==='devil'?0:Math.round(S.gold*.1);S.gold-=lost;if(c.ctx==='tower'&&S.tower){c.towerEnd=S.tower.floor;S.tower=null;}if(c.lastHit==='bat')S.flags.bat=true;c.over={win:false,lost,dungeon:!!S.dungeon,hc:!!S.hc};S.dungeon=null;fx('shake',{p:10});fxAt+=300;fx('lose');}
-function gainXp(x){if(S.lvl>=MAXLV)return;S.xp+=x;while(S.lvl<MAXLV&&S.xp>=xpNeed(S.lvl)){S.xp-=xpNeed(S.lvl);S.lvl++;S.pts+=3;S.sp+=1;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;toast(`Level ${S.lvl}! +3 stat points, +1 star`);FXQ.push({type:'levelup',at:fxAt+1100,lvl:S.lvl});}}
+function gainXp(x){if(S.lvl>=MAXLV)return;S.xp+=x;while(S.lvl<MAXLV&&S.xp>=xpNeed(S.lvl)){S.xp-=xpNeed(S.lvl);S.lvl++;S.pts+=3;S.sp+=1;const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;toast(`Level ${S.lvl}! +3 stat points, +1 star`);FXQ.push({type:'levelup',at:fxAt+1100,lvl:S.lvl});}}
 /* the Vault: gems come from here and the Tower. Each difficulty opens with its region */
 const VAULTN='The Vault',VAULTF=3,VAULT={hollow:{n:'Hollow',area:3,lv:19,g:2},abyss:{n:'Abyss',area:4,lv:34,g:3}};
 function vaultLoot(D,loot){const G=VAULT[D.gem],n=2+(chance(30+20*(D.mods||[]).length)?1:0),out=[];for(let i=0;i<n;i++){out.push(mkGem(pick(Object.keys(GEMS)),Math.min(4,G.g+(chance(10)?1:0))));}addToBag(out);loot.items.push(...out);loot.cleared=VAULTN+' · '+G.n;}
@@ -2481,14 +2481,14 @@ const ACT={
     if(r<.1){const g=Math.round(R(4,10)*Math.pow(TUNE.hpG,a.lv[0]-1));S.gold+=g;const m=pick(AREA_MATS[S.area]);S.mats[m]=(S.mats[m]||0)+2;S.note=`A half-buried chest: ${g} gold and 2 ${MATS[m]}.`;fx('coins',{r:lastRect,dir:'in'});return;}
     if(r<.2){const m=pick(AREA_MATS[S.area]);S.mats[m]=(S.mats[m]||0)+1;S.note=`You gather 1 ${MATS[m]}.`;return;}
     const n=1+(chance(S.area?60:40)?1:0)+(S.area&&chance(20)?1:0);startCombat(Array.from({length:n},()=>mkEnemy(pick(a.mobs),R(a.lv[0],Math.min(a.lv[1],Math.max(a.lv[0],S.lvl+1))))),'wild');},
-  rest:()=>{const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;S.note='You rest by the campfire.';},
-  dungeon:()=>{const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;S.dungeon={area:S.area,stage:AREAS[S.area].dungeon.floors.length,mods:[...S.dmods]};spawnStage();},
-  vault:v=>{const G=VAULT[v];if(!G||S.unlocked<=G.area)return;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;S.dungeon={area:G.area,stage:0,mods:[...(S.vmods||[])],gem:v};spawnStage();},
+  rest:()=>{const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;S.note='You rest by the campfire.';},
+  dungeon:()=>{const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;S.dungeon={area:S.area,stage:AREAS[S.area].dungeon.floors.length,mods:[...S.dmods]};spawnStage();},
+  vault:v=>{const G=VAULT[v];if(!G||S.unlocked<=G.area)return;const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;S.dungeon={area:G.area,stage:0,mods:[...(S.vmods||[])],gem:v};spawnStage();},
   vpick:v=>{S.vault=v;},
   vmod:v=>{const m=S.vmods||[];S.vmods=m.includes(v)?m.filter(x=>x!==v):[...m,v];},
   descend:()=>{S.dungeon.stage++;spawnStage();},
-  tower:()=>{if(!S.cleared.includes(0))return;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;S.tower={floor:1,cd:{}};spawnTower();},
-  towerhalf:()=>{if(!S.cleared.includes(0)||(S.towerBest||0)<4)return;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;S.tower={floor:Math.floor(S.towerBest/2),cd:{}};spawnTower();},
+  tower:()=>{if(!S.cleared.includes(0))return;const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;S.tower={floor:1,cd:{}};spawnTower();},
+  towerhalf:()=>{if(!S.cleared.includes(0)||(S.towerBest||0)<4)return;const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;S.tower={floor:Math.floor(S.towerBest/2),cd:{}};spawnTower();},
   tclimb:()=>{if(!S.tower)return;spawnTower();},
   tleave:()=>{const f=S.tower?S.tower.floor-1:0;S.tower=null;S.combat=null;S.note=`You leave the Tower after floor ${f}.`;fullRest();},
   qaccept:v=>{S.q=S.q||{};if(!S.q[v])S.q[v]={s:0,h:0,done:false};},
@@ -2511,7 +2511,7 @@ const ACT={
     log(`Analyze: ${e.n} — weak to ${e.weak?EL[e.weak].n:'nothing'}, resists ${e.res?EL[e.res].n:'nothing'}. Next move: ${INTN[e.intent]}.`,'buff');
     fx('scan',{t:i});fxAt+=520;fx('num',{t:i,txt:e.weak?'Weak: '+EL[e.weak].n:'No weakness',cls:'crit'});fxAt+=200;});},
   guard:()=>{const c=C();if(!c||c.ctx==='duel'||c.ctx==='pvp')return;turn(()=>{const d=derive();C().ps.guard=1;C().lastAct='Guard';S.mp=Math.min(d.maxMp,S.mp+Math.ceil(d.maxMp*.08));log('You brace yourself.','buff');fx('num',{t:'p',txt:'Guard',cls:'miss'});});},
-  blackmoon:()=>{const c0=C(),w=S.gear.weapon;if(!c0||!w||!w.veil||(c0.bm||0)<100||c0.ctx==='duel')return;turn(()=>{const c=C(),e=tgt(),m=moonMult(w);c.bm=0;log('You raise the blade. Every eye on it opens.','you');c.lastAct='Black Moon';perform({fxn:'bcmoon',dur:1500},e,()=>{alive().forEach(x=>{hit(x,m,{label:'Black Moon'});if(x.hp>0)bleed(x,2);});});});},
+  blackmoon:()=>{const c0=C(),w=S.gear.weapon;if(!c0||!w||!w.veil||(c0.bm||0)<100||c0.ctx==='duel')return;turn(()=>{const c=C(),e=tgt(),m=moonMult(w);c.bm=0;S.bm=0;log('You raise the blade. Every eye on it opens.','you');c.lastAct='Black Moon';perform({fxn:'bcmoon',dur:1500},e,()=>{alive().forEach(x=>{hit(x,m,{label:'Black Moon'});if(x.hp>0)bleed(x,2);});});});},
   attack:()=>{turn(()=>{const e=tgt();C().lastAct='Attack';perform(basicFx(),e,()=>hit(e,C().ctx==='duel'||C().ctx==='pvp'?1:0.75));});},
   skill:v=>{const s=SK[v];const c0=C();if(!s||S.mp<s.mp||(c0&&c0.cd&&c0.cd[v]>0))return;turn(()=>{if(CD[v])C().cd[v]=CD[v]+1-(v==='perfectguard'&&trk(v)>=3?1:0)-(CUT()==='skills'||FRC('colossus')?1:0);const d=derive();S.mp-=s.mp;const e=tgt();const oh=v!=='overheat'&&C().ps.overheat;skM=skMult(v)*(oh?heatMul():1);heatS=oh?2:0;if(oh)delete C().ps.overheat;log(`You use ${s.n}${skM<1?' (0.5×, wrong weapon type)':''}.`,'you');C().lastAct=s.n;perform(SKFX[v]||{},e,()=>s.use(e,d));skM=1;heatS=0;});},
   use:v=>{if(!S.cons[v])return;if(v==='ostars'||v==='ostats'||v==='orb'){if(C()&&!C().over){toast('Not during a fight');return;}if(v==='ostars'){S.cons.ostars--;respecStars();toast('Stars refunded');return;}if(v==='ostats'){S.cons.ostats--;respecStats();toast('Stat points refunded');return;}const anyP=S.devils&&S.devils.pact;if(anyP&&!UI.orbSure){UI.orbSure=1;return;}UI.orbSure=0;S.cons.orb--;if(anyP){if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;S.devils.pact=null;S.devils.old=null;S.devils.fam=null;S.devils.cut=null;}respecAll();fullRest();toast('Cleansed. Stats and stars refunded');return;}const inCombat=C()&&!C().over;if(inCombat&&CUT()==='potions'){toast('He ate that');return;}
@@ -2558,7 +2558,7 @@ const ACT={
   isort:v=>{S.invSort=v;},
   loc:v=>{if(!v){S.loc=null;return;}if(v==='home'){toast('Homes arrive in a later update');return;}if(v==='sanctum'&&!S.sanctum)v='sealed';if(v==='market')ensureStock();S.loc=v;},
   brew:v=>{const X=BREWS[v];if(!X)return;const c=brewCost(v);if(S.gold<c)return;S.gold-=c;S.brews=S.brews||{};S.brews[v]=10;clampVitals();fx('coins',{r:lastRect,dir:'out'});toast(`${X.n}: ${X.d} for 10 fights`);},
-  innrest:()=>{const c=innCost();if(S.gold<c)return;S.gold-=c;const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;S.rested=5;fx('coins',{r:lastRect,dir:'out'});toast('Well Rested for 5 fights');},
+  innrest:()=>{const c=innCost();if(S.gold<c)return;S.gold-=c;const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;S.rested=5;fx('coins',{r:lastRect,dir:'out'});toast('Well Rested for 5 fights');},
   bounty:()=>{if(!S.bounty)S.bounty=newBounty();},
   claim:()=>{const b=S.bounty;if(!b||b.have<b.need)return;S.gold+=b.gold;S.mats.essence=(S.mats.essence||0)+b.ess;S.bounty=null;S.bounties=(S.bounties||0)+1;fx('coins',{r:lastRect,dir:'in'});toast(`Bounty paid: ${b.gold}g, ${b.ess} essence`);},
   /* forge */
@@ -2643,7 +2643,7 @@ const ACT={
   resetYes:()=>{if(NET.user&&NET.sb){NET.sb.from('saves').delete().eq('user_id',NET.user.id).then(()=>{NET.cloud=null;});}S=migrate(fresh());UI.set=false;PRE=null;toast('Save wiped');},
 };
 const tgt=()=>{const c=C();let e=c.enemies[c.target];if(!e||e.hp<=0){c.target=c.enemies.findIndex(x=>x.hp>0);e=c.enemies[c.target];}return e;};
-function turn(fn){const c=C();if(!c||c.over)return;if(c.ctx==='duel'&&!c.myTurn)return;if(c.ctx==='duel')c.duelHits=[];PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};c.tn=(c.tn||0)+1;if(S.area===5&&(c.ctx==='wild'||c.ctx==='dungeon')&&!(S.dungeon&&S.dungeon.gem)){if(!c.ash)log('Ash: healing gets weaker every turn.','boss');c.ash=Math.min(60,(c.ash||0)+5);}if(S.gear.weapon&&S.gear.weapon.veil)c.bm=Math.min(100,(c.bm||0)+17);fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
+function turn(fn){const c=C();if(!c||c.over)return;if(c.ctx==='duel'&&!c.myTurn)return;if(c.ctx==='duel')c.duelHits=[];PRE={p:S.hp,pm:S.mp,e:c.enemies.map(e=>e.hp)};c.tn=(c.tn||0)+1;if(S.area===5&&(c.ctx==='wild'||c.ctx==='dungeon')&&!(S.dungeon&&S.dungeon.gem)){if(!c.ash)log('Ash: healing gets weaker every turn.','boss');c.ash=Math.min(60,(c.ash||0)+5);}if(S.gear.weapon&&S.gear.weapon.veil)c.bm=Math.min(100,(c.bm||0)+17);S.bm=c.bm;fxAt=0;fn();afterPlayer();c.menu='main';fxAt+=120;fx('sync');busyUntil=Date.now()+Math.min(12000,TS(fxAt+60));}
 const SKFX={
   gnaw:{fxn:'sgnaw',dur:430},hollowout:{fxn:'shollow',dur:500},emptystare:{fxn:'sabsent',dur:320},thesmile:{fxn:'ssmile',dur:690},swarm:{fxn:'sswarm',dur:380},chains:{fxn:'schains',dur:330},feast:{fxn:'sfeast',dur:510},
   overheat:{fxn:'overheat',dur:300},icebarrier:{fxn:'iceshield',dur:300},
@@ -3510,7 +3510,7 @@ const ADM={
   bcstage:v=>{const it=bcFind();if(it)it.vk=BC.KILLS[+v]||0;},
   bckills:()=>{const it=bcFind();if(it)it.vk=Math.max(0,anum('a_bck',0));},
   bcmetals:v=>{const it=bcFind();if(it){it.vr=v==='all'?[...BC.METALS]:[];it.tier=v==='all'?BC.METALS.length-1:0;}},
-  moonfull:()=>{const c=C();if(c)c.bm=100;},
+  moonfull:()=>{const c=C();if(c)c.bm=100;S.bm=100;},
   dfed:()=>{admD().fed=Math.max(0,anum('a_dfed',0));},
   dforget:()=>{const D=admD();D.seen={};D.said={};toast('They forgot you');},
   devilw:()=>{const el=document.getElementById('a_devilw');const n=Math.max(0,Math.floor(+(el&&el.value)||0));S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};S.devils.w=n;toast('Wanders set to '+n);},
@@ -3520,7 +3520,7 @@ const ADM={
   lvl:()=>{const to=Math.max(1,Math.min(MAXLV,anum('a_lvl',S.lvl)));while(S.lvl<to)gainXp(xpNeed(S.lvl)-S.xp);},
   pts:()=>{S.pts+=Math.max(0,anum('a_pts',5));},
   sp:()=>{S.sp+=Math.max(0,anum('a_sp',5));},
-  heal:()=>{const d=derive();S.hp=d.maxHp;S.mp=d.maxMp;for(const k of ['potion','ether','salve'])S.cons[k]=(S.cons[k]||0)+5;S.cons.orb=(S.cons.orb||0)+1;},
+  heal:()=>{const d=derive();S.hp=d.maxHp;S.mp=PACT()?Math.min(100,S.mp||0):d.maxMp;for(const k of ['potion','ether','salve'])S.cons[k]=(S.cons[k]||0)+5;S.cons.orb=(S.cons.orb||0)+1;},
   god:()=>{S.flags.god=!S.flags.god;},
   mat:()=>{const m=aval('a_mat','essence'),q=anum('a_matq',20);if(m==='*'){for(const k in MATS)S.mats[k]=(S.mats[k]||0)+q;}else if(MATS[m])S.mats[m]=(S.mats[m]||0)+q;},
   make:()=>{const [sl,ty]=aval('a_type','weapon:greatsword').split(':');const tier=anum('a_tier',0),rar=anum('a_rar',0),plus=anum('a_plus',0),rf=aval('a_rf','rand');
