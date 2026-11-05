@@ -3364,7 +3364,7 @@ function vForge(){const f=S.fg;
         <div class="row">${pool.map(r=>`<span class="tag ${it.rf&&RFS[it.rf]===r?'gold':''}" data-tip="txt:${Object.entries(r.s).map(([k,v])=>(v>0?'+':'')+LAB[k]).join(', ')}">${r.n}</span>`).join('')}</div>
         <div class="cost"><span class="need ${(S.mats.essence||0)>=c.e?'ok':'no'}">${matImg('essence',2)}<span class="num">${c.e}</span></span>${goldTag(c.g)}</div>
         <button class="btn primary" data-a="reforge" ${(S.mats.essence||0)>=c.e&&S.gold>=c.g?'':'disabled'}>Reforge</button>`;}}
-    body=`<div class="grid2"><div class="sub"><h3>Your gear</h3>${itemPicker('fsel',S.fsel)}</div><div class="sub">${panel}</div></div>`;}
+    body=`<div class="grid2"><div class="sub"><h3>${f.tab==='ascend'?'Your weapons':'Your gear'}</h3>${itemPicker('fsel',S.fsel,f.tab==='ascend'?(x=>x.slot==='weapon'&&!x.veil):null)}</div><div class="sub">${panel}</div></div>`;}
   return `<section class="px panel">${locHead('The Forge')}${sceneHTML('forge')}<div class="row">${tabs}</div>${body}</section>`;}
 function vMarket(){
   ensureStock();const t=tierNow();
