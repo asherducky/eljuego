@@ -1293,7 +1293,7 @@ const bcStage=it=>{let s=0;for(let i=0;i<5;i++)if((it.vk||0)>=BC.KILLS[i])s=i;re
 const bcLevelTM=()=>{const A=[[1,1],[5,2],[10,4],[15,9],[20,18],[35,36],[60,60]],L=S?S.lvl:1;for(let i=1;i<A.length;i++)if(L<=A[i][0]){const u=(L-A[i-1][0])/(A[i][0]-A[i-1][0]);return A[i-1][1]*Math.pow(A[i][1]/A[i-1][1],u);}return 60;};
 const bcTM=it=>TM[it.tier||0]*(1+.05*bcStage(it))*(1+(it.plus||0)*.03);
 function bcSparkSheet(w,h){const M=4,peri=[];for(let x=M;x<w-M;x++)peri.push([x,M,0,-1]);for(let y=M+1;y<h-M;y++)peri.push([w-M-1,y,1,0]);for(let x=w-M-2;x>=M;x--)peri.push([x,h-M-1,0,1]);for(let y=h-M-2;y>M;y--)peri.push([M,y,-1,0]);const P=peri.length,F=P>>1,cv=document.createElement('canvas');cv.width=w*F;cv.height=h;const g=cv.getContext('2d');let sd=w*31+h;const rnd=()=>{sd=(sd*1664525+1013904223)>>>0;return sd/4294967296;};const comets=[{o:0,c:['#ffc49a','#ff5a3c','#ff5a3c','#c8102e','#c8102e','#c8102e','#7a1414','#7a1414','#5a0a14'],black:0},{o:P>>1,c:['#000','#000','#000','#000','#000','#120406','#120406','#2a070c','#2a070c'],black:1}];const sparks=[];for(const k of comets)for(let s=0;s<F;s+=3)sparks.push({at:s,o:k.o,black:k.black,tx:(rnd()-.5)*.7,life:5+Math.floor(rnd()*5),v:.35+rnd()*.3});for(let f=0;f<F;f++){const ox=f*w,dot=(x,y,c)=>{if(x<0||y<0||x>=w||y>=h)return;g.fillStyle=c;g.fillRect(ox+x,y,1,1);};for(const p of peri)dot(p[0],p[1],'#4a0a12');for(const k of comets){const head=(k.o+f*2)%P;k.c.forEach((col,i)=>{const p=peri[(head-i*2+P*2)%P],q=peri[(head-i*2-1+P*2)%P];dot(p[0],p[1],col);dot(q[0],q[1],col);});}for(const s of sparks){const a=(f-s.at+F)%F;if(a>=s.life)continue;const p=peri[(s.o+s.at*2)%P],X=Math.round(p[0]+p[2]*a*s.v+(p[3]?s.tx*a:0)),Y=Math.round(p[1]+p[3]*a*s.v+(p[2]?s.tx*a:0)),q=a/s.life;dot(X,Y,s.black?'#000':q<.35?'#ff5a3c':q<.7?'#c8102e':'#5a0a14');}}return {u:cv.toDataURL(),F};}
-function bcSparkInit(){const r=document.documentElement.style,A=bcSparkSheet(40,40),B=bcSparkSheet(30,41),st=document.createElement('style');r.setProperty('--spkC','url('+A.u+')');r.setProperty('--spkI','url('+B.u+')');st.textContent='.cell.r6::after{background-size:'+A.F*100+'% 100%;animation:bcspk 2.6s steps('+(A.F-1)+',jump-none) infinite}.item.r6 .icbox::after{background-size:'+B.F*100+'% 100%;animation:bcspk 2.6s steps('+(B.F-1)+',jump-none) infinite}';document.head.appendChild(st);}
+function bcSparkInit(){const r=document.documentElement.style,A=bcSparkSheet(40,40),B=bcSparkSheet(30,41),st=document.createElement('style');r.setProperty('--spkC','url('+A.u+')');r.setProperty('--spkI','url('+B.u+')');st.textContent='.cell.r6::after{background-size:'+A.F*100+'% 100%;animation:bcspk 2.6s steps('+A.F+',jump-none) infinite}.item.r6 .icbox::after{background-size:'+B.F*100+'% 100%;animation:bcspk 2.6s steps('+B.F+',jump-none) infinite}';document.head.appendChild(st);}
 function bcMake(){const old=S.gear.weapon,type=old&&WT[old.type]?old.type:'sword',it=mkItem('weapon',type,0,6,[],{veil:1,vk:0,vr:[],fx:[],name:'Black Crescent'});if(old)addToBag([old]);S.gear.weapon=it;return it;}
 function bcKill(){const it=S.gear&&S.gear.weapon;if(!it||!it.veil)return;const a=bcStage(it);it.vk=(it.vk||0)+1;const b=bcStage(it);if(b>a){it.fx=BC.FX.slice(1,b+1);toast('The Black Crescent opens another eye');log('The blade drinks. Somewhere behind you, she says: good.','buff');clampVitals();}}
 const COLOSSAL={step:100,cap:15};const fedPct=()=>Math.min(COLOSSAL.cap,Math.floor(((S.devils&&S.devils.fed)||0)/COLOSSAL.step));
@@ -1469,7 +1469,7 @@ const SKFAM={};for(const f in SUBS)SUBS[f].skills.forEach((s,i)=>{SKFAM[s]=f;CD[
 SKFAM.dimcut=SKFAM.cleancut=SKFAM.perfectguard='medium';Object.assign(CD,{perfectguard:4,dimcut:6,warcry:4,guillotine:2,crimson:2,thousand:3,fan:2,hemorrhage:2,immolate:2,cauterize:4,glacial:3,winter:4,ball:2,staticshield:4});
 const skMult=id=>S&&S.gear&&S.gear.weapon&&S.gear.weapon.veil?1:SKFAM[id]&&SKFAM[id]!=='shadow'&&treeOf(SKFAM[id])!==wepTree()?.5:1;
 const STARTS=['greatsword','sword','dagger','firestaff','frostwand','stormrod'];
-const BASESTATS={str:4,dex:4,int:4,vit:4,spd:3,luk:3};
+const BASESTATS={str:0,dex:0,int:0,vit:0,spd:0,luk:0};
 
 /* star charts: one per tree, a branch per family, joined by shared stat stars */
 const BR=[['e',0,158,'skill','sk0',1],['s1',-18,140,'stat','A',1],['k2',14,134,'skill','sk1',2],['p1',-14,116,'passive','p1',3],['k3',16,108,'skill','sk2',4],
@@ -1789,7 +1789,7 @@ function deriveWith(g){const old=S.gear;S.gear=g;const d=derive();S.gear=old;ret
 const SAVE='ashen-reach-v3';
 let S;
 function fresh(){
-  return {v:3,name:'Wanderer',lvl:1,xp:0,gold:25,pts:3,sp:0,stats:{str:3,dex:3,int:3,vit:3,spd:3,luk:3},hp:1,mp:1,skills:{},equip:[],stars:[],frags:[],selStar:null,
+  return {v:3,name:'Wanderer',lvl:1,xp:0,gold:25,pts:3,sp:0,stats:{str:0,dex:0,int:0,vit:0,spd:0,luk:0},hp:1,mp:1,skills:{},equip:[],stars:[],frags:[],selStar:null,
     gear:{weapon:null,armor:null,helm:null,boots:null,cloak:null,gem1:null,gem2:null,gem3:null},
     bag:[],mats:{moss:2,essence:3},cons:{potion:3,ether:1,salve:0,orb:0},
     area:0,unlocked:1,cleared:[],tab:'explore',combat:null,dungeon:null,ench:null,kills:0,note:'You arrive at the edge of Mossy Hollow.',
