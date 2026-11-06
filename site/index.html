@@ -1613,7 +1613,7 @@ function recomputeSkills(){S.skills={};for(const id of S.stars){const s=STARS[id
 function canLight(id){const s=STARS[id];return s&&s.k!=='start'&&!has(id)&&S.sp>=1&&S.lvl>=(s.lv||1)&&nbrs(id).some(has);}
 function canUnlight(id){if(!has(id)||STARS[id].k==='start')return false;const rest=S.stars.filter(x=>x!==id);const seen=new Set(ORIGINS);const q=[...ORIGINS];
   while(q.length){const a=q.pop();for(const b of nbrs(a))if(rest.includes(b)&&!seen.has(b)){seen.add(b);q.push(b);}}return rest.every(x=>seen.has(x));}
-const starTotal=()=>S.lvl+S.frags.length+S.chal.length+(S.qst||0);
+const starTotal=()=>S.lvl+S.frags.length+S.chal.length+(S.qst||0)+(S.admSp||0);
 const treeSpent=()=>Object.values(S.tree||{}).reduce((a,b)=>a+b,0);
 const spLeft=()=>starTotal()-S.stars.filter(x=>!ORIGINS.includes(x)).length-treeSpent();
 function applyStart(wep){S.stats={...BASESTATS};S.gear.weapon=mkItem('weapon',wep,0,0,[]);S.gear.armor=mkItem('armor','leather',0,0,[]);
@@ -3680,6 +3680,7 @@ const ADM={
   psave:()=>{admWrite();},
   pback:()=>{admBack();},
   beast:()=>{admBeast();},
+  maxout:()=>{admMaxOut();},
   ban:v=>{banSet(v,true);},
   unban:v=>{banSet(v,false);},
   gold:()=>{S.gold=Math.max(0,S.gold+anum('a_gold',1000));},
@@ -3715,6 +3716,17 @@ async function admPull(){const sb=await net();if(!sb||!NET.user||UI.admEd)return
 function admBeast(){S.kc=S.kc||{};for(const a of AREAS)for(const id of [...a.mobs,a.dungeon.boss])if(MOB[id]){const m=(MOB[id].boss?BBOSS:BMILE).slice(-1)[0];S.kc[id]=Math.max(S.kc[id]||0,m);}toast('Bestiary maxed');}
 const ISADM=()=>!!(NET.user&&NET.admId===NET.user.id);
 function admCheck(){const sb=NET.sb;if(!sb||!NET.user)return Promise.resolve();const id=NET.user.id;if(NET.admChk===id)return NET.admP;NET.admChk=id;return NET.admP=(async()=>{const {data}=await sb.from('admins').select('user_id').eq('user_id',id).maybeSingle();if(data&&data.user_id===id){NET.admId=id;render(true);}})();}
+function admSup(it,s){const X=SUP[s];if(!X)return;if(X.aff)for(const k in X.aff){const v=supVal(k,X.aff[k],it.tier||0);const ex=it.affixes.find(a=>a.id===k&&!a.al);if(ex)ex.v+=v;else it.affixes.push({id:k,v});}if(s==='titanheart'){const hv=1000*((it.tier||0)+1),ex=it.affixes.find(a=>a.id==='hp'&&!a.al);if(ex)ex.v+=hv;else it.affixes.push({id:'hp',v:hv});}if(X.fx&&!(it.fx||[]).includes(X.fx))it.fx=[...(it.fx||[]),X.fx];}
+function admMaxIt(it,ench,sups){const T=TIERN.length-1;it.tier=T;it.rar=5;it.plus=5;it.q=QUAL[QUAL.length-1][1];it.qn=QUAL[QUAL.length-1][0];it.ench=ench.map(id=>({id,g:true}));for(const s of sups||[])admSup(it,s);it.name=it.uq?UNIQ[it.uq].n:itemName(it);return it;}
+function admMaxOut(){if(admBusy())return;const T=TIERN.length-1;
+  const fams=Object.keys(CTREE).filter(f=>f!=='shadow'||(S.devils&&S.devils.shadow));S.tree=S.tree||{};for(const f of fams){const N=CTREE[f].nodes,xs={};for(const id in N){const X=N[id];if(X.x){if(xs[X.x]&&xs[X.x]!==id){delete S.tree[id];continue;}xs[X.x]=xs[X.x]||id;}S.tree[id]=X.max||1;}}
+  S.admSp=0;const need=-spLeft();if(need>0)S.admSp=need;S.sp=spLeft();recomputeSkills();
+  const def=Object.keys(SUP).filter(k=>SUP[k].aff&&SUP[k].aff.def).sort((a,b)=>SUP[b].aff.def-SUP[a].aff.def)[0];
+  const set={armor:'plate',helm:'helm',boots:'greaves',cloak:'mantle'},old=[];for(const sl in set){const it=admMaxIt(mkItem(sl,set[sl],T,5,[]),['bulwark','thorns'],['titanheart',def]);if(S.gear[sl])old.push(S.gear[sl]);S.gear[sl]=it;}
+  const weps=Object.keys(WT).filter(t=>!WT[t].veil).map(t=>{const it=genItem(T,5,'weapon',5);it.type=t;it.rf=rollRf('weapon');it.rfv=1;return admMaxIt(it,['keen','vampiric']);});
+  for(const id in UNIQ){const U=UNIQ[id],it=mkUnique(id);const f=TMA[T]/TMA[U.tier||0];for(const a of it.affixes)a.v=Math.round(a.v*f);weps.push(admMaxIt(it,['keen','vampiric']));}
+  const items=[...old,...weps],room=S.bag.length+items.length;if(room>bagMax())S.bagx=Math.ceil((room-50)/10);const A=S.autoSalv;const was=A&&A.on;if(A)A.on=false;addToBag(items);if(A)A.on=was;
+  clampVitals();const d=derive();S.hp=d.maxHp;toast('Maxed out: '+fams.length+' skill trees, Devil armor set, '+weps.length+' weapons');}
 const admD=()=>S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};
 const admBusy=()=>{if(C()&&!C().over){toast('Finish the fight first');return true;}return false;};
 function admBreak(){const D=admD();if(D.free){if(D.free.hollow&&D.shadow&&D.old){S.tree=D.old.tree;S.stars=D.old.stars;S.equip=D.old.equip;}if(D.free.hollow)D.old=null;if(D.free.veiled){if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;S.bag=S.bag.filter(x=>!x.veil);}D.free=null;D.shadow=0;D.fam=null;S.sp=spLeft();recomputeSkills();clampVitals();}if(!D.pact)return;if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;DEVIL.unsign();D.fam=null;D.cut=null;}
@@ -3734,7 +3746,7 @@ function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm
   let body='';
   if(T==='player')body=`<div class="optrow"><b>Gold</b>${num('a_gold',1000,110)}${b('gold','Add')}${b('goldset','Set')}<span class="dim small">now ${S.gold.toLocaleString()}</span></div>
     <div class="optrow"><b>Level</b>${num('a_lvl',MAXLV,70)}${b('lvl','Set')}<b>Stat points</b>${num('a_pts',5,70)}${b('pts','Give')}<b>Star points</b>${num('a_sp',5,70)}${b('sp','Give')}</div>
-    <div class="optrow">${b('heal','Full heal + potions + orb')}${b('god',`God mode: ${S.flags.god?'On':'Off'}`,S.flags.god?'tab on':'')}</div>
+    <div class="optrow">${b('maxout','Max out','primary')}${b('heal','Full heal + potions + orb')}${b('god',`God mode: ${S.flags.god?'On':'Off'}`,S.flags.god?'tab on':'')}</div>
     <div class="optrow"><b>Materials</b>${sel('a_mat',[['*','Every material'],...Object.entries(MATS)],'*')}${num('a_matq',20,70)}${b('mat','Give')}</div>`;
   else if(T==='items'){const types=[...Object.entries(WT).map(([k,X])=>['weapon:'+k,'Weapon · '+X.n]),...[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].flatMap(([sl,X])=>Object.entries(X).map(([k,Y])=>[sl+':'+k,SLOTN[sl]+' · '+Y.n])),...Object.entries(GEMS).map(([k,G])=>['gem:'+k,'Gem · '+G.n])];
     body=`<div class="optrow">${sel('a_type',types,'weapon:greatsword')}${sel('a_tier',TIERN.map((t,i)=>[String(i),t+' (tier '+(i+1)+')']),'3')}${sel('a_rar',RAR.slice(0,6).map((r,i)=>[String(i),r.n]),'4')}</div>
