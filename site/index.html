@@ -1777,6 +1777,7 @@ for(const k in ALLOYS)if(!ALLOYS[k].short)ALLOYS[k].short=ALLOYS[k].d;
 const ALLOYOF={ashflux:'ashforged',devilflux:'devilforged',bloodflux:'bloodforged',emberflux:'emberforged',soulflux:'soulforged',riftcore:'stormforged'};
 const alloyOpen=k=>S.unlocked>(ALLOYS[k].ar||0);
 const UNIQ={
+  jp:{n:'JP',type:'greatsword',tier:6,fx:'jp',col:'#f2c14e',a:'Sixty-Seven',d:'Every hit deals 67 billion damage',affs:{str:10}},
   grin:{n:'The Grin',type:'dagger',tier:6,from:'hollowd',fx:'grin',col:'#9cc8ff',a:'First Cut',d:'+60% damage to enemies above 80% HP',affs:{crit:8,dex:5}},
   knuckle:{n:'Titan Knuckle',type:'warhammer',tier:6,from:'colface',fx:'quake',col:'#f2c14e',a:'Last Stand',d:'+1% damage for every 2% HP you are missing',affs:{str:6,vit:5}},
   lastcurtain:{n:'Last Curtain',type:'rapier',tier:6,from:'veild',fx:'curtain',col:'#c43c3c',a:'Encore',d:'Each kill gives +10% damage for the rest of the fight, up to +50%',affs:{crit:7,dex:5}},
@@ -2335,7 +2336,7 @@ function prepSign(n){if(!MULTI())for(const k of ['hollow','colossus','veiled'])i
 function makeFree(n){const D=S.devils;D.free=D.free||{};D.free[n]=1;if(n==='hollow')D.shadow=1;if(D.pact===n){D.pact=null;D.cut=null;}freeAll();}
 let TWR=0;
 function bossCard(id){const box=(ids,cx)=>'<div style="width:150px;height:112px;overflow:hidden;position:relative;background:#000;flex:none"><div style="position:absolute;left:'+Math.round(75-cx*.75)+'px;top:0;width:256px;height:150px;transform:scale(.75);transform-origin:0 0">'+DEVIL.stageBg({ctx:'devil',enemies:ids.map(x=>({id:x,hp:1,max:1,st:{},n:x})),target:0})+'</div></div>';if(id==='hollowd')return '<div style="width:150px;height:112px;background:#000;display:grid;place-items:center;flex:none">'+DEVIL.bossImg({id:'hollowd'},true,3)+'</div>';if(id==='veild')return box(['veild'],150);if(id==='colface')return box(['colhand','colhand','colface'],168);return sprImg(id,3);}
-function uqFx(e,c,d,dmg,crit){const f=d.fx||[];if(f.includes('ashforge')){dmg*=1+(e.ashS||0)*.08;e.ashS=Math.min(5,(e.ashS||0)+1);}if(f.includes('devilforge')){const D=S.devils||{};dmg*=1+.1*((D.beat?1:0)+(D.beatc?1:0)+(D.beatv?1:0));if(crit)dmg*=1.25;}if(f.includes('grin')&&e.hp>e.max*.8)dmg*=1.6;if(f.includes('quake'))dmg*=1+Math.max(0,1-S.hp/d.maxHp)*.5;if(f.includes('void')&&e.boss)dmg*=1.15;if(f.includes('opening')&&c&&!c.opened){c.opened=1;dmg*=1.5;}if(c&&e.ashT&&e.ashT>=(c.tn||0))dmg*=1.25;if(f.includes('ashfall')&&crit&&c)e.ashT=(c.tn||0)+2;if(f.includes('curtain')&&c)dmg*=1+Math.min(.5,(c.curt||0)*.1);
+function uqFx(e,c,d,dmg,crit){const f=d.fx||[];if(f.includes('jp'))return 67e9;if(f.includes('ashforge')){dmg*=1+(e.ashS||0)*.08;e.ashS=Math.min(5,(e.ashS||0)+1);}if(f.includes('devilforge')){const D=S.devils||{};dmg*=1+.1*((D.beat?1:0)+(D.beatc?1:0)+(D.beatv?1:0));if(crit)dmg*=1.25;}if(f.includes('grin')&&e.hp>e.max*.8)dmg*=1.6;if(f.includes('quake'))dmg*=1+Math.max(0,1-S.hp/d.maxHp)*.5;if(f.includes('void')&&e.boss)dmg*=1.15;if(f.includes('opening')&&c&&!c.opened){c.opened=1;dmg*=1.5;}if(c&&e.ashT&&e.ashT>=(c.tn||0))dmg*=1.25;if(f.includes('ashfall')&&crit&&c)e.ashT=(c.tn||0)+2;if(f.includes('curtain')&&c)dmg*=1+Math.min(.5,(c.curt||0)*.1);
   if(f.includes('greylight')&&c&&chance(20))for(const x of c.enemies)if(x!==e&&x.hp>0){const s=Math.max(1,Math.round(dmg*.4));x.hp=Math.max(0,x.hp-s);fx('hp',{t:c.enemies.indexOf(x),hp:x.hp,max:x.max});if(x.hp<=0&&!x._dead){log(x.n+' falls.','kill');onKill(x);}}
   return Math.max(1,Math.round(dmg));}
 function ascCost(it){const n=Math.min(5,(it.rar||0)+1),cr=Object.keys(CRYS).find(k=>CRYS[k].r===n);return {cr,q:2,e:20*n,g:Math.round(200*n*TM[it.tier||0])};}
@@ -2355,7 +2356,7 @@ function kingCalls(e,c,i){e.summoned=true;const n=mkEnemy('knight',Math.max(1,e.
   const base=calc(d.atk*mult*bonus*skM,effDef(e)*Math.max(0,1-.05*trk('armorseeker')-d.ign/100)*(d.fx.includes('sever')?.7:1)*(d.fx.includes('soulblade')?.65:1))*(1+sh);
   let dmg=base*elMult(e,el);if(crit)dmg*=d.critd;dmg=Math.max(1,Math.round(dmg));dmg=uqFx(e,c,d,dmg,crit);if(e.id==='firstash')dmg=ashBoss(e,c,dmg);if(DEVB.includes(e.id))dmg=devBoss(e,c,dmg);if(e.id==='hollowd'){if(!e.summoned&&e.hp-dmg<e.max*.6){dmg=Math.max(1,e.hp-Math.ceil(e.max*.6));hollowCalls(e,c);}else if(!e.frenzy&&e.summoned&&e.hp-dmg<e.max*.25){e.frenzy=true;e.atk=Math.round(e.atk*1.2);log('The Hollow stops smiling.','boss');fx('shake',{p:9});}}if(e.id==='hking'&&!e.summoned&&bossMech(c,e)&&e.hp-dmg<e.max/2){dmg=Math.max(1,e.hp-Math.ceil(e.max/2));kingCalls(e,c,c.enemies.indexOf(e));}
   if(e.st.ward&&!duel){const ab=Math.min(e.st.ward,dmg);e.st.ward-=ab;dmg-=ab;if(!e.st.ward)delete e.st.ward;if(ab)log(`${e.n}'s ward absorbs ${ab}.`);}
-  e.hp=Math.max(0,e.hp-dmg);logHit({d:dmg,c:crit?1:0,el});if(PACT())gainMal(10);revealHint(e,el);
+  if((d.fx||[]).includes('jp'))dmg=67e9;e.hp=Math.max(0,e.hp-dmg);logHit({d:dmg,c:crit?1:0,el});if(PACT())gainMal(10);revealHint(e,el);
   fx('impact',{t:i,el,crit,st:curStyle});fx('hit',{t:i});const em=elMult(e,el);fx('num',{t:i,txt:`${dmg}${crit?'!':''}${em!==1?` (×${em})`:''}`,cls:crit?'crit':el==='phys'?'dmg':el});
   if(crit){fx('shake',{p:4});c.crits=(c.crits||0)+1;if(c.crits>=6)S.flags.crit6=true;if(hasP('flow'))S.mp=Math.min(d.maxMp,S.mp+2);}
   log(`${o.label||'You hit'} ${e.n} for ${dmg}${crit?' — critical!':''}${em>1?' (weak)':em<1?' (resisted)':''}.`,crit?'crit':'you');
@@ -3683,6 +3684,7 @@ const ADM={
   beast:()=>{admBeast();},
   nocap:()=>{S.flags.nocap=!S.flags.nocap;},
   maxout:()=>{admMaxOut();},
+  jp:()=>{const it=admMaxIt(mkUnique('jp'),['keen','vampiric']);addToBag([it]);toast('Added JP');},
   ban:v=>{banSet(v,true);},
   unban:v=>{banSet(v,false);},
   gold:()=>{S.gold=Math.max(0,S.gold+anum('a_gold',1000));},
@@ -3757,7 +3759,7 @@ function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm
       <div class="optrow"><b>Supplements</b>${['a_sup1','a_sup2'].map(id=>sel(id,[['','None'],...Object.keys(SUP).map(k=>[k,(MATS[k]||k)+': '+(SUP[k].d||Object.entries(SUP[k].aff||{}).map(([a,v])=>'+'+a+' '+v).join(', '))])],'')).join('')}</div>
       <div class="optrow"><b>Enchants</b>${['a_en1','a_en2'].map(id=>sel(id,[['','None'],...Object.entries(ENCH).map(([k,E])=>[k,E.n+' ('+(E.slots.includes('weapon')?'weapon':'armor')+')'])],'')).join('')}${sel('a_eg',[['no','Normal'],['yes','Greater (+50%)']],'no')}</div>
       <div class="optrow"><b>Temper</b>${sel('a_plus',[0,1,2,3,4,5].map(n=>[String(n),'+'+n]),'0')}<b>Reforge</b>${sel('a_rf',[['rand','Random'],['none','None'],...Object.entries(RFS).map(([k,R])=>[k,R.n+(R.w?' (weapon)':' (armor)')])],'rand')}${b('make','Add to bag','primary')}</div>
-      <div class="optrow">${b('uniq','All Legendaries')}<span class="dim small">Gems use the tier box for their grade.</span></div>`;}
+      <div class="optrow">${b('uniq','All Legendaries')}${b('jp','Give JP','primary')}<span class="dim small">Gems use the tier box for their grade.</span></div>`;}
   else if(T==='players'){const L=UI.admPl||{};body='<div class="optrow">'+b('plist',L.busy?'Loading…':'Refresh list')+'<span class="dim small">Open a save, change it with the other tabs, then save it back. Their game loads it the next time they open it.</span></div>'+(L.err?'<p class="small bad">'+esc(L.err)+'</p>':'')+(L.list||[]).map(r=>'<div class="optrow"><b>'+esc(r.name||'?')+'</b><span class="num">Lv '+(r.level||1)+'</span><span class="dim small">'+esc(new Date(r.updated_at).toLocaleString())+'</span>'+((UI.admBans||{})[r.user_id]!==undefined?'<span class="tag bad">Banned</span>':'')+banBtn(r.user_id)+(NET.user&&r.user_id===NET.user.id?'<span class="dim small">(you)</span>':(UI.admAsk===r.user_id?'<span class="dim small">Asking their game to upload…</span>':b('pedit:'+r.user_id,UI.admEd&&UI.admEd.uid===r.user_id?'Reload':'Edit')))+'</div>').join('');}
   else if(T==='devils')body=admDevils(b,sel,num);else{const mobs=Object.entries(MOB).map(([k,m])=>[k,m.n+(m.boss?' (boss)':'')]);
     body=`<div class="optrow"><b>Fight</b>${sel('a_mob',mobs,'goblin')}<b>Lv</b>${num('a_mlv',S.lvl,70)}<b>×</b>${num('a_mn',1,60)}${sel('a_kind',[['normal','Normal'],['elite','Elite']],'normal')}${b('fight','Start fight','primary')}</div>
