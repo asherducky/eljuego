@@ -1942,7 +1942,7 @@ async function cloudDown(){if(UI.admEd){toast('Go back to your own save first');
 async function signIn(email){const sb=await net();if(!sb)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){NET.msg='Enter a valid email.';render(true);return;}
   const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});NET.msg=error?error.message:'Check your email for a sign-in link.';render(true);}
 function pvpSnap(){const d=derive();return {lvl:S.lvl,hp:d.maxHp,atk:d.atk,def:d.def,spd:d.spd,crit:d.crit,dodge:d.dodge,el:d.el,parts:heroParts()};}
-async function pvpPost(extra){const sb=await net();if(!sb||!NET.user||!S||!S.named||UI.admEd)return;const row={user_id:NET.user.id,name:pname().slice(0,16),level:S.lvl,snap:pvpSnap(),updated_at:new Date().toISOString(),...(extra||{})};
+async function pvpPost(extra){const sb=await net();if(!sb||!NET.user||!S||!S.named||UI.admEd)return;await admCheck();if(ISADM())return;const row={user_id:NET.user.id,name:pname().slice(0,16),level:S.lvl,snap:pvpSnap(),updated_at:new Date().toISOString(),...(extra||{})};
   const {error}=await sb.from('pvp').upsert(row);NET.pvpErr=error?(error.code==='PGRST205'?'The arena is not set up on the server yet.':error.message):'';}
 async function pvpMe(){const sb=await net();if(!sb||!NET.user)return;const {data}=await sb.from('pvp').select('rating,wins,losses').eq('user_id',NET.user.id).maybeSingle();NET.pvpMe=data||{rating:1000,wins:0,losses:0};render(true);}
 async function pvpFind(){const sb=await net();if(!sb||!NET.user)return;NET.pvpBusy=true;render(true);await pvpPost();if(!NET.pvpMe)await pvpMe();const r=(NET.pvpMe||{}).rating||1000;
@@ -1955,7 +1955,7 @@ function mkPvp(o){const s=o.snap||{},el=s.el||'phys';const ab=[['heavy',22],['st
 const ratingLine=()=>{if(!NET.user)return '';const me=NET.pvpMe,d=NET.pvpDelta;return me&&d!=null?`<p>Rating <b class="num">${me.rating}</b> <span class="tag ${d>=0?'good':'bad'}">${d>=0?'+':''}${d}</span></p>`:'<p class="small dim">Updating your rating…</p>';};
 async function pvpResult(won){const sb=await net();if(!sb||!NET.user)return;const me=NET.pvpMe||{rating:1000,wins:0,losses:0},opp=NET.pvpLast||1000;const ex=1/(1+Math.pow(10,(opp-me.rating)/400));
   const delta=Math.round(32*((won?1:0)-ex));const next={rating:Math.max(0,me.rating+delta),wins:me.wins+(won?1:0),losses:me.losses+(won?0:1)};NET.pvpMe=next;NET.pvpDelta=delta;await pvpPost(next);render(true);}
-async function spirePost(){const sb=await net();if(!sb||!NET.user||!S||!S.named||UI.admEd)return;
+async function spirePost(){const sb=await net();if(!sb||!NET.user||!S||!S.named||UI.admEd)return;await admCheck();if(ISADM())return;
   const row={user_id:NET.user.id,name:pname().slice(0,16),best:S.towerBest||0,level:S.lvl,gold:Math.max(0,Math.floor(S.gold||0)),updated_at:new Date().toISOString()};
   let {error}=await sb.from('spire').upsert(row);if(error&&/gold/.test(error.message||'')){delete row.gold;({error}=await sb.from('spire').upsert(row));}if(!error)NET.lbT=0;}
 async function spireLoad(){const sb=await net();if(!sb||NET.lbBusy)return;NET.lbBusy=true;NET.lbT=Date.now();
@@ -3705,7 +3705,7 @@ function admBack(){if(!UI.admEd)return;S=UI.admOwn;UI.admOwn=null;UI.admEd=null;
 async function admPull(){const sb=await net();if(!sb||!NET.user||UI.admEd)return;const {data}=await sb.from('saves').select('data,updated_at').eq('user_id',NET.user.id).maybeSingle();if(!data||!data.data||data.data.v!==3)return;const s=data.data;S=migrate(s);S.admEd=s.admEd;S.cloudAt=data.updated_at;PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}toast('An admin changed your save, so it was loaded from the cloud');render(true);}
 function admBeast(){S.kc=S.kc||{};for(const a of AREAS)for(const id of [...a.mobs,a.dungeon.boss])if(MOB[id]){const m=(MOB[id].boss?BBOSS:BMILE).slice(-1)[0];S.kc[id]=Math.max(S.kc[id]||0,m);}toast('Bestiary maxed');}
 const ISADM=()=>!!(NET.user&&NET.admId===NET.user.id);
-async function admCheck(){const sb=NET.sb;if(!sb||!NET.user||NET.admChk===NET.user.id)return;const id=NET.user.id;NET.admChk=id;const {data}=await sb.from('admins').select('user_id').eq('user_id',id).maybeSingle();if(data&&data.user_id===id){NET.admId=id;render(true);}}
+function admCheck(){const sb=NET.sb;if(!sb||!NET.user)return Promise.resolve();const id=NET.user.id;if(NET.admChk===id)return NET.admP;NET.admChk=id;return NET.admP=(async()=>{const {data}=await sb.from('admins').select('user_id').eq('user_id',id).maybeSingle();if(data&&data.user_id===id){NET.admId=id;render(true);}})();}
 const admD=()=>S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};
 const admBusy=()=>{if(C()&&!C().over){toast('Finish the fight first');return true;}return false;};
 function admBreak(){const D=admD();if(D.free){if(D.free.hollow&&D.shadow&&D.old){S.tree=D.old.tree;S.stars=D.old.stars;S.equip=D.old.equip;}if(D.free.hollow)D.old=null;if(D.free.veiled){if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;S.bag=S.bag.filter(x=>!x.veil);}D.free=null;D.shadow=0;D.fam=null;S.sp=spLeft();recomputeSkills();clampVitals();}if(!D.pact)return;if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;DEVIL.unsign();D.fam=null;D.cut=null;}
