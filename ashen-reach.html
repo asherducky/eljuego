@@ -1926,7 +1926,7 @@ async function net(){if(NET.sb)return NET.sb;if(!SUPA.url||!SUPA.key||NET.tried)
     const {data}=await NET.sb.auth.getSession();NET.user=data.session?data.session.user:null;
     NET.sb.auth.onAuthStateChange((ev,s)=>{NET.user=s?s.user:null;if(ev==='SIGNED_IN'){cloudPeek();spirePost();pvpPost();}render(true);});if(NET.user)cloudPeek();}
   catch(e){NET.msg='Could not reach the server.';}render(true);return NET.sb;}
-async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;admListen();NET.peekT=Date.now();const {data,error}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
+async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;admListen();admCheck();NET.peekT=Date.now();const {data,error}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
   if(error)NET.msg='Could not read your cloud save: '+error.message;else{NET.cloud=data||null;if(data&&data.adm&&S&&data.adm!==S.admEd&&!UI.admEd){admPull();return;}}render(true);}
 async function cloudUp(force){if(UI.admEd){toast('Go back to your own save first');return;}const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.msg='Checking the cloud…';render(true);
   const {data:cur,error:e0}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
@@ -2721,7 +2721,7 @@ const ACT={
   set:()=>{S.tab='settings';IMP=null;},
   unstick:()=>{try{if(C()&&C().over&&C().over.win&&ACT.done)ACT.done();}catch(e){}unstickNow('You left the fight.');},
   admin:()=>{admTry();return 'async';},
-  adm:v=>{const i=v.indexOf(':');const k=i<0?v:v.slice(0,i),a=i<0?undefined:v.slice(i+1);if(!UI.admOk||!ADM[k])return;ADM[k](a);clampVitals();},
+  adm:v=>{const i=v.indexOf(':');const k=i<0?v:v.slice(0,i),a=i<0?undefined:v.slice(i+1);if(!UI.admOk||!ISADM()||!ADM[k])return;ADM[k](a);clampVitals();},
   pvpfind:()=>{pvpFind();return 'async';},
   duelnew:()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=a[Math.floor(Math.random()*a.length)];duelOpen(c,true);return 'async';},
   duelgo:()=>{const el=document.getElementById('dcode');const c=(el?el.value:'').trim().toUpperCase();if(!/^[A-Z0-9]{4}$/.test(c)){toast('Codes are 4 letters or numbers');return;}duelOpen(c,false);return 'async';},
@@ -3423,7 +3423,7 @@ function vSettings(){
   <div class="sub"><h3>Save</h3><div class="optrow">${S.hc?'<span class="tag bad">Hardcore</span>':''}<button class="btn sm" data-a="exp">Export save</button><button class="btn sm" data-a="imp">Import save</button><input type="file" id="impf" accept=".json,application/json" hidden></div>
     ${IMP?`<div class="optrow"><span>Replace this character with <b>${esc(IMP.name)}</b> (Lv ${IMP.lvl})?</span><button class="btn sm danger" data-a="impyes">Load</button><button class="btn sm" data-a="impno">Cancel</button></div>`:''}
     <div class="optrow">${S._confirm?`<span>Wipe your save${NET.user?' (and your cloud save)':''}? Everything is lost and you start over. This can't be undone.</span><button class="btn sm danger" data-a="resetYes">Wipe it</button><button class="btn sm" data-a="resetNo">Keep</button>`:`<button class="btn sm danger" data-a="reset">Wipe save</button>`}</div></div>
-  ${S.combat?'<div class="sub"><h3>Stuck in a fight?</h3><p class="small dim">Leaves this fight. You keep anything you already won.</p><div class="row"><button class="btn danger" data-a="unstick">Leave this fight</button></div></div>':''}<div class="sub"><h3>Admin</h3>${vAdmin()}</div>
+  ${S.combat?'<div class="sub"><h3>Stuck in a fight?</h3><p class="small dim">Leaves this fight. You keep anything you already won.</p><div class="row"><button class="btn danger" data-a="unstick">Leave this fight</button></div></div>':''}${ISADM()?'<div class="sub"><h3>Admin</h3>'+vAdmin()+'</div>':''}
   <div class="sub"><h3>Achievements · ${S.ach.length}/${ACH.length}</h3><div class="achs">${achs}</div></div>`;
   return `<section class="px panel" aria-label="Settings"><h2>Settings</h2><div class="row">${tb('qol','QoL')}${tb('opt','Options')}</div>${st==='qol'?qol:opts}</section>`;}
 const UI={set:false,ms:null};
@@ -3691,6 +3691,8 @@ function admListen(){const sb=NET.sb;if(!sb||!NET.user||NET.admCh===NET.user.id)
 function admBack(){if(!UI.admEd)return;S=UI.admOwn;UI.admOwn=null;UI.admEd=null;PRE=null;save();toast('Back to your own save');render(true);}
 async function admPull(){const sb=await net();if(!sb||!NET.user||UI.admEd)return;const {data}=await sb.from('saves').select('data,updated_at').eq('user_id',NET.user.id).maybeSingle();if(!data||!data.data||data.data.v!==3)return;const s=data.data;S=migrate(s);S.admEd=s.admEd;S.cloudAt=data.updated_at;PRE=null;try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}toast('An admin changed your save, so it was loaded from the cloud');render(true);}
 function admBeast(){S.kc=S.kc||{};for(const a of AREAS)for(const id of [...a.mobs,a.dungeon.boss])if(MOB[id]){const m=(MOB[id].boss?BBOSS:BMILE).slice(-1)[0];S.kc[id]=Math.max(S.kc[id]||0,m);}toast('Bestiary maxed');}
+const ISADM=()=>!!(NET.user&&NET.admId===NET.user.id);
+async function admCheck(){const sb=NET.sb;if(!sb||!NET.user||NET.admChk===NET.user.id)return;const id=NET.user.id;NET.admChk=id;const {data}=await sb.from('admins').select('user_id').eq('user_id',id).maybeSingle();if(data&&data.user_id===id){NET.admId=id;render(true);}}
 const admD=()=>S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};
 const admBusy=()=>{if(C()&&!C().over){toast('Finish the fight first');return true;}return false;};
 function admBreak(){const D=admD();if(D.free){if(D.free.hollow&&D.shadow&&D.old){S.tree=D.old.tree;S.stars=D.old.stars;S.equip=D.old.equip;}if(D.free.hollow)D.old=null;if(D.free.veiled){if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;S.bag=S.bag.filter(x=>!x.veil);}D.free=null;D.shadow=0;D.fam=null;S.sp=spLeft();recomputeSkills();clampVitals();}if(!D.pact)return;if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;DEVIL.unsign();D.fam=null;D.cut=null;}
