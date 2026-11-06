@@ -2035,12 +2035,13 @@ function duelMsg(p){const D=NET.duel;if(!D||!p)return;
 function dqCode(a,b){let h=0;for(const ch of a+'|'+b)h=(h*31+ch.charCodeAt(0))>>>0;const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++){c+=A[h%A.length];h=Math.floor(h/A.length);}return c;}
 function dqLeave(){const Q=NET.dq;if(!Q)return;NET.dq=null;if(Q.t)clearTimeout(Q.t);try{Q.ch.untrack();NET.sb.removeChannel(Q.ch);}catch(e){}}
 function dqCheck(){const Q=NET.dq;if(!Q||Q.paired||NET.duel)return;const st=Q.ch.presenceState(),seen={};const L=[];for(const k in st)for(const p of st[k])if(p&&p.uid&&!seen[p.uid]&&p.v===DUELV){seen[p.uid]=1;L.push(p);}
-  L.sort((a,b)=>a.at-b.at||(a.uid<b.uid?-1:1));Q.n=L.length;const i=L.findIndex(p=>p.uid===NET.user.id);if(i<0){render(true);return;}const j=i%2?i-1:i+1;const o=L[j];if(!o){render(true);return;}
-  Q.paired=1;const [a,b]=[L[Math.min(i,j)],L[Math.max(i,j)]];const code=dqCode(a.uid+a.at,b.uid+b.at);dqLeave();duelOpen(code,a.uid===NET.user.id);NET.duel.q=1;toast('Match found: '+(o.name||'a player'));
-  const D=NET.duel;setTimeout(()=>{if(NET.duel===D&&!D.started){duelClose();toast('They did not connect. Back in the queue.');dqJoin();}},12000);}
+  L.sort((a,b)=>a.at-b.at||(a.uid<b.uid?-1:1));Q.n=L.length;const i=L.findIndex(p=>p.uid===NET.user.id);const o=i>=0&&i%2===0?L[i+1]:null;if(!o){render(true);return;}
+  Q.paired=1;const code=dqCode(NET.user.id,o.uid+Date.now());Q.ch.send({type:'broadcast',event:'match',payload:{to:o.uid,code,name:pname().slice(0,16)}});setTimeout(()=>{if(NET.dq===Q)dqLeave();dqGo(code,true,o.name);},500);}
+async function dqGo(code,host,name){await duelOpen(code,host);const D=NET.duel;if(!D||D.code!==code)return;D.q=1;toast('Match found: '+(name||'a player'));render(true);
+  setTimeout(()=>{if(NET.duel===D&&!D.started){duelClose();toast('They did not connect. Back in the queue.');dqJoin();}},12000);}
 async function dqJoin(){if(BANNED())return;const sb=await net();if(!sb||!NET.user||NET.dq||NET.duel)return;if(S.combat){toast('Finish your fight first');return;}if(!NET.pvpMe)pvpMe();
   const ch=sb.channel('duelq',{config:{presence:{key:NET.user.id}}});const Q=NET.dq={ch,n:1};
-  ch.on('presence',{event:'sync'},()=>{if(NET.dq===Q)dqCheck();}).subscribe(async st=>{if(st==='SUBSCRIBED'&&NET.dq===Q)await ch.track({uid:NET.user.id,name:pname().slice(0,16),lvl:S.lvl,rating:(NET.pvpMe||{}).rating||1000,v:DUELV,at:Date.now()});});render(true);}
+  ch.on('presence',{event:'sync'},()=>{if(NET.dq===Q)dqCheck();}).on('broadcast',{event:'match'},({payload:p})=>{if(NET.dq!==Q||Q.paired||!p||p.to!==NET.user.id||!/^[A-Z0-9]{4}$/.test(p.code||''))return;Q.paired=1;dqLeave();dqGo(p.code,false,p.name);}).subscribe(async st=>{if(st==='SUBSCRIBED'&&NET.dq===Q)await ch.track({uid:NET.user.id,name:pname().slice(0,16),lvl:S.lvl,rating:(NET.pvpMe||{}).rating||1000,v:DUELV,at:Date.now()});});render(true);}
 function banCheck(){const sb=NET.sb;if(!sb||!NET.user)return;const id=NET.user.id;if(NET.banChk===id)return;NET.banChk=id;sb.from('bans').select('user_id').eq('user_id',id).maybeSingle().then(({data})=>{NET.banned=!!(data&&data.user_id===id&&NET.user&&NET.user.id===id);if(NET.banned){dqLeave();duelClose();}render(true);});}
 const BANNED=()=>!!(NET.user&&NET.banned&&NET.banChk===NET.user.id);
 async function banLoad(){const sb=NET.sb;if(!sb||!ISADM())return;const {data,error}=await sb.from('bans').select('user_id,name');UI.admBans=error?null:Object.fromEntries((data||[]).map(r=>[r.user_id,r.name||'?']));render(true);}
@@ -2652,9 +2653,9 @@ const ACT={
   flee:()=>{const c=C();if(c.ctx==='duel'){if(c.over)return;duelSend({t:'end'});fxAt=0;lose();runFx();return;}if(c.enemies.some(e=>e.boss&&e.hp>0))return;
     if(chance(40+(derive().spd-maxESpd())*4)){S.combat=null;fullRest();if(S.dungeon){S.dungeon=null;S.note='You flee the dungeon.';}else if(S.tower){S.note=`You flee the Tower from floor ${S.tower.floor}.`;S.tower=null;}else S.note='You slip away.';}
     else turn(()=>{log('You fail to escape!','hurt');fx('num',{t:'p',txt:'Blocked',cls:'miss'});});},
-  stat:v=>{if(S.pts>0&&(S.stats[v]||0)<150){S.stats[v]++;S.pts--;}},
+  stat:v=>{if(S.pts>0&&(S.stats[v]||0)<STATCAP()){S.stats[v]++;S.pts--;}},
   szoom:v=>{UI.szoom=Math.max(.5,Math.min(2.5,(UI.szoom||1)*+v));},
-  statn:v=>{const [k,n]=v.split(':');if(!STATL[k])return;const q=Math.max(0,Math.min(150-(S.stats[k]||0),n==='max'?S.pts:Math.min(S.pts,+n)));S.stats[k]+=q;S.pts-=q;clampVitals();},
+  statn:v=>{const [k,n]=v.split(':');if(!STATL[k])return;const q=Math.max(0,Math.min(STATCAP()-(S.stats[k]||0),n==='max'?S.pts:Math.min(S.pts,+n)));S.stats[k]+=q;S.pts-=q;clampVitals();},
   shswap:()=>{const D=S.devils;if(!FRC('hollow')||(C()&&!C().over))return;const o=D.old||{tree:{},stars:[...ORIGINS],equip:[]};D.old={tree:S.tree,stars:S.stars,equip:S.equip};S.tree=o.tree;S.stars=o.stars;S.equip=o.equip;D.shadow=D.shadow?0:1;S.sp=spLeft();recomputeSkills();S.mp=PACT()?0:derive().maxMp;clampVitals();toast(PACT()?'The Shadow tree':'Your own tree');},
   dmeet:v=>{freeAll();if(END()&&!FRC(v))DEVIL.meet(v);},
   world:v=>{UI.world=v;},
@@ -3680,6 +3681,7 @@ const ADM={
   psave:()=>{admWrite();},
   pback:()=>{admBack();},
   beast:()=>{admBeast();},
+  nocap:()=>{S.flags.nocap=!S.flags.nocap;},
   maxout:()=>{admMaxOut();},
   ban:v=>{banSet(v,true);},
   unban:v=>{banSet(v,false);},
@@ -3727,6 +3729,7 @@ function admMaxOut(){if(admBusy())return;const T=TIERN.length-1;
   for(const id in UNIQ){const U=UNIQ[id],it=mkUnique(id);const f=TMA[T]/TMA[U.tier||0];for(const a of it.affixes)a.v=Math.round(a.v*f);weps.push(admMaxIt(it,['keen','vampiric']));}
   const items=[...old,...weps],room=S.bag.length+items.length;if(room>bagMax())S.bagx=Math.ceil((room-50)/10);const A=S.autoSalv;const was=A&&A.on;if(A)A.on=false;addToBag(items);if(A)A.on=was;
   clampVitals();const d=derive();S.hp=d.maxHp;toast('Maxed out: '+fams.length+' skill trees, Devil armor set, '+weps.length+' weapons');}
+const STATCAP=()=>S&&S.flags&&S.flags.nocap?1e9:150;
 const admD=()=>S.devils=S.devils||{w:0,seen:{},said:{},bag:[],now:null};
 const admBusy=()=>{if(C()&&!C().over){toast('Finish the fight first');return true;}return false;};
 function admBreak(){const D=admD();if(D.free){if(D.free.hollow&&D.shadow&&D.old){S.tree=D.old.tree;S.stars=D.old.stars;S.equip=D.old.equip;}if(D.free.hollow)D.old=null;if(D.free.veiled){if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;S.bag=S.bag.filter(x=>!x.veil);}D.free=null;D.shadow=0;D.fam=null;S.sp=spLeft();recomputeSkills();clampVitals();}if(!D.pact)return;if(S.gear.weapon&&S.gear.weapon.veil)S.gear.weapon=null;DEVIL.unsign();D.fam=null;D.cut=null;}
@@ -3746,7 +3749,7 @@ function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm
   let body='';
   if(T==='player')body=`<div class="optrow"><b>Gold</b>${num('a_gold',1000,110)}${b('gold','Add')}${b('goldset','Set')}<span class="dim small">now ${S.gold.toLocaleString()}</span></div>
     <div class="optrow"><b>Level</b>${num('a_lvl',MAXLV,70)}${b('lvl','Set')}<b>Stat points</b>${num('a_pts',5,70)}${b('pts','Give')}<b>Star points</b>${num('a_sp',5,70)}${b('sp','Give')}</div>
-    <div class="optrow">${b('maxout','Max out','primary')}${b('heal','Full heal + potions + orb')}${b('god',`God mode: ${S.flags.god?'On':'Off'}`,S.flags.god?'tab on':'')}</div>
+    <div class="optrow">${b('maxout','Max out','primary')}${b('heal','Full heal + potions + orb')}${b('god',`God mode: ${S.flags.god?'On':'Off'}`,S.flags.god?'tab on':'')}${b('nocap',`No stat cap: ${S.flags.nocap?'On':'Off'}`,S.flags.nocap?'tab on':'')}</div>
     <div class="optrow"><b>Materials</b>${sel('a_mat',[['*','Every material'],...Object.entries(MATS)],'*')}${num('a_matq',20,70)}${b('mat','Give')}</div>`;
   else if(T==='items'){const types=[...Object.entries(WT).map(([k,X])=>['weapon:'+k,'Weapon · '+X.n]),...[['armor',AT],['helm',HT],['boots',BT],['cloak',CT]].flatMap(([sl,X])=>Object.entries(X).map(([k,Y])=>[sl+':'+k,SLOTN[sl]+' · '+Y.n])),...Object.entries(GEMS).map(([k,G])=>['gem:'+k,'Gem · '+G.n])];
     body=`<div class="optrow">${sel('a_type',types,'weapon:greatsword')}${sel('a_tier',TIERN.map((t,i)=>[String(i),t+' (tier '+(i+1)+')']),'3')}${sel('a_rar',RAR.slice(0,6).map((r,i)=>[String(i),r.n]),'4')}</div>
