@@ -1926,9 +1926,9 @@ async function net(){if(NET.sb)return NET.sb;if(!SUPA.url||!SUPA.key||NET.tried)
     const {data}=await NET.sb.auth.getSession();NET.user=data.session?data.session.user:null;
     NET.sb.auth.onAuthStateChange((ev,s)=>{NET.user=s?s.user:null;if(ev==='SIGNED_IN'){cloudPeek();spirePost();pvpPost();}render(true);});if(NET.user)cloudPeek();}
   catch(e){NET.msg='Could not reach the server.';}render(true);return NET.sb;}
-async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;admListen();admCheck();NET.peekT=Date.now();const {data,error}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
+async function cloudPeek(){const sb=await net();if(!sb||!NET.user)return;admListen();banCheck();admCheck().then(()=>{if(ISADM()&&!UI.admBans)banLoad();});NET.peekT=Date.now();const {data,error}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
   if(error)NET.msg='Could not read your cloud save: '+error.message;else{NET.cloud=data||null;if(data&&data.adm&&S&&data.adm!==S.admEd&&!UI.admEd){admPull();return;}}render(true);}
-async function cloudUp(force){if(UI.admEd){toast('Go back to your own save first');return;}const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.msg='Checking the cloud…';render(true);
+async function cloudUp(force){if(BANNED()){toast('This account is banned from online play');return;}if(UI.admEd){toast('Go back to your own save first');return;}const sb=await net();if(!sb||!NET.user||!S)return;NET.busy=true;NET.msg='Checking the cloud…';render(true);
   const {data:cur,error:e0}=await sb.from('saves').select('level,name,updated_at,adm:data->>admEd').eq('user_id',NET.user.id).maybeSingle();
   if(e0){NET.busy=false;NET.msg='Could not reach your cloud save: '+e0.message;render(true);return;}NET.cloud=cur||null;if(cur&&cur.adm&&cur.adm!==S.admEd){NET.busy=false;NET.msg='';admPull();return;}
   if(!force&&cur&&cur.updated_at!==S.cloudAt){NET.busy=false;NET.msg='';NET.askUp=true;render(true);return;}
@@ -1989,7 +1989,7 @@ function duelSnap(){const d=derive();return {v:DUELV,name:pname().slice(0,16),lv
 function duelSend(p){const D=NET.duel;if(D&&D.ch)D.ch.send({type:'broadcast',event:'m',payload:p});}
 const DUELV=4;
 function duelClose(){const D=NET.duel;if(D&&D.beat)clearInterval(D.beat);if(D&&D.retry)clearInterval(D.retry);if(D&&D.ch&&NET.sb){try{NET.sb.removeChannel(D.ch);}catch(e){}}NET.duel=null;}
-async function duelOpen(code,host){const sb=await net();if(!sb||!NET.user||!/^[A-Z0-9]{4}$/.test(code))return;duelClose();if(!NET.pvpMe)pvpMe();
+async function duelOpen(code,host){if(BANNED())return;const sb=await net();if(!sb||!NET.user||!/^[A-Z0-9]{4}$/.test(code))return;duelClose();if(!NET.pvpMe)pvpMe();
   const ch=sb.channel('duel-'+code,{config:{broadcast:{self:false}}});NET.duel={code,host,ch,opp:null,started:false};
   ch.on('broadcast',{event:'m'},({payload})=>duelMsg(payload)).subscribe(st=>{if(st==='SUBSCRIBED'){duelSend({t:'hello',snap:duelSnap()});const D=NET.duel;if(D&&!D.retry)D.retry=setInterval(()=>{if(NET.duel!==D||D.started){clearInterval(D.retry);return;}duelSend({t:'hello',snap:duelSnap()});},2000);}});render(true);}
 function duelFoe(o){return {id:'pvp',n:o.name,L:o.lvl,hp:o.hp,max:o.hp,atk:o.atk,def:o.def,spd:o.spd,xp:0,gold:[0,0],drops:[],ab:[['atk',100]],boss:false,weak:null,res:null,st:{},pvp:true,parts:o.parts,intent:'atk'};}
@@ -2038,9 +2038,16 @@ function dqCheck(){const Q=NET.dq;if(!Q||Q.paired||NET.duel)return;const st=Q.ch
   L.sort((a,b)=>a.at-b.at||(a.uid<b.uid?-1:1));Q.n=L.length;const i=L.findIndex(p=>p.uid===NET.user.id);if(i<0){render(true);return;}const j=i%2?i-1:i+1;const o=L[j];if(!o){render(true);return;}
   Q.paired=1;const [a,b]=[L[Math.min(i,j)],L[Math.max(i,j)]];const code=dqCode(a.uid+a.at,b.uid+b.at);dqLeave();duelOpen(code,a.uid===NET.user.id);NET.duel.q=1;toast('Match found: '+(o.name||'a player'));
   const D=NET.duel;setTimeout(()=>{if(NET.duel===D&&!D.started){duelClose();toast('They did not connect. Back in the queue.');dqJoin();}},12000);}
-async function dqJoin(){const sb=await net();if(!sb||!NET.user||NET.dq||NET.duel)return;if(S.combat){toast('Finish your fight first');return;}if(!NET.pvpMe)pvpMe();
+async function dqJoin(){if(BANNED())return;const sb=await net();if(!sb||!NET.user||NET.dq||NET.duel)return;if(S.combat){toast('Finish your fight first');return;}if(!NET.pvpMe)pvpMe();
   const ch=sb.channel('duelq',{config:{presence:{key:NET.user.id}}});const Q=NET.dq={ch,n:1};
   ch.on('presence',{event:'sync'},()=>{if(NET.dq===Q)dqCheck();}).subscribe(async st=>{if(st==='SUBSCRIBED'&&NET.dq===Q)await ch.track({uid:NET.user.id,name:pname().slice(0,16),lvl:S.lvl,rating:(NET.pvpMe||{}).rating||1000,v:DUELV,at:Date.now()});});render(true);}
+function banCheck(){const sb=NET.sb;if(!sb||!NET.user)return;const id=NET.user.id;if(NET.banChk===id)return;NET.banChk=id;sb.from('bans').select('user_id').eq('user_id',id).maybeSingle().then(({data})=>{NET.banned=!!(data&&data.user_id===id&&NET.user&&NET.user.id===id);if(NET.banned){dqLeave();duelClose();}render(true);});}
+const BANNED=()=>!!(NET.user&&NET.banned&&NET.banChk===NET.user.id);
+async function banLoad(){const sb=NET.sb;if(!sb||!ISADM())return;const {data,error}=await sb.from('bans').select('user_id,name');UI.admBans=error?null:Object.fromEntries((data||[]).map(r=>[r.user_id,r.name||'?']));render(true);}
+async function banSet(uid,on){const sb=NET.sb;if(!sb||!ISADM()||!uid||uid===NET.user.id)return;const nm=((UI.admPl&&UI.admPl.list||[]).find(r=>r.user_id===uid)||(NET.lb||[]).find(r=>r.user_id===uid)||{}).name||'';
+  const {error}=on?await sb.from('bans').insert({user_id:uid,name:nm.slice(0,16)}):await sb.from('bans').delete().eq('user_id',uid);
+  if(error){toast(/relation|PGRST205|schema cache/.test(error.message||'')?'Run supabase/bans.sql first':on?'Could not ban: '+error.message:'Could not unban: '+error.message);return;}toast(on?'Banned '+(nm||'that player'):'Unbanned '+(nm||'that player'));NET.lbT=0;await banLoad();}
+const banBtn=uid=>!ISADM()||!UI.admOk||!uid||(NET.user&&uid===NET.user.id)?'':(UI.admBans||{})[uid]!==undefined?'<button class="btn sm" data-a="adm" data-v="unban:'+uid+'">Unban</button>':'<button class="btn sm danger" data-a="adm" data-v="ban:'+uid+'">Ban</button>';
 function vArena(){if(!SUPA.url||!SUPA.key)return '';
   if(!NET.user)return '<div class="sub"><h3>Duel a friend</h3><p class="dim">Sign in under Settings to duel other players.</p></div>';
   if(NET.sb&&!NET.pvpMe&&!NET.pvpAsk){NET.pvpAsk=true;pvpMe();}
@@ -3642,7 +3649,7 @@ function vAccount(){if(NET.user&&NET.sb&&Date.now()-(NET.peekT||0)>15000)cloudPe
       <button class="btn sm" data-a="cpeek" data-tip="txt:Check the cloud for a save made on another device">↻ Refresh</button><button class="btn sm" data-a="netout">Sign out</button></div>`}${m}`;}
 function vBoard(){if(!SUPA.url||!SUPA.key)return '';if(NET.sb&&!NET.lbBusy&&Date.now()-(NET.lbT||0)>30000)spireLoad();
   const g=NET.lbMode==='gold';
-  const rows=(NET.lb||[]).map((r,i)=>`<tr class="${NET.user&&r.user_id===NET.user.id?'me':''}"><td class="num">${i+1}</td><td>${esc(r.name)}</td><td class="num">Lv ${r.level}</td><td class="num"><b>${NET.lbMode==='pvp'?'Rating '+r.rating:g?(r.gold||0).toLocaleString():'Floor '+r.best}</b></td></tr>`).join('');
+  const rows=(NET.lb||[]).map((r,i)=>`<tr class="${NET.user&&r.user_id===NET.user.id?'me':''}"><td class="num">${i+1}</td><td>${esc(r.name)}</td><td class="num">Lv ${r.level}</td><td class="num"><b>${NET.lbMode==='pvp'?'Rating '+r.rating:g?(r.gold||0).toLocaleString():'Floor '+r.best}</b></td>${ISADM()?'<td>'+banBtn(r.user_id)+'</td>':''}</tr>`).join('');
   const lt=(m,n)=>`<button class="btn sm ${(NET.lbMode||'best')===m?'tab on':''}" data-a="lbmode" data-v="${m}">${n}</button>`;
   return `<div class="sub"><div class="row" style="justify-content:space-between"><div class="row"><h3>Leaderboards</h3>${lt('best','Tower floors')}${lt('gold','Richest')}${lt('pvp','Arena')}</div><span class="tag">You: <b class="num">${g?S.gold.toLocaleString()+' gold':'Floor '+(S.towerBest||0)}</b></span></div>
     ${NET.lbErr?`<p class="dim">${esc(NET.lbErr)}</p>`:!NET.lb?'<p class="dim">Loading…</p>':rows?`<table class="lb"><tbody>${rows}</tbody></table>`:`<p class="dim">${g?'Nobody is on the board yet.':'No climbs yet. Be the first.'}</p>`}
@@ -3673,6 +3680,8 @@ const ADM={
   psave:()=>{admWrite();},
   pback:()=>{admBack();},
   beast:()=>{admBeast();},
+  ban:v=>{banSet(v,true);},
+  unban:v=>{banSet(v,false);},
   gold:()=>{S.gold=Math.max(0,S.gold+anum('a_gold',1000));},
   goldset:()=>{S.gold=Math.max(0,anum('a_gold',0));},
   lvl:()=>{const to=Math.max(1,Math.min(MAXLV,anum('a_lvl',S.lvl)));while(S.lvl<to)gainXp(xpNeed(S.lvl)-S.xp);},
@@ -3696,7 +3705,7 @@ const ADM={
   cloud:()=>{try{localStorage.removeItem('eljuego-cloudload');}catch(e){}toast('Cloud load cooldown cleared');},
   lock:()=>{UI.admOk=false;try{sessionStorage.removeItem('eljuego-adm');}catch(e){}},
 };
-async function admList(){const sb=await net();if(!sb||!NET.user){UI.admPl={err:'Sign in on the Online tab first.'};render(true);return;}UI.admPl={busy:1};render(true);const q=sb.from('saves').select('user_id,name,level,updated_at').order('updated_at',{ascending:false}).limit(100);const {data,error}=await q;if(error){UI.admPl={err:error.message};render(true);return;}const list=data||[];UI.admPl={list,err:list.filter(r=>r.user_id!==NET.user.id).length?'':'You can only see your own save. Run supabase/admin.sql in Supabase to get access to the others.'};render(true);}
+async function admList(){const sb=await net();if(!sb||!NET.user){UI.admPl={err:'Sign in on the Online tab first.'};render(true);return;}UI.admPl={busy:1};render(true);banLoad();const q=sb.from('saves').select('user_id,name,level,updated_at').order('updated_at',{ascending:false}).limit(100);const {data,error}=await q;if(error){UI.admPl={err:error.message};render(true);return;}const list=data||[];UI.admPl={list,err:list.filter(r=>r.user_id!==NET.user.id).length?'':'You can only see your own save. Run supabase/admin.sql in Supabase to get access to the others.'};render(true);}
 async function admOpen(uid){if(admBusy()||UI.admAsk)return;const sb=await net();if(!sb||!NET.user)return;UI.admAsk=uid;render(true);const live=await admSend(uid,'up',true);UI.admAsk=null;const {data,error}=await sb.from('saves').select('data,name,updated_at').eq('user_id',uid).maybeSingle();if(error||!data||!data.data||data.data.v!==3){toast('Could not read that save');return;}if(!UI.admEd){save();UI.admOwn=S;}UI.admEd={uid,name:data.name||'Player',at:data.updated_at,live};S=migrate(data.data);PRE=null;toast(live?'Editing '+UI.admEd.name+' (fresh from their game)':UI.admEd.name+' is offline, so this is their last cloud save');render(true);}
 async function admWrite(){const E=UI.admEd;if(!E)return;const sb=await net();if(!sb||!NET.user)return;const at=new Date().toISOString();S.admEd=at;S.cloudAt=at;const {data,error}=await sb.from('saves').update({data:S,name:E.name,level:S.lvl,updated_at:at}).eq('user_id',E.uid).select('user_id');if(error||!data||!data.length){toast(error?'Save failed: '+error.message:'The server refused. Run supabase/admin.sql first.');return;}E.at=at;admSend(E.uid,'pull',false);toast('Saved to '+E.name);admList();}
 function admSend(uid,ev,wait){const sb=NET.sb;return new Promise(res=>{let done=false;const ch=sb.channel('adm-'+uid);const end=v=>{if(done)return;done=true;clearTimeout(t);setTimeout(()=>{try{sb.removeChannel(ch);}catch(e){}},500);res(v);};const t=setTimeout(()=>end(false),wait?8000:3000);ch.on('broadcast',{event:'done'},()=>end(true)).subscribe(st=>{if(st==='SUBSCRIBED'){ch.send({type:'broadcast',event:ev,payload:{}});if(!wait)end(true);}});});}
@@ -3731,7 +3740,7 @@ function vAdmin(){if(!UI.admOk){try{UI.admOk=sessionStorage.getItem('eljuego-adm
     body=`<div class="optrow">${sel('a_type',types,'weapon:greatsword')}${sel('a_tier',TIERN.map((t,i)=>[String(i),t+' (tier '+(i+1)+')']),'3')}${sel('a_rar',RAR.slice(0,6).map((r,i)=>[String(i),r.n]),'4')}</div>
       <div class="optrow"><b>Temper</b>${sel('a_plus',[0,1,2,3,4,5].map(n=>[String(n),'+'+n]),'0')}<b>Reforge</b>${sel('a_rf',[['rand','Random'],['none','None'],...Object.entries(RFS).map(([k,R])=>[k,R.n+(R.w?' (weapon)':' (armor)')])],'rand')}${b('make','Add to bag','primary')}</div>
       <div class="optrow">${b('uniq','All Legendaries')}<span class="dim small">Gems use the tier box for their grade.</span></div>`;}
-  else if(T==='players'){const L=UI.admPl||{};body='<div class="optrow">'+b('plist',L.busy?'Loading…':'Refresh list')+'<span class="dim small">Open a save, change it with the other tabs, then save it back. Their game loads it the next time they open it.</span></div>'+(L.err?'<p class="small bad">'+esc(L.err)+'</p>':'')+(L.list||[]).map(r=>'<div class="optrow"><b>'+esc(r.name||'?')+'</b><span class="num">Lv '+(r.level||1)+'</span><span class="dim small">'+esc(new Date(r.updated_at).toLocaleString())+'</span>'+(NET.user&&r.user_id===NET.user.id?'<span class="dim small">(you)</span>':(UI.admAsk===r.user_id?'<span class="dim small">Asking their game to upload…</span>':b('pedit:'+r.user_id,UI.admEd&&UI.admEd.uid===r.user_id?'Reload':'Edit')))+'</div>').join('');}
+  else if(T==='players'){const L=UI.admPl||{};body='<div class="optrow">'+b('plist',L.busy?'Loading…':'Refresh list')+'<span class="dim small">Open a save, change it with the other tabs, then save it back. Their game loads it the next time they open it.</span></div>'+(L.err?'<p class="small bad">'+esc(L.err)+'</p>':'')+(L.list||[]).map(r=>'<div class="optrow"><b>'+esc(r.name||'?')+'</b><span class="num">Lv '+(r.level||1)+'</span><span class="dim small">'+esc(new Date(r.updated_at).toLocaleString())+'</span>'+((UI.admBans||{})[r.user_id]!==undefined?'<span class="tag bad">Banned</span>':'')+banBtn(r.user_id)+(NET.user&&r.user_id===NET.user.id?'<span class="dim small">(you)</span>':(UI.admAsk===r.user_id?'<span class="dim small">Asking their game to upload…</span>':b('pedit:'+r.user_id,UI.admEd&&UI.admEd.uid===r.user_id?'Reload':'Edit')))+'</div>').join('');}
   else if(T==='devils')body=admDevils(b,sel,num);else{const mobs=Object.entries(MOB).map(([k,m])=>[k,m.n+(m.boss?' (boss)':'')]);
     body=`<div class="optrow"><b>Fight</b>${sel('a_mob',mobs,'goblin')}<b>Lv</b>${num('a_mlv',S.lvl,70)}<b>×</b>${num('a_mn',1,60)}${sel('a_kind',[['normal','Normal'],['elite','Elite']],'normal')}${b('fight','Start fight','primary')}</div>
       <div class="optrow">${C()&&!C().over?b('win','Win this fight')+b('cds','Clear cooldowns'):'<span class="dim small">Win / clear cooldowns appear during a fight.</span>'}</div>
@@ -3758,6 +3767,7 @@ function vBeast(){const regions=AREAS.map((a,ai)=>{if(ai>=S.unlocked)return '';c
   return `<section class="px panel"><div class="row" style="justify-content:space-between"><h2>Bestiary</h2><span class="tag gold">${Math.round(done/(all.length*5)*100)}% · ${bestMaxed()} maxed</span></div>
     <p class="dim small">Kill milestones: 1, 5, 10, 25, 50 (bosses 1, 3, 5, 7, 10). Each star: +2% damage against that monster.</p>${regions}</section>`;}
 function vOnline(){const f=[['Trading post','Player listings and direct trades in the Market.'],['Clans','Shared bank, clan perks, a clan hall on a town plot.'],['PvP arena','Async duels against other players\' builds.'],['Boss raids','Party bosses with shared HP and turn order.']];
+  if(BANNED())return '<section class="px panel"><h2>Online</h2><div class="sub"><h3>Banned</h3><p>This account is banned from online play. You can still play on this device, but nothing is uploaded and you cannot chat, duel or appear on the leaderboards.</p></div></section>';
   return `<section class="px panel"><h2>Online</h2>${vChat()}${vArena()}${vBoard()}<div class="future">${f.map(([t,d])=>`<div class="sub"><b>${t}</b><p>${d}</p><span class="tag">Coming later</span></div>`).join('')}</div></section>`;}
 
 /* forge minigame marker */
