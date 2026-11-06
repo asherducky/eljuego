@@ -2032,15 +2032,26 @@ function duelMsg(p){const D=NET.duel;if(!D||!p)return;
   if(p.t==='sync'){const was=JSON.stringify([e.hp,e.max,e.st]);duelThem(e,p);if(JSON.stringify([e.hp,e.max,e.st])!==was&&!PRE)render(true);return;}
   if(p.t==='dead'){e.hp=0;fx('hp',{t:0,hp:0,max:e.max});fx('die',{t:0});win();fx('sync');runFx();render(true);return;}
   if(p.t==='end'){log(`${e.n} forfeits.`,'sys');e.hp=0;win();fx('sync');runFx();render(true);}}
+function dqCode(a,b){let h=0;for(const ch of a+'|'+b)h=(h*31+ch.charCodeAt(0))>>>0;const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++){c+=A[h%A.length];h=Math.floor(h/A.length);}return c;}
+function dqLeave(){const Q=NET.dq;if(!Q)return;NET.dq=null;if(Q.t)clearTimeout(Q.t);try{Q.ch.untrack();NET.sb.removeChannel(Q.ch);}catch(e){}}
+function dqCheck(){const Q=NET.dq;if(!Q||Q.paired||NET.duel)return;const st=Q.ch.presenceState(),seen={};const L=[];for(const k in st)for(const p of st[k])if(p&&p.uid&&!seen[p.uid]&&p.v===DUELV){seen[p.uid]=1;L.push(p);}
+  L.sort((a,b)=>a.at-b.at||(a.uid<b.uid?-1:1));Q.n=L.length;const i=L.findIndex(p=>p.uid===NET.user.id);if(i<0){render(true);return;}const j=i%2?i-1:i+1;const o=L[j];if(!o){render(true);return;}
+  Q.paired=1;const [a,b]=[L[Math.min(i,j)],L[Math.max(i,j)]];const code=dqCode(a.uid+a.at,b.uid+b.at);dqLeave();duelOpen(code,a.uid===NET.user.id);NET.duel.q=1;toast('Match found: '+(o.name||'a player'));
+  const D=NET.duel;setTimeout(()=>{if(NET.duel===D&&!D.started){duelClose();toast('They did not connect. Back in the queue.');dqJoin();}},12000);}
+async function dqJoin(){const sb=await net();if(!sb||!NET.user||NET.dq||NET.duel)return;if(S.combat){toast('Finish your fight first');return;}if(!NET.pvpMe)pvpMe();
+  const ch=sb.channel('duelq',{config:{presence:{key:NET.user.id}}});const Q=NET.dq={ch,n:1};
+  ch.on('presence',{event:'sync'},()=>{if(NET.dq===Q)dqCheck();}).subscribe(async st=>{if(st==='SUBSCRIBED'&&NET.dq===Q)await ch.track({uid:NET.user.id,name:pname().slice(0,16),lvl:S.lvl,rating:(NET.pvpMe||{}).rating||1000,v:DUELV,at:Date.now()});});render(true);}
 function vArena(){if(!SUPA.url||!SUPA.key)return '';
   if(!NET.user)return '<div class="sub"><h3>Duel a friend</h3><p class="dim">Sign in under Settings to duel other players.</p></div>';
   if(NET.sb&&!NET.pvpMe&&!NET.pvpAsk){NET.pvpAsk=true;pvpMe();}
   const me=NET.pvpMe,D=NET.duel;
+  const Q=NET.dq;if(Q&&!D)return `<div class="sub"><h3>Duel</h3><div class="row"><span class="tag gold">Searching for an opponent…</span><span class="dim small">${Q.n>1?Q.n+' players in the queue':'Nobody else is searching yet'}</span><button class="btn sm" data-a="dqno">Cancel</button></div></div>`;
+  if(D&&D.q&&!D.started)return `<div class="sub"><h3>Duel</h3><div class="row"><span class="tag gold">Match found. Connecting…</span><button class="btn sm" data-a="duelcancel">Cancel</button></div></div>`;
   const body=D&&!D.started?`<div class="row"><span class="tag gold" style="font-size:1.1rem">Code: ${D.code}</span><span class="dim small">${D.host?'Send this code to your friend. Waiting for them to join…':'Joining…'}</span><button class="btn sm" data-a="duelcancel">Cancel</button></div>`
-    :`<div class="row"><button class="btn primary" data-a="duelnew" ${S.combat?'disabled':''}>Create a duel</button><span class="dim small">or</span>
+    :`<div class="row"><button class="btn primary" data-a="dq" ${S.combat?'disabled':''}>Find a match</button></div><p class="dim small">Or duel a specific friend:</p><div class="row"><button class="btn sm" data-a="duelnew" ${S.combat?'disabled':''}>Create a code</button><span class="dim small">or</span>
       <input class="inp" id="dcode" maxlength="4" placeholder="CODE" autocomplete="off" style="width:110px;text-transform:uppercase;text-align:center"><button class="btn" data-a="duelgo" ${S.combat?'disabled':''}>Join</button></div>`;
-  return `<div class="sub"><div class="row" style="justify-content:space-between"><h3>Duel a friend</h3>${me?`<span class="tag gold">Rating ${me.rating} · ${me.wins}W ${me.losses}L${NET.pvpDelta?` (${NET.pvpDelta>0?'+':''}${NET.pvpDelta})`:''}</span>`:''}</div>
-    <p class="dim small">Live, turn by turn: you both play your own character. One of you creates a duel and shares the 4-letter code; the other types it in. You both heal to full first, and nobody loses gold.</p>${body}</div>`;}
+  return `<div class="sub"><div class="row" style="justify-content:space-between"><h3>Duel</h3>${me?`<span class="tag gold">Rating ${me.rating} · ${me.wins}W ${me.losses}L${NET.pvpDelta?` (${NET.pvpDelta>0?'+':''}${NET.pvpDelta})`:''}</span>`:''}</div>
+    <p class="dim small">Live, turn by turn: you both play your own character. Press Find a match and you'll be paired with the next player who searches. You both heal to full first, and nobody loses gold.</p>${body}</div>`;}
 function vArenaAI(){if(!SUPA.url||!SUPA.key)return '';
   if(!NET.user)return '<div class="sub"><h3>PvP arena</h3><p class="dim">Sign in under Settings to duel other players\' builds.</p></div>';
   if(NET.sb&&!NET.pvpMe&&!NET.pvpAsk){NET.pvpAsk=true;pvpMe();}
@@ -2726,6 +2737,8 @@ const ACT={
   duelnew:()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<4;i++)c+=a[Math.floor(Math.random()*a.length)];duelOpen(c,true);return 'async';},
   duelgo:()=>{const el=document.getElementById('dcode');const c=(el?el.value:'').trim().toUpperCase();if(!/^[A-Z0-9]{4}$/.test(c)){toast('Codes are 4 letters or numbers');return;}duelOpen(c,false);return 'async';},
   duelcancel:()=>{duelClose();},
+  dq:()=>{dqJoin();return 'async';},
+  dqno:()=>{dqLeave();},
   pvpfight:()=>{const o=NET.pvpOpp;if(!o||S.combat||!o.snap)return;NET.pvpLast=o.rating||1000;fullRest();S.tab='explore';startCombat([mkPvp(o)],'pvp');},
   lbmode:v=>{NET.lbMode=v;NET.lb=null;NET.lbT=0;},
   chatsend:()=>{chatSend();return 'async';},
@@ -4267,7 +4280,7 @@ function render(quiet){if(S&&S.treeSync&&Object.keys(STARS).length)syncTree();hi
   const ci=document.getElementById('chatin');if(ci&&NET.chatFocus){ci.focus();const n=ci.value.length;try{ci.setSelectionRange(n,n);}catch(e){}}
   save();if(!quiet)runFx();
 }
-const FREE=['unstick','autob','amove','stab','as','autonext','mgems','duelnew','duelgo','duelcancel','pvpfind','szoom','admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
+const FREE=['dq','dqno','unstick','autob','amove','stab','as','autonext','mgems','duelnew','duelgo','duelcancel','pvpfind','szoom','admin','adm','pwin','pwup','emode','chatsend','lbmode','tab','set','setclose','spd','mute','exp','imp','impno','netin','netout','cup','cupyes','cupno','cpeek','cask','cno'];
 const QUIET=['attack','skill','analyze','use','light','strike','forge','buy','sell','innrest','claim','unlock','enchant','temper','reforge','craftsup','restock','descend','dungeon','wander','flee'];
 document.addEventListener('click',ev=>{if(ev.target.classList&&ev.target.classList.contains('modal')){UI.set=false;IMP=null;render(true);return;}
   const b=ev.target.closest('[data-a]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;const f=ACT[b.dataset.a];if(!f)return;
