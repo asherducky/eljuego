@@ -1,0 +1,89 @@
+/* devil encounters: rare, manual wandering only, after the Hollow Throne. Contracts come later, answers are only recorded for now */
+const DEVIL=(()=>{
+/*ART*/
+const CAST={
+  hollow:{w:HW,h:HH,make:hollow,live:true,
+    lines:['...','You did not hear me follow you.','No one ever does.','There is so little left of you to want.'],
+    ask:'Still. I will take what there is. What do you offer?',
+    ends:{listen:'Good. I will not be hard to find.',refuse:'You say that as if you were still whole.',fight:'With what? I have already started.'},
+    after:{listen:'It feels like you agreed to something.',refuse:'Something out there is still watching.',fight:'You are swinging at empty air.'}},
+  colossus:{w:320,h:180,make:colossus,
+    lines:['LOOK UP.','That city knelt too. It only asked me for something small.','You have walked in my shadow for a long time, little one.'],
+    ask:'Now. Tell me what you want.',
+    ends:{listen:'Then we have an understanding. So did they.',refuse:'Ants have refused me before. I did not notice.',fight:'Ha. Grow first. I can wait.'},
+    after:{listen:'The ground is still shaking.',refuse:'The sky goes back to normal, slowly.',fight:'You are standing alone, fists up, under an empty sky.'}},
+  veiled:{w:176,h:196,make:veiled,
+    lines:['Shhh.',"Don't wake the others.",'I know the thing you keep wanting. I can smell it on you.'],
+    ask:'Come closer. What would you cut away to have it?',
+    ends:{listen:'Good. Good. Hold still.',refuse:'They all say no the first time.',fight:'Oh, you are going to be so much fun later.'},
+    after:{listen:'There is a long black hair on your sleeve.',refuse:'You can still smell it.',fight:'You are alone, breathing too hard.'}},
+};
+const WANDER=['hollow'];   // only these can appear while wandering; admin can still call any devil
+const COLD=['#12222e','#24465a','#4b8296','#9fd0d8','#e8fbff'],EX=70,EY=55;
+const col=(ramp,v)=>ramp[Math.round(clamp(v)*(ramp.length-1))];
+const mark=(g,px,py,isX,c)=>{g.fillStyle=c;if(isX){g.fillRect(px,py,1,1);g.fillRect(px+2,py,1,1);g.fillRect(px+1,py+1,1,1);g.fillRect(px,py+2,1,1);g.fillRect(px+2,py+2,1,1);}else g.fillRect(px+1,py+1,1,1);};
+// a cold flame in the same stitched grid as the Hollow's face
+function ghostFlame(g,t){const tall=27;for(let gy=0;gy*HC<HH;gy++){const ox=gy%2?2:0;for(let gx=0;gx*HC-ox<HW;gx++){const x=gx*HC-ox+1.5,y=gy*HC+1.5,up=EY-y;if(up<-7||up>tall+10||Math.abs(x-EX)>14)continue;
+    const top=tall*(.72+.28*noise(t*.55,3)),sway=Math.sin(up*.32-t*.8)*(up/top)*3,w=up<0?8+up*.8:8*(1-up/top);if(w<=0)continue;
+    const f=1-Math.abs(x-EX-sway)/w+(noise(gx*.8,gy*.8-t*1.3)-.5)*.55;if(f<=.08)continue;
+    mark(g,gx*HC-ox,gy*HC,f>.3,col(COLD,clamp(f*(1.05-Math.max(up,0)/top*.55))));}}}
+// the face will not hold still: marks drift and swap between Xs and dots
+function crawl(g,t,cells){g.clearRect(0,0,HW,HH);for(const s of cells){const n=noise(s.gx*.2+t*.05,s.gy*.2-t*.09),v=clamp(s.v+(n-.5)*.7);if(v<.1)continue;mark(g,s.gx*HC-s.ox,s.gy*HC,v>.34,col(R[s.r],v));}}
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const UIv={el:null,busy:false,advance:null,drone:null,tick:0,blink:0};
+function state(){return S.devils||(S.devils={w:0,seen:{},said:{},bag:[],now:null});}
+function nextName(){const D=state();if(!D.bag||!D.bag.length){const b=[...WANDER];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}if(b[0]===D.last)b.push(b.shift());D.bag=b;}return D.bag.shift();}
+// about one in a thousand, then doubling every 50 wanders past 500, so everyone finds one by 1000
+function chanceNow(w){return w<=500?.1:Math.min(100,.1*Math.pow(2,(w-500)/50));}
+function roll(){if(AB.on||UIv.busy||!S.cleared.includes(3))return false;const D=state();D.w=(D.w||0)+1;if(Math.random()*100>=chanceNow(D.w))return false;meet(nextName());return true;}
+function build(){if(UIv.el)return UIv.el;const v=document.createElement('div');v.id='devilv';v.setAttribute('role','dialog');v.setAttribute('aria-label','A devil appears');
+  v.innerHTML='<div id="dv-stage"><canvas id="dv-body"></canvas><canvas id="dv-eyes"></canvas></div><div id="dv-speech"><p id="dv-line" aria-live="polite"></p><span id="dv-more">click to continue</span><div id="dv-choices"><button data-c="listen">Listen</button><button data-c="refuse">Refuse</button><button data-c="fight">Fight</button></div></div>';
+  document.body.appendChild(v);UIv.el=v;
+  document.getElementById('dv-speech').addEventListener('click',e=>{if(!e.target.closest('#dv-choices')&&UIv.advance)UIv.advance();});
+  addEventListener('keydown',e=>{if(UIv.busy&&(e.key===' '||e.key==='Enter')&&!(e.target.closest&&e.target.closest('#dv-choices'))&&UIv.advance){e.preventDefault();UIv.advance();}});
+  addEventListener('resize',fit);return v;}
+let cur=null;
+function fit(){if(!cur)return;const r=document.getElementById('dv-stage').getBoundingClientRect(),raw=Math.min(r.width/cur.w,r.height/cur.h),s=raw>=1?Math.floor(raw):raw;
+  for(const id of ['dv-body','dv-eyes']){const c=document.getElementById(id);c.style.width=cur.w*s+'px';c.style.height=cur.h*s+'px';}}
+function thud(){const c=au();if(!c)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type='square';o.frequency.setValueAtTime(70,t);o.frequency.exponentialRampToValueAtTime(28,t+.5);g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.6);o.connect(g);g.connect(AU.g);o.start();o.stop(t+.6);}
+function droneOn(){const c=au();if(!c)return;const o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type=o2.type='sawtooth';o.frequency.value=41;o2.frequency.value=41.7;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+2);o.connect(g);o2.connect(g);g.connect(AU.g);o.start();o2.start();UIv.drone={o,o2};}
+function droneOff(){if(!UIv.drone)return;try{UIv.drone.o.stop();UIv.drone.o2.stop();}catch(e){}UIv.drone=null;}
+function blip(){const c=au();if(!c)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type='square';o.frequency.value=90+Math.random()*25;g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);o.connect(g);g.connect(AU.g);o.start();o.stop(t+.05);}
+function say(text,wait=true){return new Promise(res=>{const line=document.getElementById('dv-line'),more=document.getElementById('dv-more');let i=0,done=false;line.textContent='';more.classList.remove('show');
+  const tick=setInterval(()=>{i++;line.textContent=text.slice(0,i);if(i%2&&text[i-1]!==' ')blip();if(i>=text.length)finish();},text==='...'?420:42);
+  function finish(){clearInterval(tick);line.textContent=text;done=true;if(!wait){UIv.advance=null;res();return;}more.classList.add('show');UIv.advance=()=>{UIv.advance=null;res();};}
+  UIv.advance=()=>{if(!done)finish();};});}
+const choose=()=>new Promise(res=>{const c=document.getElementById('dv-choices');c.classList.add('show');c.querySelector('button').focus();c.onclick=e=>{const v=e.target.dataset.c;if(!v)return;c.onclick=null;c.classList.remove('show');res(v);};});
+function blink(eyes){clearTimeout(UIv.blink);UIv.blink=setTimeout(async()=>{if(!UIv.busy)return;eyes.style.visibility='hidden';await sleep(130);eyes.style.visibility='';blink(eyes);},1800+Math.random()*2600);}
+
+async function meet(name){if(UIv.busy||!CAST[name])return;if(AB.on)autoStop();const D=state(),d=CAST[name];D.now=name;D.last=name;save();UIv.busy=true;cur=d;
+  const v=build(),body=document.getElementById('dv-body'),eyes=document.getElementById('dv-eyes'),speech=document.getElementById('dv-speech'),eg=eyes.getContext('2d'),bg=body.getContext('2d');
+  speech.classList.remove('show');document.getElementById('dv-line').textContent='';document.getElementById('dv-more').classList.remove('show');document.getElementById('dv-choices').classList.remove('show');
+  body.style.opacity=0;eyes.style.opacity=0;eyes.style.visibility='';v.classList.add('open');document.documentElement.style.overflow='hidden';thud();
+  await sleep(40);   // the black is up: painting the art here can't be seen
+  if(!d.bodyC){d.bodyC=document.createElement('canvas');d.eyeC=document.createElement('canvas');paint(d.bodyC,d.w,d.h,d.make(),d.eyeC);if(d.live)d.cells=hollowCells();}
+  for(const [c,s] of [[body,d.bodyC],[eyes,d.eyeC]]){c.width=d.w;c.height=d.h;const g=c.getContext('2d');g.clearRect(0,0,d.w,d.h);g.drawImage(s,0,0);}fit();
+  let flame=false,crawling=false,t=0;
+  const frame=()=>{t++;if(!d.live)return;eg.clearRect(0,0,d.w,d.h);if(flame)ghostFlame(eg,t);if(crawling)crawl(bg,t,d.cells);};
+  if(d.live&&!RM)UIv.tick=setInterval(frame,120);
+  await sleep(1760);   // nothing at all for a moment
+  flame=d.live;if(d.live)frame();eyes.style.opacity=1;if(!d.live)blink(eyes);droneOn();
+  await sleep(2400);
+  if(d.live&&!RM)crawling=true;
+  for(const o of [.15,.4,.7,1]){body.style.opacity=o;await sleep(450);}
+  flame=false;if(d.live)frame();   // the flame dies once the face is there
+  speech.classList.add('show');
+  for(const l of d.lines)await say(l);
+  await say(d.ask,false);
+  const pick=await choose();
+  await say(d.ends[pick]);
+  speech.classList.remove('show');body.style.opacity=0;droneOff();flame=d.live;if(d.live)frame();   // only the eyes, or the flame, stay
+  await sleep(900);
+  clearTimeout(UIv.blink);clearInterval(UIv.tick);eyes.style.opacity=0;eyes.style.visibility='';
+  await sleep(1100);
+  v.classList.remove('open');document.documentElement.style.overflow='';UIv.busy=false;cur=null;
+  D.now=null;D.w=0;D.seen=D.seen||{};D.said=D.said||{};D.seen[name]=(D.seen[name]||0)+1;D.said[name]=pick;S.note=d.after[pick];render();}
+function resume(){const D=S&&S.devils;if(D&&D.now&&CAST[D.now])meet(D.now);}
+return {roll,meet,resume,chanceNow,names:Object.keys(CAST)};
+})();

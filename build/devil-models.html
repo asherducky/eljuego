@@ -1,0 +1,262 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Devil Fight Models</title>
+<style>body{background:#14111c;color:#e8e4f0;font:14px monospace;margin:0;padding:16px}h1{font-size:18px;margin:0}h2{font-size:15px;color:#f2c14e;margin:18px 0 4px}p{margin:2px 0 8px;color:#a8a2b8;max-width:800px}canvas{image-rendering:pixelated;display:block;max-width:100%;box-shadow:0 0 0 3px #2a2636}</style></head><body>
+<h1>Devil fight models: painted draft</h1><p id="st">Painting...</p><div id="out"></div>
+<script>
+const W=256,H=150,BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const hash=(x,y)=>{const v=Math.sin(x*127.1+y*311.7)*43758.5453;return v-Math.floor(v);};
+const vn=(x,y)=>{const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,s=u*u*(3-2*u),t=v*v*(3-2*v);return (hash(i,j)*(1-s)+hash(i+1,j)*s)*(1-t)+(hash(i,j+1)*(1-s)+hash(i+1,j+1)*s)*t;};
+const fbm=(x,y,o=4)=>{let a=.5,f=1,r=0,n=0;for(let i=0;i<o;i++){r+=a*vn(x*f,y*f);n+=a;a*=.5;f*=2.03;}return r/n;};
+// distance to the nearest cell edge, for cracked plates of rock
+const cell=(x,y)=>{const i=Math.floor(x),j=Math.floor(y);let d1=9,d2=9;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const px=i+a+hash(i+a,j+b),py=j+b+hash(j+b,i+a),d=Math.hypot(px-x,py-y);if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;}return d2-d1;};
+const hex=c=>[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];
+const ramp=(R,v,x,y)=>{const t=BAYER[y&3][x&3]/16-.47,k=Math.max(0,Math.min(R.length-1,Math.round(v*(R.length-1)+t*.9)));return R[k];};
+const ROCK=['#0a0506','#180a0a','#2a1210','#431d17','#63302a','#8b4e3a','#b37c5a'],ASH=['#2a2622','#4a443c','#6e675a','#98907e','#c7bfa8','#e8e0c8'],CLOTH=['#07060b','#110e18','#1d1826','#2c2638','#40384e','#5d5470'],PORC=['#3a3440','#6a6270','#9a92a0','#c9c2cc','#e8e2e4','#fbf7f2'],WOOD=['#120a08','#241510','#3a2318','#553524','#7a4f36','#a0704c'];
+// a body is a list of tapered capsules; the painter turns the shape into lit, textured pixels
+function capsule(p,a,b,r0,r1,mat,noise){p.push({a,b,r0,r1,mat,noise:noise==null?2:noise});}
+function paint(P,out,o){const x0=Math.max(0,o.x0),x1=Math.min(W,o.x1),y0=Math.max(0,o.y0),y1=Math.max(y0+1,Math.min(H,o.y1)),w=x1-x0,h=y1-y0,D=new Float32Array(w*h).fill(99),M=new Int16Array(w*h).fill(-1);
+  for(let i=0;i<P.length;i++){const q=P[i],ax=q.a[0],ay=q.a[1],bx=q.b[0],by=q.b[1],R=Math.max(q.r0,q.r1)+q.noise+2,minx=Math.max(x0,Math.floor(Math.min(ax,bx)-R)),maxx=Math.min(x1-1,Math.ceil(Math.max(ax,bx)+R)),miny=Math.max(y0,Math.floor(Math.min(ay,by)-R)),maxy=Math.min(y1-1,Math.ceil(Math.max(ay,by)+R)),dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy||1;
+    for(let y=miny;y<=maxy;y++)for(let x=minx;x<=maxx;x++){const t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/l2)),d=Math.hypot(x-ax-dx*t,y-ay-dy*t)-(q.r0+(q.r1-q.r0)*t)+(fbm(x*.22+i,y*.22,3)-.5)*q.noise*2,k=(y-y0)*w+x-x0;if(d<D[k]){D[k]=d;M[k]=i;}}}
+  for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const k=(y-y0)*w+x-x0;if(D[k]>0){if(D[k]<.9&&M[k]>=0&&o.rim){out.fillStyle=o.rim;out.fillRect(x,y,1,1);}continue;}
+    const g=(a,b)=>{const xx=Math.max(0,Math.min(w-1,a-x0)),yy=Math.max(0,Math.min(h-1,b-y0));return D[yy*w+xx];},nx=g(x+1,y)-g(x-1,y),ny=g(x,y+1)-g(x,y-1),nl=Math.hypot(nx,ny)||1,dep=Math.min(1,-D[k]/6),lit=(-nx/nl*(-.55)+-ny/nl*(-.8));
+    const q=P[M[k]],shade=.42+lit*.34*(1-dep*.55)+dep*.1;o.mat[q.mat](out,x,y,shade,dep);}}
+function drawLine(g,a,b,c){const n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1]))||1;g.fillStyle=c;for(let i=0;i<=n;i++){const q=i/n;g.fillRect(Math.round(a[0]+(b[0]-a[0])*q),Math.round(a[1]+(b[1]-a[1])*q),1,1);}}
+const hero=(g,x,y)=>{g.fillStyle='#050408';g.fillRect(x+1,y,7,17);g.fillStyle='#2f6f78';g.fillRect(x+2,y+1,5,3);g.fillStyle='#c98a5a';g.fillRect(x+3,y+4,3,2);g.fillStyle='#55505a';g.fillRect(x+2,y+7,5,5);g.fillStyle='#2f6f78';g.fillRect(x+2,y+12,2,4);g.fillRect(x+5,y+12,2,4);};
+
+/* ===== The Colossus: a walking, ruined giant, in the spirit of your reference but a devil ===== */
+const colMat={rock(g,x,y,s,dep){const c=cell(x*.17+7,y*.17),tex=fbm(x*.3,y*.3,4),top=fbm(x*.09+3,y*.09,3),ember=c<.035&&dep>.2&&fbm(x*.06,y*.06+9,3)>.58;if(ember){g.fillStyle=hash(x,y)>.5?'#ff5a3c':'#c42828';g.fillRect(x,y,1,1);return;}if(top>.53&&s>.42){g.fillStyle=ramp(ASH,s*1.05+(tex-.5)*.5-.1,x,y);g.fillRect(x,y,1,1);return;}const v=s*.86+(tex-.5)*.42-(c<.09?.2:0);g.fillStyle=ramp(ROCK,v,x,y);g.fillRect(x,y,1,1);},
+  bone(g,x,y,s){g.fillStyle=ramp(ASH,s*.9+.1+(fbm(x*.4,y*.4,2)-.5)*.3,x,y);g.fillRect(x,y,1,1);},
+  dark(g,x,y,s){g.fillStyle=ramp(ROCK,s*.32,x,y);g.fillRect(x,y,1,1);}};
+function colossusBody(t){const P=[],sw=Math.sin(t*.25),br=Math.sin(t*.5)*.5,cx=165;
+  const lim=(pts,r,mat='rock',n=2)=>{for(let i=0;i<pts.length-1;i++)capsule(P,pts[i],pts[i+1],r[i],r[i+1],mat,n);};
+  // far arm and leg first, so they sit behind the body
+  lim([[183,46+br],[204,72],[222+sw,100],[224+sw*1.5,112]],[8,6,4.6,4.5]);
+  lim([[172,80],[182,110],[189,141]],[8,5,5]);lim([[189,141],[200,145]],[5,3]);
+  lim([[158,80],[150,110],[146,141]],[8,5,5]);lim([[146,141],[134,145]],[5,3]);
+  capsule(P,[cx,70],[cx,82],11,9,'rock',3);capsule(P,[cx,40+br],[cx,70],17,11,'rock',3);capsule(P,[147,42+br],[183,42+br],9,9,'rock',3);
+  for(let i=0;i<5;i++){const a=[176+i*3,34+i*2+br],b=[186+i*4,20+i*4+br];capsule(P,a,b,2.6,.4,'bone',.5);}
+  lim([[146,46+br],[128,74],[116-sw,102],[113-sw*1.5,114]],[8,6,4.6,4.5]);
+  for(const [hx,hy,d] of [[113-sw*1.5,114,-1],[224+sw*1.5,112,1]])for(let i=0;i<4;i++){const a=[hx+(i-1.5)*2.5,hy+1],b=[hx+(i-1.5)*3.4+d,hy+9],c=[hx+(i-1.5)*4+d*2,hy+17];capsule(P,a,b,1.8,1.4,'rock',.5);capsule(P,b,c,1.3,.3,'bone',.2);}
+  capsule(P,[cx,20],[cx,30+br*.5],9,7,'rock',1.5);capsule(P,[cx-1,31+br*.5],[cx-1,37+br*.5],6,4,'rock',1);
+  for(const d of [-1,1]){const a=[cx+d*7,18],b=[cx+d*14,8],c=[cx+d*16,-2],e=[cx+d*12,-10];capsule(P,a,b,3.6,2.6,'rock',1);capsule(P,b,c,2.6,1.6,'rock',.5);capsule(P,c,e,1.6,.3,'bone',.2);}
+  capsule(P,[cx,18],[cx,28],11,9,'rock',1.2);
+  for(const q of P){q.a=[q.a[0],15+q.a[1]*.88];q.b=[q.b[0],15+q.b[1]*.88];}
+  return P;}
+function drawColossus(g,t){const P=colossusBody(t);
+  // a dead crown of burnt branches, like the tree on your reference's head
+  const branch=(x,y,a,l,d)=>{const x2=x+Math.cos(a)*l,y2=y+Math.sin(a)*l;drawLine(g,[x,y],[x2,y2],d>2?'#120808':'#2a1210');if(d>0){branch(x2,y2,a-.45-hash(x,d)*.3,l*.72,d-1);branch(x2,y2,a+.4+hash(d,y)*.3,l*.7,d-1);}else if(hash(x2,y2)>.45){g.fillStyle=(Math.floor(t)+Math.floor(x2))%3?'#c42828':'#ff5a3c';g.fillRect(Math.round(x2),Math.round(y2),1,1);}};
+  for(let i=0;i<5;i++)branch(165+(i-2)*5,24,-1.57+(i-2)*.32,6,3);
+  paint(P,g,{x0:95,x1:245,y0:0,y1:150,rim:'#050404',mat:colMat});
+  // burning eyes and a split mouth
+  const y=37+Math.sin(t*.5)*.25;if(Math.floor(t)%14!==0){g.fillStyle='#ffe9c4';g.fillRect(160,y,4,1);g.fillRect(168,y,4,1);g.fillStyle='#ff5a3c';g.fillRect(159,y+1,3,1);g.fillRect(170,y+1,3,1);}
+  g.fillStyle='#050404';g.fillRect(160,y+7,12,3);g.fillStyle='#c7bfa8';for(let i=0;i<6;i++){g.fillRect(161+i*2,y+7,1,1);g.fillRect(161+i*2,y+9,1,1);}
+  // chains and roots hanging off him
+  for(const [a,b,l] of [[136,68,24],[126,84,18],[214,86,20],[176,70,28],[154,70,30],[190,100,16]]){for(let i=0;i<l;i++){const xx=a+Math.sin(i*.35+t*.3+a)*(i/12);g.fillStyle=i%3?'#120808':'#55413a';g.fillRect(Math.round(xx),b+i,1,1);}}}
+function colBack(){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),SKY=['#120a0a','#2a1210','#4a1f14','#70331c','#96552c','#bb8348','#d9ae72'];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const v=Math.pow(y/104,1.25)*.82+.14*fbm(x*.02,y*.05,4)-.08;g.fillStyle=ramp(SKY,v,x,y);g.fillRect(x,y,1,1);}
+  const layer=(by,hh,col,sc,sd)=>{g.fillStyle=col;for(let x=0;x<W;x++){const tt=by-fbm(x*sc+sd,sd,4)*hh,dead=hash(Math.floor(x/9),sd)>.55&&x%9===4;g.fillRect(x,tt-(dead?hh*.8:0),1,H-tt);}};
+  layer(112,46,'#7a4a2a',.018,1);layer(120,34,'#54301f',.03,2);layer(128,22,'#351c14',.05,3);
+  // the ground: dark ash and a sheet of still water
+  for(let y=128;y<H;y++)for(let x=0;x<W;x++){const r=fbm(x*.05,y*.5,3),v=.1+(y-128)/22*.05+r*.25;g.fillStyle=ramp(['#0a0606','#160c0a','#2a1610','#452618','#6a3c22'],v,x,y);g.fillRect(x,y,1,1);}
+  // an overhang and hanging vines framing the top left
+  g.fillStyle='#070404';for(let x=0;x<92;x++){const hh=38*Math.pow(1-x/92,1.3)+fbm(x*.15,5,3)*14;g.fillRect(x,0,1,hh);}for(let i=0;i<9;i++){const x=6+i*9,l=26+hash(i,2)*70;for(let k=0;k<l;k++)g.fillRect(Math.round(x+Math.sin(k*.09+i)*2.2),k+18,1,1);}
+  return c;}
+
+/* ===== The Veiled: a marionette on strings of her own hair, cracked porcelain and torn cloth ===== */
+const veilMat={cloth(g,x,y,s,dep){const f=fbm(x*.14,y*.05,4),fold=Math.sin(x*.9+f*7)*.16;g.fillStyle=ramp(CLOTH,s*.85+fold+(f-.5)*.25,x,y);g.fillRect(x,y,1,1);},
+  porc(g,x,y,s){const c=cell(x*.2+3,y*.2+5);g.fillStyle=c<.04?'#2a2430':ramp(PORC,s*1.05+.16,x,y);g.fillRect(x,y,1,1);},
+  wood(g,x,y,s){g.fillStyle=ramp(WOOD,s*.8+(fbm(x*.1,y*.6,3)-.5)*.5,x,y);g.fillRect(x,y,1,1);},
+  hairm(g,x,y,s){g.fillStyle=ramp(CLOTH,s*.3+(Math.sin(x*1.7)*.1),x,y);g.fillRect(x,y,1,1);}};
+function puppet(g,cx,t,faded){const sw=Math.sin(t*.22)*5,sw2=Math.sin(t*.22-.7)*4,sw3=Math.sin(t*.22-1.3)*6,hy=38+Math.sin(t*.44)*1,tilt=Math.sin(t*.13)*1.5+3,hx=cx+sw,P=[];
+  const J=(a,b,r0,r1,m='wood')=>capsule(P,a,b,r0,r1,m,.4),K=(p,r)=>capsule(P,p,p,r,r,'porc',.1);
+  const sh=[hx,hy+13],hipx=hx+sw2*.3,hip=[hipx,hy+42];
+  // limbs hang wrong: elbows bent out, one knee drawn up by its string
+  const la0=[hx-11,hy+15],la1=[hx-19+sw2*.3,hy+33],la2=[hx-16+sw3,hy+52],ra0=[hx+11,hy+15],ra1=[hx+23+sw2*.3,hy+24],ra2=[hx+28+sw3*.8,hy+44];
+  const ll0=[hipx-5,hy+46],ll1=[hipx-8+sw2*.2,hy+68],ll2=[hipx-7+sw3*.6,hy+92],rl0=[hipx+5,hy+46],rl1=[hipx+13,hy+60],rl2=[hipx+10+sw3*.4,hy+82];
+  J(la0,la1,2.6,2);J(la1,la2,2,1.6);J(ll0,ll1,3.2,2.4);J(ll1,ll2,2.4,1.8);J(rl0,rl1,3.2,2.4);J(rl1,rl2,2.4,1.8);
+  // torn dress and veil
+  capsule(P,[hx,hy+12],[hipx,hy+40],10,8,'cloth',1.5);for(let i=0;i<7;i++){const o=(i-3)*3.8,l=20+hash(i,3)*16;capsule(P,[hipx+o*.8,hy+38],[hipx+o*1.25+sw3*.4,hy+38+l],4.4,.6,'cloth',1.6);}
+  capsule(P,[hx,hy-8],[hx-2,hy+24],13,6,'cloth',2.2);capsule(P,[hx+1,hy-6],[hx+11,hy+26],7,1,'cloth',2);capsule(P,[hx-3,hy-6],[hx-13,hy+28],7,1,'cloth',2);
+  J(ra0,ra1,2.6,2);J(ra1,ra2,2,1.6);for(const p of [la1,la2,ra1,ra2,ll1,ll2,rl1,rl2])K(p,2.2);
+  for(const [p,d] of [[la2,-1],[ra2,1]])for(let i=0;i<4;i++)J([p[0]+(i-1.5),p[1]+1],[p[0]+(i-1.5)*1.8+d,p[1]+10],.9,.2,'porc');
+  for(const p of [ll2,rl2])J([p[0],p[1]+1],[p[0]+1,p[1]+7],1.7,1,'porc');
+  paint(P,g,{x0:cx-52,x1:cx+52,y0:0,y1:150,rim:'#050408',mat:veilMat});
+  // the porcelain face sits on top of the veil so it always reads
+  const F=[];capsule(F,[hx,hy],[hx+tilt*.4,hy+5],7.6,6.2,'porc',.15);paint(F,g,{x0:cx-52,x1:cx+52,y0:0,y1:150,rim:'#050408',mat:veilMat});
+  const fx=hx+tilt*.2,fy=hy;
+  // the face: hollow eyes, a seam jaw hinged like a puppet
+  g.fillStyle='#050408';g.fillRect(fx-4,fy-1,3,3);g.fillRect(fx+2,fy-1,3,3);if(!faded&&Math.floor(t)%11){g.fillStyle='#ff5a3c';g.fillRect(fx-3,fy,1,1);g.fillRect(fx+3,fy,1,1);}
+  g.fillStyle='#2a2430';g.fillRect(fx-5,fy+3,1,5);g.fillRect(fx+5,fy+3,1,5);const open=(Math.sin(t*.09)>.7)?2:0;g.fillRect(fx-4,fy+5,9,1);if(open){g.fillStyle='#050408';g.fillRect(fx-4,fy+6,9,open);}for(let i=0;i<4;i++){g.fillStyle='#55505a';g.fillRect(fx-3+i*2,fy+3,1,1);}
+  // strings: hair running up out of the scene to her head, wrists and one knee
+  const str=(p,tx,c)=>drawLine(g,p,[tx,0],c);for(let s=0;s<15;s++){const o=(s/14-.5)*14;const c=s%3?'#2a2636':'#6f678a';for(let y=0;y<hy-6;y+=1){const q=y/(hy-6);g.fillStyle=c;g.fillRect(Math.round(cx+o*1.6*(1-q)+o*.6*q+sw*q+Math.sin(y*.2+s+t*.2)*.6*(1-q)),y,1,1);}}
+  str(la2,cx-30,'#a39da8');str(ra2,cx+34,'#a39da8');str(rl1,cx+18,'#a39da8');str(la1,cx-40,'#55505a');
+  // loose hair falling around her
+  for(const s of [0,1,2,7,8,9]){const x0=hx+(s-4.5)*2.9;for(let i=0;i<34+s%3*10;i++){const q=i/50;g.fillStyle=s%3?'#050408':'#1d1826';g.fillRect(Math.round(x0+(s-4.5)*q*2+Math.sin(q*6+t*.2+s)*q*4),hy+5+i,1,1);}}}
+function veilBack(){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),SKY=['#050408','#0b0810','#14101b','#1f1928','#2c2436','#3a3045'];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const d=Math.hypot((x-170)/120,(y-60)/70),v=.62-d*.46+(fbm(x*.04,y*.04,4)-.5)*.3;g.fillStyle=ramp(SKY,v,x,y);g.fillRect(x,y,1,1);}
+  // a dead puppet theatre: curtains on both sides and hanging, empty strings
+  const CUR=['#0a0406','#180709','#2a0b0e','#3f1014','#56171b'];for(const side of [0,1])for(let x=0;x<70;x++){const X=side?W-1-x:x,edge=1-x/70;for(let y=0;y<H;y++){const lim=64+Math.sin(y*.05+side)*10+(y>110?(y-110)*.3:0);if(x>lim)continue;const fold=Math.sin(x*.42+Math.sin(y*.03)*1.4);g.fillStyle=ramp(CUR,.38+fold*.3+(edge-.5)*.2+(fbm(x*.1,y*.1,3)-.5)*.2,X,y);g.fillRect(X,y,1,1);}}
+  for(let i=0;i<12;i++){const x=70+i*10+hash(i,1)*6,l=20+hash(i,5)*50;g.fillStyle='#2a2636';for(let y=0;y<l;y++)g.fillRect(Math.round(x),y,1,1);}
+  for(let y=128;y<H;y++)for(let x=0;x<W;x++){g.fillStyle=ramp(['#050408','#100c14','#1a1520','#272030'],.12+fbm(x*.03,y*.4,3)*.45-(y-128)*.004,x,y);g.fillRect(x,y,1,1);}
+  return c;}
+
+/* ===== Colossus, side view: walking left toward you, hunched, spine plates, one long arm reaching ===== */
+function colossusSide(t){const P=[],s=Math.sin(t*.22),br=Math.sin(t*.44)*.6,L=(pts,r,m='rock',n=2)=>{for(let i=0;i<pts.length-1;i++)capsule(P,pts[i],pts[i+1],r[i],r[i+1],m,n);};
+  // far limbs in shadow, drawn first
+  L([[182,86],[208,112],[214,142]],[8,6,5],'dark');L([[214,142],[201,146]],[5,3],'dark');
+  L([[160,50+br],[134,74],[120+s,90]],[7,5,4],'dark');for(let i=0;i<3;i++)capsule(P,[120+s,91],[112+s+i*3,103],1.6,.3,'dark',.3);
+  // hips, a hunched back and a low-slung neck
+  capsule(P,[186,82],[176,62],13,15,'rock',3);capsule(P,[176,62],[156,44+br],16,13,'rock',3);capsule(P,[156,44+br],[136,38+br],10,8,'rock',2.5);
+  // near leg striding forward, near arm hanging long
+  L([[180,86],[152,110],[146,142]],[10,7,6]);L([[146,142],[128,146]],[6,3]);capsule(P,[148,139],[126,147],2,1,'bone',.3);
+  L([[156,50+br],[126,76],[106+s*1.4,100]],[9,6.5,5]);
+  const hx=106+s*1.4,hy=100;capsule(P,[hx,hy],[hx-5,hy+6],5.5,5,'rock',1);for(let i=0;i<4;i++){const a=[hx-6+i*2.5,hy+7],b=[hx-10+i*3,hy+16],c=[hx-15+i*3.4,hy+26];capsule(P,a,b,1.9,1.5,'rock',.5);capsule(P,b,c,1.4,.3,'bone',.2);}
+  // spine plates running down his back
+  for(let i=0;i<9;i++){const q=i/8,x=146+q*48,y=26+q*44+Math.sin(q*3)*4+br,h=9-Math.abs(q-.35)*7;capsule(P,[x,y],[x+h*.7,y-h],3,.4,'bone',.6);}
+  // head in profile: heavy brow, long jaw, one horn sweeping back
+  capsule(P,[136,33+br],[120,34+br],9,6.5,'rock',1.2);capsule(P,[132,42+br],[114,44+br],6,3.5,'rock',.8);capsule(P,[142,27+br],[154,12],4,2.6,'rock',.8);capsule(P,[154,12],[170,6],2.6,1.3,'rock',.5);capsule(P,[170,6],[184,10],1.3,.3,'bone',.2);
+  return P;}
+function drawColossusSide(g,t){const P=colossusSide(t),br=Math.sin(t*.44)*.6;paint(P,g,{x0:88,x1:238,y0:0,y1:150,rim:'#050404',mat:colMat});
+  const y=Math.round(31+br);if(Math.floor(t)%14!==0){g.fillStyle='#ffe9c4';g.fillRect(119,y,6,1);g.fillStyle='#ff5a3c';g.fillRect(119,y+1,4,1);}
+  // the jaw line and teeth
+  g.fillStyle='#050404';g.fillRect(113,y+7,19,2);g.fillStyle='#c7bfa8';for(let i=0;i<7;i++){g.fillRect(114+i*2.4,y+7,1,1+(i%2));}
+  // burnt crown growing from his head and back
+  const branch=(x,yy,a,l,d)=>{const x2=x+Math.cos(a)*l,y2=yy+Math.sin(a)*l;drawLine(g,[x,yy],[x2,y2],d>1?'#120808':'#2a1210');if(d>0){branch(x2,y2,a-.5,l*.72,d-1);branch(x2,y2,a+.42,l*.72,d-1);}else if(hash(x2,y2)>.5){g.fillStyle=(Math.floor(t)+Math.floor(x2))%3?'#c42828':'#ff5a3c';g.fillRect(Math.round(x2),Math.round(y2),1,1);}};
+  for(const [x,yy,a] of [[128,26,-1.9],[134,24,-1.5],[140,24,-1.25]])branch(x,yy+br,a,7,3);
+  for(const [a,b,l] of [[122,72,22],[108,92,14],[148,62,30],[178,92,24],[160,108,18]])for(let i=0;i<l;i++){const xx=a+Math.sin(i*.35+t*.3+a)*(i/12);g.fillStyle=i%3?'#120808':'#55413a';g.fillRect(Math.round(xx),b+i,1,1);}}
+
+/* ===== small puppets she summons, each a different toy, dropped in on springs ===== */
+const miniMat={...veilMat,tin(g,x,y,s){g.fillStyle=ramp(['#14100c','#33281a','#5a4628','#8a6e3c','#b89a58'],s*.9+(fbm(x*.4,y*.4,2)-.5)*.25,x,y);g.fillRect(x,y,1,1);},sack(g,x,y,s){g.fillStyle=ramp(['#1a140e','#33281c','#4e3f2c','#6e5a40','#8e7858'],s*.8+Math.sin(x*1.6+y*1.6)*.1,x,y);g.fillRect(x,y,1,1);},red(g,x,y,s){g.fillStyle=ramp(['#14060a','#2e0c12','#54141c','#7a1f28','#a8343a'],s*.9+(fbm(x*.2,y*.2,2)-.5)*.2,x,y);g.fillRect(x,y,1,1);}};
+function spring(g,x,y0,y1,c){const n=Math.max(4,Math.floor((y1-y0)/4));for(let i=0;i<=(y1-y0);i++){const q=i/(y1-y0||1),o=Math.sin(q*n*6.283)*2.5;g.fillStyle=Math.cos(q*n*6.283)>0?c:'#2a2636';g.fillRect(Math.round(x+o),Math.round(y0+i),1,1);}}
+function mini(g,kind,x,y,t){const P=[],sw=Math.sin(t*.3+kind)*2.5,J=(a,b,r0,r1,m)=>capsule(P,a,b,r0,r1,m,.3),body=['tin','sack','red'][kind],limb=['wood','sack','wood'][kind],hd=[x,y],hip=[x,y+18];
+  J([x-5,y+8],[x-10+sw,y+20],1.5,1,limb);J([x+5,y+8],[x+10+sw,y+18],1.5,1,limb);J([x-3,y+20],[x-4+sw*.4,y+34],1.7,1.2,limb);J([x+3,y+20],[x+4+sw*.4,y+33],1.7,1.2,limb);capsule(P,[x,y+7],hip,6,kind===1?6:4.5,body,kind===1?1.4:.6);
+  paint(P,g,{x0:x-24,x1:x+24,y0:Math.max(0,y-16),y1:Math.min(150,y+44),rim:'#050408',mat:miniMat});
+  const F=[];if(kind===0){capsule(F,[x,y-1],[x,y+2],5.4,4.8,'porc',.1);}if(kind===1){capsule(F,[x,y-1],[x,y+2],6,5.5,'sack',1);}if(kind===2){capsule(F,[x,y-1],[x,y+2],5,4.6,'porc',.1);capsule(F,[x-1,y-5],[x-9,y-10],2.6,.8,'red',.2);capsule(F,[x+1,y-5],[x+9,y-10],2.6,.8,'red',.2);}paint(F,g,{x0:x-24,x1:x+24,y0:Math.max(0,y-16),y1:Math.min(150,y+20),rim:'#050408',mat:miniMat});
+  g.fillStyle='#050408';if(kind===0){g.fillRect(x-3,y-1,2,2);g.fillRect(x+2,y-1,2,2);g.fillStyle='#a39da8';g.fillRect(x-2,y,1,1);g.fillRect(x+3,y,1,1);g.fillStyle='#c42828';g.fillRect(x-2,y+3,5,1);}
+  if(kind===1){g.fillRect(x-3,y-1,1,1);g.fillRect(x-4,y,1,1);g.fillRect(x-2,y,1,1);g.fillRect(x+3,y-1,1,1);g.fillRect(x+2,y,1,1);g.fillRect(x+4,y,1,1);for(let i=-3;i<=3;i+=2){g.fillRect(x+i,y+3,1,2);}g.fillRect(x-3,y+4,7,1);}
+  if(kind===2){g.fillRect(x-3,y-1,2,1);g.fillRect(x+2,y-1,2,1);g.fillStyle='#c42828';g.fillRect(x-3,y+2,1,1);g.fillRect(x+3,y+2,1,1);g.fillStyle='#050408';g.fillRect(x-3,y+3,7,1);g.fillStyle='#f2c14e';g.fillRect(x-10,y-11,1,1);g.fillRect(x+9,y-11,1,1);}}
+// a damped bounce: it snaps down past its rest point and settles on the spring
+const dropY=(rest,age)=>age<0?-60:age<3?-60+(rest+60)*(age/3):rest+Math.exp(-(age-3)*.13)*Math.cos((age-3)*.85)*18;
+function fightScene(g,t){const n=64,k=t%n;hero(g,14,110);puppet(g,186,t,false);
+  const list=[[0,104,76,8],[1,58,84,24],[2,146,70,40]];for(const [kind,x,rest,at] of list){const age=k-at;if(age<0)continue;const yy=Math.round(dropY(rest,age));spring(g,x,0,Math.max(0,yy-6),'#a39da8');mini(g,kind,x,yy,t);if(age>=2&&age<6){for(let i=0;i<8;i++){const a=i*.785,dd=(age-2)*4;g.fillStyle='#c1b9c4';g.fillRect(Math.round(x+Math.cos(a)*dd),Math.round(yy+14+Math.sin(a)*dd*.5),1,1);}}}}
+
+/* ===== three different Colossus directions, cleaner and heavier, to react to ===== */
+const MOSS=['#141a10','#232c18','#3a4522','#5a6630','#84893e','#b2ad52'],BARK=['#0b0d0a','#171a14','#262a20','#3a3f30','#555a46','#777a60'],SLATE=['#07080c','#111319','#1c1f28','#2c303c','#434856','#646a7a','#8d93a0'],SHR=['#040305','#0a080d','#121018','#1c1824','#2a2434'],BONE=['#3a3428','#6a6048','#988c6c','#c4b890','#e8dfc0'];
+const px1=(g,x,y,c)=>{g.fillStyle=c;g.fillRect(x,y,1,1);};
+const dirMat={bark(g,x,y,s,dep){const top=fbm(x*.08+2,y*.06,3),t2=fbm(x*.3,y*.3,3),c=cell(x*.13,y*.13);if(top+(.5-y/150)*.12>.5&&s>.38)px1(g,x,y,ramp(MOSS,s*1.1+(t2-.5)*.6-.05,x,y));else px1(g,x,y,ramp(BARK,s*.85+(t2-.5)*.35-(c<.07?.18:0),x,y));},
+  stone(g,x,y,s,dep){const c=cell(x*.075+1,y*.075+4),t2=fbm(x*.25,y*.25,2);px1(g,x,y,c<.03?SLATE[0]:ramp(SLATE,s*.95+(t2-.5)*.12,x,y));},
+  shroud(g,x,y,s){const f=fbm(x*.12,y*.03,3),fold=Math.sin(x*.55+f*6)*.2;px1(g,x,y,ramp(SHR,s*.75+fold,x,y));},
+  bone(g,x,y,s){px1(g,x,y,ramp(BONE,s*.9+.12+(fbm(x*.5,y*.5,2)-.5)*.2,x,y));},dark(g,x,y,s){px1(g,x,y,ramp(BARK,s*.35,x,y));}};
+function hazyBack(SKY,L,seed){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');for(let y=0;y<H;y++)for(let x=0;x<W;x++)px1(g,x,y,ramp(SKY,Math.pow(y/116,1.1)*.8+.2*fbm(x*.02,y*.04+seed,4)-.1,x,y));L.forEach((col,i)=>{g.fillStyle=col;for(let x=0;x<W;x++){const tt=112+i*8-fbm(x*(.02+i*.012)+i*9,seed,4)*(50-i*12);g.fillRect(x,tt,1,H-tt);}});for(let y=130;y<H;y++)for(let x=0;x<W;x++)px1(g,x,y,ramp(['#060806','#0e120c','#1a2014','#2a3020'],.1+fbm(x*.04,y*.5,3)*.5,x,y));return c;}
+function drawForest(g,t){const P=[],s=Math.sin(t*.22),b=Math.sin(t*.44)*.5,L=(p,r,m='bark',n=1.6)=>{for(let i=0;i<p.length-1;i++)capsule(P,p[i],p[i+1],r[i],r[i+1],m,n);},cx=170;
+  L([[cx+13,50+b],[cx+34,78],[cx+46+s,108],[cx+48+s,122]],[9,7,5,5]);L([[cx+8,86],[cx+15,114],[cx+18,144]],[10,7,8]);L([[cx-8,86],[cx-14,114],[cx-19,144]],[10,7,8]);capsule(P,[cx-19,144],[cx-31,147],6,3,'bark',1);capsule(P,[cx+18,144],[cx+29,147],6,3,'bark',1);
+  capsule(P,[cx,48+b],[cx,84],17,12,'bark',2.4);capsule(P,[cx-17,46+b],[cx+17,46+b],10,10,'bark',2.4);L([[cx-14,50+b],[cx-33,76],[cx-44-s,104],[cx-47-s,118]],[9,7,5,5]);
+  for(const [x,y,d] of [[cx-47-s,118,-1],[cx+48+s,122,1]])for(let i=0;i<4;i++){capsule(P,[x+(i-1.5)*2.8,y+2],[x+(i-1.5)*3.6+d,y+13],2,1.4,'bark',.4);capsule(P,[x+(i-1.5)*3.6+d,y+13],[x+(i-1.5)*4+d*2,y+21],1.3,.3,'bone',.1);}
+  capsule(P,[cx,29+b],[cx,36+b],8.5,6.5,'bone',.5);for(const d of [-1,1]){capsule(P,[cx+d*7,26+b],[cx+d*15,17],3.4,2.3,'bark',.6);capsule(P,[cx+d*15,17],[cx+d*15,6],2.3,.5,'bone',.2);}
+  // a dead tree grows out of his skull, with dead leaves on it
+  const lv=(x,y,r)=>{for(let a=0;a<70;a++){const q=hash(a,x),ang=a*2.4,d=Math.sqrt(q)*r,X=Math.round(x+Math.cos(ang)*d*1.5),Y=Math.round(y+Math.sin(ang)*d*.7);px1(g,X,Y,ramp(MOSS,.75-d/r*.5+Math.sin(ang)*-.2,X,Y));}};const br=(x,y,a,l,d)=>{const x2=x+Math.cos(a)*l,y2=y+Math.sin(a)*l;drawLine(g,[x,y],[x2,y2],'#1b1d14');if(d){br(x2,y2,a-.55,l*.75,d-1);br(x2,y2,a+.5,l*.75,d-1);}};
+  br(cx,24+b,-1.57,7,3);paint(P,g,{x0:95,x1:245,y0:0,y1:150,rim:'#040503',mat:dirMat});lv(cx-11,13,8);lv(cx+11,12,9);lv(cx,6,8);
+  g.fillStyle='#050404';g.fillRect(cx-5,29+b,3,3);g.fillRect(cx+2,29+b,3,3);g.fillRect(cx-3,36+b,6,2);if(Math.floor(t)%14){px1(g,cx-4,30+b,'#ff5a3c');px1(g,cx+3,30+b,'#ff5a3c');}for(const [a,y0,l] of [[cx-30,74,24],[cx-44,104,14],[cx+30,72,28],[cx-6,88,26],[cx+6,90,20]])for(let i=0;i<l;i++)px1(g,Math.round(a+Math.sin(i*.3+t*.25+a)*(i/12)),y0+i,i%3?'#10140c':'#3a4522');}
+function drawTitan(g,t){const P=[],b=Math.sin(t*.44)*.5,cx=172,L=(p,r,m='stone',n=.25)=>{for(let i=0;i<p.length-1;i++)capsule(P,p[i],p[i+1],r[i],r[i+1],m,n);};
+  L([[cx+8,90],[cx+20,118],[cx+24,146]],[14,11,12]);L([[cx-10,90],[cx-20,118],[cx-24,146]],[14,11,12]);capsule(P,[cx,52+b],[cx,88],27,17,'stone',.25);capsule(P,[cx-30,46+b],[cx+30,46+b],16,16,'stone',.25);L([[cx-38,50+b],[cx-50,84],[cx-54,114]],[13,10,12]);L([[cx+38,50+b],[cx+50,84],[cx+54,114]],[13,10,12]);
+  for(const d of [-1,1])for(let i=0;i<3;i++)capsule(P,[cx+d*54+(i-1)*6,122],[cx+d*54+(i-1)*7,134],3.6,2,'stone',.2);
+  capsule(P,[cx,30+b],[cx,36+b],9,8,'stone',.2);for(const d of [-1,1]){capsule(P,[cx+d*8,26+b],[cx+d*20,12],4,2.6,'stone',.2);capsule(P,[cx+d*20,12],[cx+d*30,2],2.6,.5,'stone',.1);}
+  paint(P,g,{x0:95,x1:250,y0:0,y1:150,rim:'#030304',mat:dirMat});g.fillStyle=Math.floor(t)%14?'#ff5a3c':'#c42828';g.fillRect(cx-6,31+b,12,1);g.fillStyle='#ffc49a';g.fillRect(cx-3,31+b,6,1);const q=Math.floor(t*2)%40;for(const [x,y] of [[cx,62],[cx-12,72],[cx+10,76],[cx,92]]){px1(g,x,y+b,q%7?'#c42828':'#ff5a3c');px1(g,x,y+1+b,'#5a1212');}}
+function drawShroud(g,t){const P=[],s=Math.sin(t*.2),b=Math.sin(t*.4)*.6,cx=174;
+  for(let i=0;i<11;i++){const o=(i-5)*8,l=hash(i,7)*6;capsule(P,[cx+o*.35,44+b],[cx+o+s*(1+i%3),146-l],7,3.4,'shroud',2);}capsule(P,[cx,40+b],[cx,84],22,26,'shroud',2);capsule(P,[cx,20+b],[cx,38+b],15,18,'shroud',1.6);
+  for(const d of [-1,1]){const a=[cx+d*20,50+b],e=[cx+d*42,72],h=[cx+d*(50-s*d),104];capsule(P,a,e,6,4,'bone',.4);capsule(P,e,h,4,3,'bone',.4);for(let i=0;i<4;i++){const f=(i-1.5);capsule(P,[h[0]+f*2.4,h[1]+1],[h[0]+f*3.6+d,h[1]+15],1.5,1,'bone',.2);capsule(P,[h[0]+f*3.6+d,h[1]+15],[h[0]+f*4.4+d*2,h[1]+28],1,.2,'bone',.1);}}
+  paint(P,g,{x0:95,x1:250,y0:0,y1:150,rim:'#020203',mat:dirMat});P.length=0;capsule(P,[cx,27+b],[cx,34+b],8,6,'bone',.3);for(const d of [-1,1]){capsule(P,[cx+d*11,16+b],[cx+d*23,6],3.4,2.2,'bone',.4);capsule(P,[cx+d*23,6],[cx+d*19,-6],2.2,.4,'bone',.2);}
+  paint(P,g,{x0:95,x1:250,y0:0,y1:150,rim:'#020203',mat:dirMat});g.fillStyle='#050404';g.fillRect(cx-5,27+b,3,4);g.fillRect(cx+3,27+b,3,4);g.fillRect(cx-3,35+b,7,2);if(Math.floor(t)%14){px1(g,cx-4,28+b,'#ffe9c4');px1(g,cx+4,28+b,'#ffe9c4');}}
+
+/* ===== Stone Titan, side profile: upright, normal proportions, red stone with molten seams ===== */
+const RSTONE=['#0d0507','#1c0a0c','#2e1012','#451a1a','#5e2622','#7c3a30','#a05a48'],RFAR=['#080305','#100608','#1a0a0c','#26100f','#341614'];
+const titanMat={near(g,x,y,s,dep){const c=cell(x*.085+1,y*.085+4),t2=fbm(x*.22,y*.22,2),seam=fbm(x*.04+4,y*.04,3);if(c<.024){px1(g,x,y,seam>.57&&dep>.1?(hash(x,y)>.5?'#ff5a3c':'#d8301e'):RSTONE[0]);return;}px1(g,x,y,ramp(RSTONE,s*.98+(t2-.5)*.14,x,y));},far(g,x,y,s){const c=cell(x*.085+1,y*.085+4);px1(g,x,y,c<.028?RFAR[0]:ramp(RFAR,s*.8,x,y));},horn(g,x,y,s){px1(g,x,y,ramp(['#1a0a0c','#3a1c18','#6a3c30','#a07a5c','#d4b48c'],s*.95+.05,x,y));}};
+function drawTitanSide(g,t){const P=[],b=Math.sin(t*.44)*.6,s=Math.sin(t*.22)*1.2,L=(p,r,m='near',n=.2)=>{for(let i=0;i<p.length-1;i++)capsule(P,p[i],p[i+1],r[i],r[i+1],m,n);};
+  // far side, in shadow
+  capsule(P,[159,19+b],[174,7+b],3.4,2.4,'far',.1);capsule(P,[174,7+b],[188,10+b],2.4,.5,'far',.1);
+  L([[178,92],[166,118],[161,143]],[13,10,9],'far');L([[161,144],[145,146]],[7,4],'far');
+  L([[160,48+b],[139,80+b*.5],[126+s,105]],[12,9,7.5],'far');capsule(P,[126+s,106],[122+s,114],8,7,'far',.2);
+  // the near leg, pushed back in a slow stride
+  L([[184,92],[190,119],[193,143]],[15,12,10]);L([[194,144],[174,146]],[9,5]);
+  // pelvis, a heavy chest and a slight forward lean
+  capsule(P,[182,90],[178,70],16,20,'near',.2);capsule(P,[178,70],[172,50+b],21,24,'near',.25);
+  // neck and head in profile: flat brow, straight nose, square jaw
+  capsule(P,[166,38+b],[154,31+b],11,9,'near',.15);capsule(P,[158,25+b],[147,25+b],10,8.5,'near',.12);capsule(P,[155,37+b],[144,37+b],6.5,5.2,'near',.1);capsule(P,[154,18+b],[140,20+b],4.2,3.2,'near',.08);capsule(P,[143,25+b],[137,30+b],3.2,2,'near',.08);
+  // one great horn sweeping back
+  capsule(P,[158,18+b],[176,8+b],5,3.6,'horn',.15);capsule(P,[176,8+b],[194,12+b],3.6,2.2,'horn',.1);capsule(P,[194,12+b],[203,25+b],2.2,.4,'horn',.1);
+  // the near arm hangs in front, shoulder plate and a stone fist
+  capsule(P,[172,47+b],[172,47+b],17,17,'near',.2);L([[172,50+b],[163,84+b*.5],[153+s*1.2,112]],[14,11,9.5]);capsule(P,[153+s*1.2,114],[150+s*1.2,124],11,9.5,'near',.2);for(let i=0;i<3;i++)capsule(P,[145+s*1.2+i*5,127],[143+s*1.2+i*5,135],2.8,2.2,'near',.1);
+  paint(P,g,{x0:100,x1:232,y0:0,y1:150,rim:'#040102',mat:titanMat});
+  // a molten slit for an eye, a seam mouth, and vents along the back
+  const by=Math.round(b);g.fillStyle=Math.floor(t)%14?'#ff5a3c':'#c42828';g.fillRect(140,24+by,9,2);g.fillStyle='#ffc49a';g.fillRect(141,24+by,5,1);g.fillStyle='#040102';g.fillRect(139,35+by,14,1);g.fillStyle='#d8301e';g.fillRect(139,36+by,4,1);
+  for(let i=0;i<4;i++){const y=52+i*11+by;g.fillStyle=(Math.floor(t*2)+i)%5?'#d8301e':'#ff5a3c';g.fillRect(192-i,y,5,1);g.fillStyle='#5a1212';g.fillRect(192-i,y+1,5,1);}}
+
+/* second pass: V-shaped torso, each limb painted on its own layer so overlaps keep a clean edge */
+function drawTitanSide2(g,t){const b=Math.sin(t*.44)*.6,s=Math.sin(t*.22)*1.2,box={x0:92,x1:236,y0:0,y1:150,rim:'#040102',mat:titanMat};
+  const layer=fn=>{const P=[];fn((p,r,m='near',n=.2)=>{for(let i=0;i<p.length-1;i++)capsule(P,p[i],p[i+1],r[i],r[i+1],m,n);},P);for(const q of P){q.a=[q.a[0],4+q.a[1]*.94];q.b=[q.b[0],4+q.b[1]*.94];}paint(P,g,box);};
+  // far arm reaching slightly forward, far leg ahead, both in shadow
+  layer((L,P)=>{L([[158,48+b],[136,72+b*.5],[116+s,92]],[9,7,6],'far');capsule(P,[116+s,93],[111+s,101],6.5,5.5,'far',.2);for(let i=0;i<3;i++)capsule(P,[107+s+i*4,103],[104+s+i*4,111],1.9,1.2,'far',.1);L([[176,90],[160,114],[154,142]],[10,8,7],'far');L([[154,143],[136,146]],[6,3.5],'far');capsule(P,[159,19+b],[175,9+b],3.2,2.2,'far',.1);capsule(P,[175,9+b],[188,13+b],2.2,.5,'far',.1);});
+  // near leg set back
+  layer((L)=>{L([[184,90],[194,116],[198,142]],[12,9,8]);L([[199,143],[180,146]],[7.5,4]);});
+  // torso: wide shoulders, narrow waist, head pushed slightly forward
+  layer((L,P)=>{capsule(P,[182,88],[178,74],10,10,'near',.15);capsule(P,[178,74],[172,50+b],11,20,'near',.2);capsule(P,[172,50+b],[166,40+b],20,17,'near',.2);capsule(P,[162,38+b],[153,31+b],9,8,'near',.12);capsule(P,[157,25+b],[146,25+b],9.5,8,'near',.1);capsule(P,[154,36+b],[143,37+b],6,4.8,'near',.08);capsule(P,[153,18+b],[139,20+b],4,3,'near',.06);capsule(P,[142,25+b],[136,30+b],3,1.8,'near',.06);for(let i=0;i<5;i++){const x=190-i*3,y=40+i*9;capsule(P,[x,y+b],[x+8,y-4+b],3,.5,'horn',.1);}});
+  // the horn
+  layer((L,P)=>{capsule(P,[157,18+b],[175,8+b],4.6,3.4,'horn',.12);capsule(P,[175,8+b],[193,12+b],3.4,2,'horn',.08);capsule(P,[193,12+b],[202,25+b],2,.4,'horn',.08);});
+  // near arm on top: a round shoulder plate, a forearm, a real fist with fingers
+  layer((L,P)=>{capsule(P,[170,46+b],[170,50+b],13,12,'near',.15);L([[169,52+b],[160,80+b*.5]],[10,8]);L([[160,80+b*.5],[148+s,106]],[8.5,7]);capsule(P,[147+s,108],[144+s,117],8,7.5,'near',.15);for(let i=0;i<4;i++){capsule(P,[138+s+i*4.4,119],[136+s+i*4.4,127],2.3,1.8,'near',.08);capsule(P,[136+s+i*4.4,127],[138+s+i*4.4,132],1.8,.9,'horn',.05);}});
+  const by=b,Y=v=>Math.round(4+(v+by)*.94);g.fillStyle=Math.floor(t)%14?'#ff5a3c':'#c42828';g.fillRect(139,Y(24),9,2);g.fillStyle='#ffc49a';g.fillRect(140,Y(24),5,1);g.fillStyle='#040102';g.fillRect(138,Y(35),14,1);g.fillStyle='#d8301e';g.fillRect(138,Y(36),4,1);}
+
+/* third pass: a predator's stance. Knees bent, back hunched, head low, one claw raised and one reaching */
+function drawTitanSide3(g,t){const b=Math.sin(t*.44)*.8,s=Math.sin(t*.22),box={x0:84,x1:240,y0:0,y1:150,rim:'#040102',mat:titanMat};
+  const layer=fn=>{const P=[];fn((p,r,m='near',n=.15)=>{for(let i=0;i<p.length-1;i++)capsule(P,p[i],p[i+1],r[i],r[i+1],m,n);},P);paint(P,g,box);};
+  // a muscled limb: thick near the joint, swelling in the middle, tapering to the next joint
+  const limb=(L,a,c,r0,rm,r1,m,bow)=>{const mx=(a[0]+c[0])/2,my=(a[1]+c[1])/2,dx=c[0]-a[0],dy=c[1]-a[1],l=Math.hypot(dx,dy)||1,mid=[mx-dy/l*bow,my+dx/l*bow];L([a,mid,c],[r0,rm,r1],m);};
+  // a claw: knuckles, then each finger bending twice and ending in a bone nail
+  const claw=(P,x,y,ang,m,sc=1)=>{for(let i=0;i<4;i++){const a=ang+(i-1.5)*.34,k=[x+Math.cos(a)*6*sc,y+Math.sin(a)*6*sc],j=[k[0]+Math.cos(a-.35)*7*sc,k[1]+Math.sin(a-.35)*7*sc],e=[j[0]+Math.cos(a+.25)*6*sc,j[1]+Math.sin(a+.25)*6*sc],tip=[e[0]+Math.cos(a+.8)*7*sc,e[1]+Math.sin(a+.8)*7*sc];capsule(P,k,j,2.2*sc,1.9*sc,m,.05);capsule(P,j,e,1.9*sc,1.5*sc,m,.05);capsule(P,e,tip,1.4*sc,.25,'horn',.03);}const th=ang+1.25;capsule(P,[x,y],[x+Math.cos(th)*9*sc,y+Math.sin(th)*9*sc],2.2*sc,1.5*sc,m,.05);capsule(P,[x+Math.cos(th)*9*sc,y+Math.sin(th)*9*sc],[x+Math.cos(th+.5)*15*sc,y+Math.sin(th+.5)*15*sc],1.4*sc,.25,'horn',.03);capsule(P,[x,y],[x,y],5.6*sc,5.6*sc,m,.1);};
+  // far arm raised, elbow out, claw open over you
+  layer((L,P)=>{const sh=[156,46+b],el=[128,64+b],wr=[108+s,36+b];limb(L,sh,el,10,9,6.5,'far',-3);limb(L,el,wr,6.5,8,5,'far',3);claw(P,wr[0],wr[1],-2.2,'far',.95);L([[176,88],[148,108]],[11,9],'far');L([[148,108],[158,140]],[9,6.5],'far');L([[158,141],[138,146]],[6.5,3],'far');capsule(P,[152,32+b],[168,18+b],3.4,2.4,'far',.1);capsule(P,[168,18+b],[176,6+b],2.4,.5,'far',.1);});
+  // near leg: deep knee bend, heel lifted
+  layer((L)=>{L([[188,86],[176,112]],[14,10]);L([[176,112],[194,138]],[10,7]);L([[194,138],[190,146]],[7,6]);L([[190,146],[170,147]],[6,3]);});
+  // hunched torso: the shoulders sit above the head, the waist pinches in
+  layer((L,P)=>{capsule(P,[188,82],[182,70],12,10,'near',.12);capsule(P,[182,70],[172,48+b],11,20,'near',.18);capsule(P,[172,48+b],[160,44+b],20,15,'near',.18);
+    capsule(P,[158,44+b],[150,44+b],9,8,'near',.1);capsule(P,[150,39+b],[140,41+b],9.5,7.6,'near',.08);capsule(P,[148,51+b],[136,53+b],6,4.2,'near',.06);capsule(P,[150,32+b],[135,36+b],3.6,2.6,'near',.05);capsule(P,[137,41+b],[130,46+b],2.8,1.6,'near',.05);
+    for(let i=0;i<6;i++){const x=176+i*2.6,y=26+i*8.5,h=11-i;capsule(P,[x,y+b],[x+h*.75,y-h*.8+b],3,.4,'horn',.08);}});
+  layer((L,P)=>{capsule(P,[150,31+b],[166,16+b],4.8,3.6,'horn',.1);capsule(P,[166,16+b],[186,8+b],3.6,2.2,'horn',.07);capsule(P,[186,8+b],[204,16+b],2.2,.4,'horn',.05);});
+  // near arm: a heavy shoulder, the elbow driven back, the forearm swinging forward with the claw low
+  layer((L,P)=>{const sh=[168,44+b],el=[172,84+b*.5],wr=[136+s*1.3,98+b*.3];capsule(P,sh,[168,50+b],12,12,'near',.1);limb(L,[168,50+b],el,12,11,7.5,'near',4);capsule(P,el,el,8,8,'near',.08);limb(L,el,wr,8,10,6,'near',4);claw(P,wr[0],wr[1],2.75,'near',1.05);});
+  const by=Math.round(b);g.fillStyle=Math.floor(t)%14?'#ff5a3c':'#c42828';g.fillRect(133,38+by,9,1);g.fillRect(135,39+by,8,1);g.fillStyle='#ffc49a';g.fillRect(134,38+by,4,1);
+  // a wide, jagged grin
+  g.fillStyle='#040102';g.fillRect(130,48+by,20,2);g.fillStyle='#d8c0a0';for(let i=0;i<8;i++){g.fillRect(131+i*2.4,48+by,1,1+(i%2));g.fillRect(132+i*2.4,50+by-(i%2),1,1);}}
+
+/* fourth pass, from the references: the head sits on top of the shoulders, both arms hang low, big hands and feet */
+function drawTitanSide4(g,t){const b=Math.sin(t*.44)*.8,s=Math.sin(t*.22),box={x0:60,x1:240,y0:0,y1:150,rim:'#040102',mat:titanMat};
+  const layer=fn=>{const P=[];fn((p,r,m='near',n=.15)=>{for(let i=0;i<p.length-1;i++)capsule(P,p[i],p[i+1],r[i],r[i+1],m,n);},P);paint(P,g,box);};
+  const limb=(L,a,c,r0,rm,r1,m,bow)=>{const mx=(a[0]+c[0])/2,my=(a[1]+c[1])/2,dx=c[0]-a[0],dy=c[1]-a[1],l=Math.hypot(dx,dy)||1,mid=[mx-dy/l*bow,my+dx/l*bow];L([a,mid,c],[r0,rm,r1],m);};
+  // a big hanging hand: thick palm, four heavy fingers curling down, bone claws
+  const hand=(P,x,y,m,sc=1)=>{capsule(P,[x,y],[x-1,y+5*sc],7.5*sc,7.5*sc,m,.1);for(let i=0;i<4;i++){const o=(i-1.7)*4.4*sc,a=[x+o,y+8*sc],j=[x+o-1.2*sc,y+15*sc],e=[x+o-2.6*sc,y+20*sc];capsule(P,a,j,2.7*sc,2.3*sc,m,.05);capsule(P,j,e,2.2*sc,1.7*sc,m,.05);capsule(P,e,[e[0]-2.4*sc,e[1]+6*sc],1.6*sc,.3,'horn',.03);}capsule(P,[x+8*sc,y+4*sc],[x+10*sc,y+13*sc],2.6*sc,1.8*sc,m,.05);capsule(P,[x+10*sc,y+13*sc],[x+9*sc,y+19*sc],1.5*sc,.3,'horn',.03);};
+  const foot=(P,x,y,m)=>{capsule(P,[x,y-2],[x-14,y+1],6.5,4.2,m,.1);for(let i=0;i<3;i++){capsule(P,[x-12-i*.5,y+(i-1)*1.5],[x-22,y+2.5+(i-1)*.7],2,.3,'horn',.03);}};
+  // far side, in shadow: horn, arm and leg
+  layer((L,P)=>{capsule(P,[143,16+b],[137,6+b],3.2,2.2,'far',.08);capsule(P,[137,6+b],[141,-3+b],2.2,.4,'far',.05);/* far arm reaches out toward you, nearly straight, with the elbow barely bent and the hand open */limb(L,[150,54+b],[124,74+b*.6],11,10,8,'far',-2);limb(L,[124,74+b*.6],[103+s*1.4,92+b*.3],8,8.5,6,'far',-1.5);{const hx=103+s*1.4,hy=92+b*.3;capsule(P,[hx,hy],[hx-5,hy+4],6.5,6,'far',.1);for(let i=0;i<4;i++){const a=2.45+(i-1.5)*.42+Math.sin(t*.3+i)*.03,k=[hx-4+Math.cos(a)*5,hy+4+Math.sin(a)*5],j=[k[0]+Math.cos(a)*7,k[1]+Math.sin(a)*7],e=[j[0]+Math.cos(a+.3)*6,j[1]+Math.sin(a+.3)*6];capsule(P,k,j,2.4,2,'far',.05);capsule(P,j,e,2,1.5,'far',.05);capsule(P,e,[e[0]+Math.cos(a+.75)*6,e[1]+Math.sin(a+.75)*6],1.4,.25,'horn',.03);}capsule(P,[hx,hy+4],[hx+4,hy+14],2.6,1.8,'far',.05);capsule(P,[hx+4,hy+14],[hx+2,hy+20],1.6,.3,'horn',.03);}L([[176,94],[154,112]],[12,10],'far');L([[154,112],[166,136]],[10,7],'far');foot(P,165,141,'far');});
+  // near leg: thick thigh, bent knee, strong calf
+  layer((L,P)=>{L([[192,92],[172,112]],[16,12]);L([[172,112],[182,126],[192,138]],[11,10.5,7]);foot(P,190,141,'near');});
+  // body: a heavy chest and a rounded back rising to the shoulders, then a short neck
+  layer((L,P)=>{capsule(P,[192,88],[178,76],14,15,'near',.15);capsule(P,[178,76],[168,56+b],15,24,'near',.15);capsule(P,[182,62+b],[172,44+b],20,22,'near',.18);capsule(P,[160,42+b],[150,34+b],14,11,'near',.12);for(let i=0;i<6;i++){const x=184+i*3.2,y=26+i*8,h=11-i;capsule(P,[x,y+b],[x+h*.8,y-h*.7+b],3,.4,'horn',.08);}});
+  // head on top: skull, heavy brow, muzzle and an open jaw
+  layer((L,P)=>{capsule(P,[152,24+b],[142,25+b],10.5,8.5,'near',.08);capsule(P,[150,17+b],[135,21+b],4,2.8,'near',.05);capsule(P,[140,28+b],[130,31+b],5,3.4,'near',.05);capsule(P,[148,39+b],[134,41+b],6.5,4.4,'near',.05);capsule(P,[157,20+b],[174,12+b],4.8,3.5,'horn',.08);capsule(P,[174,12+b],[190,13+b],3.5,2.1,'horn',.06);capsule(P,[190,13+b],[198,3+b],2.1,.4,'horn',.04);});
+  // near arm: round shoulder, elbow back, forearm forward, hand hanging at the knee
+  layer((L,P)=>{capsule(P,[172,46+b],[172,50+b],15,14,'near',.12);/* near arm hangs heavy at his side: the elbow bends the way an elbow should, and the hand is curled */limb(L,[170,52+b],[160,86+b*.6],13,12.5,9,'near',-2);capsule(P,[160,86+b*.6],[160,86+b*.6],9.2,9.2,'near',.06);limb(L,[160,86+b*.6],[145+s*1.2,110],9.2,10,7,'near',-1.5);hand(P,144+s*1.2,112,'near',1.05);});
+  const by=Math.round(b);
+  // muscle lines: pec, ribs and the bicep crease
+  const ink=(a,c,col='#1c0a0c')=>drawLine(g,[a[0],a[1]+by],[c[0],c[1]+by],col);ink([151,62],[160,72]);ink([160,72],[172,70]);ink([158,78],[170,80],'#2e1012');ink([160,84],[172,86],'#2e1012');ink([180,60],[188,70]);ink([168,66],[182,64],'#5e2622');
+  g.fillStyle=Math.floor(t)%14?'#ff5a3c':'#c42828';g.fillRect(134,23+by,10,2);g.fillStyle='#ffc49a';g.fillRect(135,23+by,5,1);
+  g.fillStyle='#040102';g.fillRect(129,33+by,20,4);g.fillStyle='#7a1414';g.fillRect(133,35+by,14,2);g.fillStyle='#e0d0b0';for(let i=0;i<8;i++){g.fillRect(130+i*2.4,33+by,1,2);g.fillRect(131+i*2.4,36+by,1,1);}}
+
+const O=document.getElementById('out');const scene=(name,back,draw,n)=>{const h=document.createElement('h2');h.textContent=name;O.appendChild(h);const c=document.createElement('canvas');c.width=W;c.height=H;c.style.width=W*3+'px';c.style.height=H*3+'px';O.appendChild(c);const g=c.getContext('2d'),B=back(),frames=[];for(let i=0;i<n;i++){const f=document.createElement('canvas');f.width=W;f.height=H;const fg=f.getContext('2d');fg.drawImage(B,0,0);draw(fg,n>=64?i:i/n*Math.PI*2/.22);frames.push(f);}let k=0;g.drawImage(frames[0],0,0);setInterval(()=>{k=(k+1)%n;g.drawImage(frames[k],0,0);},170);};
+setTimeout(()=>{
+ scene('Stone Titan: side profile, in red',()=>hazyBack(['#140406','#28080a','#440e0e','#661614','#8c2a1c','#b04a2c','#d07a44'],['#5a1a18','#380e10','#200809'],9),(g,t)=>{hero(g,40,124);drawTitanSide4(g,t);},8);
+ scene('Colossus 1: Forest Giant. Closest to your picture, a mossy rotted giant with a skull face and a dead tree on his head',()=>hazyBack(['#1c2a22','#2c4034','#42594a','#5e7560','#7f9178','#a7ad8c','#c6c29c'],['#6d806c','#4a5e4e','#2c3c30'],3),(g,t)=>{hero(g,44,124);drawForest(g,t);},8);
+ setTimeout(()=>{scene('Colossus 2: Stone Titan. A huge carved statue, smooth and heavy, with one burning slit for eyes',()=>hazyBack(['#0a0a10','#161622','#242434','#3a3648','#5a4a54','#84645c','#b08868'],['#4a3e4a','#2c2632','#181620'],5),(g,t)=>{hero(g,40,124);drawTitan(g,t);},8);
+ setTimeout(()=>{scene('Colossus 3: The Shroud. A giant in a torn cloak with a horned skull and long bone arms, the simplest shape',()=>hazyBack(['#0c0408','#1c0a0e','#321014','#501a1a','#742c22','#9a4a30','#c07a4a'],['#54201c','#321214','#1c0a0e'],7),(g,t)=>{hero(g,40,124);drawShroud(g,t);},8);
+ setTimeout(()=>{scene('The Veiled: a marionette, hung from the dark by her own hair',veilBack,(g,t)=>{hero(g,26,110);puppet(g,172,t,false);},16);
+ setTimeout(()=>{scene('Her fight: she summons small puppets, and they drop in on springs',veilBack,fightScene,64);document.getElementById('st').textContent='All painted.';},30);},30);},30);},30);
+},30);
+</script></body></html>

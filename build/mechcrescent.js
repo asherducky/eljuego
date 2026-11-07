@@ -1,0 +1,53 @@
+// Black Crescent polish: held in the hand, bigger icon, evolution bar, its own attack, Black Moon in its own slot, and a price of 15% gold, XP and gear drops.
+const {P}=require('./mech.js');
+const FX=`  bcslash:e=>{const f=sprEl(elFor(e.t)),h=heroEl(),st=document.querySelector('.stage');if(!f||!h||!st)return;const it=S.gear.weapon,sg=it&&it.veil?bcStage(it):0,A=ctr(h),B=ctr(f),SR=st.getBoundingClientRect(),R=Math.min(SR.height*.42,44+sg*7);sfx('sstare');
+    const arc=(x,y,r,o)=>{for(let a=-1.25;a<=1.25;a+=.035){const q=Math.abs(a)/1.25,th=Math.max(GP,Math.round(r*.26*(1-q*q)/GP)*GP),cx=x-Math.cos(a)*r,cy=y+Math.sin(a)*r;if(o<1&&Math.random()>o)continue;pline(cx,cy,cx+th,cy,'#000000',GP*2);pp(cx+th,cy,'#c42828',GP);pp(cx+th+GP,cy,'#ff5a3c',GP);if(q<.7)pp(cx+th+GP*2,cy,'#ffc49a',GP);}};
+    fxo(760,t=>{stageClip(SR);const fly=Math.min(1,t/.42),u=fly*fly,x=A.x+(B.x-A.x)*u,y=A.y+(B.y-A.y)*u;if(t<.46){for(let k=3;k>0;k--){const v=Math.max(0,fly-k*.1),uu=v*v;arc(A.x+(B.x-A.x)*uu,A.y+(B.y-A.y)*uu,R*.9,.34-.08*k);}arc(x,y,R,1);}
+      if(t>.42&&t<.82&&(t<.62||(t*40|0)%2))rakes(B.x,B.y,Math.max(30,B.r.width*.6),Math.max(36,B.r.height*.62),Math.min(1,(t-.42)/.07),1+Math.min(2,sg),t<.5);
+      if(sg&&t>.44&&t<.8&&(t*20|0)%3){for(let i=0;i<sg;i++){const X=B.x+Math.cos(i*2.4)*B.r.width*.5,Y=B.y+Math.sin(i*1.7)*B.r.height*.4;pp(X-GP*2,Y,'#ff5a3c',GP);pp(X+GP*2,Y,'#ff5a3c',GP);}}px.restore();});
+    setTimeout(()=>{sfx('sbite');shake(4+sg);flinch(f,220);dsplat(B.x,B.y,{n:8+sg*3,r:B.r.width});},TS(320));},
+  bcmoon:e=>{const st=document.querySelector('.stage');if(!st)return;const SR=st.getBoundingClientRect(),tg=[...document.querySelectorAll('.foe:not(.dead)')].map(sprEl).filter(Boolean),cs=tg.map(ctr),W=SR.width,H=SR.height,cx=SR.left+W/2,MR=H*.4,eyes=Array.from({length:34},(_,i)=>[SR.left+Math.random()*W,SR.top+Math.random()*H*.9,.06+Math.random()*.34,Math.random()>.5?2:3]),rain=Array.from({length:70},()=>[SR.left+Math.random()*W,Math.random()]),hair=Array.from({length:18},(_,i)=>[SR.left+W*(i+.5)/18,Math.random()*.4+.45,i*1.7]);sfx('ssmile');
+    fxo(2300,t=>{stageClip(SR);const dark=t<.1?t/.1:t>.84?(1-t)/.16:1;ditherStage(SR,Math.round(16*dark));
+      // her hair falls first, from the whole top of the scene
+      if(t<.74)for(const [x,l,sd] of hair){const k=Math.min(1,t/.2),len=H*l*k;tendril(x,SR.top,x+Math.sin(sd+t*5)*12,SR.top+len,1,GP*2,sd+t*3,8);}
+      // eyes open all over the dark, then all of them stare
+      if(t>.05&&t<.72)for(const [x,y,at,gap] of eyes){if(t<at)continue;const wide=t>.5,blink=!wide&&((t*40+x|0)%19===0);if(blink)continue;const c=wide?'#ffc49a':'#ff5a3c';pp(x-gap*GP,y,c,GP);pp(x+gap*GP,y,c,GP);if(wide){pp(x-gap*GP,y-GP,'#c42828',GP);pp(x+gap*GP,y-GP,'#c42828',GP);}}
+      // the black moon rises, a crescent with a burning rim
+      if(t>.14&&t<.66){const rise=Math.min(1,(t-.14)/.3),my=SR.bottom+MR-(H*.5+MR)*(1-(1-rise)*(1-rise)),thin=t>.54?(t-.54)/.12:0,cut=MR*(.32+thin*.6);for(let dy=-MR;dy<=MR;dy+=GP){const hw=Math.sqrt(Math.max(0,MR*MR-dy*dy)),inner=Math.sqrt(Math.max(0,MR*MR-dy*dy))*.98,xr=cx-hw,xi=cx-inner+cut*2;const y=my+dy;pline(cx-hw,y,cx+hw,y,'#000000',GP);if(xi>xr){pline(xr,y,Math.min(xi,cx+hw),y,'#5a1212',GP);pline(xr,y,Math.min(xr+(xi-xr)*.6,cx+hw),y,'#c42828',GP);pp(xr,y,'#ffc49a',GP);pp(xr+GP,y,'#ff5a3c',GP);}}}
+      // it falls as one blade across everything
+      if(t>=.64&&t<.74){const k=(t-.64)/.1,x0=SR.right+40-(W+80)*k;for(let y=SR.top;y<SR.bottom;y+=GP){const bow=Math.pow((y-SR.top-H/2)/(H/2),2)*W*.2,xx=x0+bow;pline(xx,y,xx+W*.09,y,'#000000',GP);pline(xx,y,xx+GP*3,y,'#ffffff',GP);pp(xx+GP*3,y,'#ff5a3c',GP);}}
+      if(t>=.68&&t<.84&&(t*40|0)%2)for(const B of cs)rakes(B.x,B.y,Math.max(40,B.r.width*.8),Math.max(44,B.r.height*.8),Math.min(1,(t-.68)/.03),4,t<.74);
+      // what is left comes down as red rain
+      if(t>.7)for(const [x,o] of rain){const y=SR.top+((o+(t-.7)*2.4)%1)*H;if(Math.random()<dark+.1){pp(x,y,'#c42828',GP);pp(x,y-GP,'#5a1212',GP);}}
+      px.restore();});
+    setTimeout(()=>{sfx('sstare');shake(5);},TS(700));setTimeout(()=>{sfx('ssnap');sfx('ssmile');shake(20);tg.forEach(x=>flinch(x,520));cs.forEach(B=>dsplat(B.x,B.y,{n:34,r:B.r.width*1.7}));},TS(1500));},
+`;
+function crescent(h){
+  // held in the hand: the curve leans out from the grip so it clears his head
+  h=P(h,"pt=q=>[cx-L*bend*(1-Math.cos(q*1.9)),by-L*q];const n=L*4;","pt=q=>[cx-L*bend*(1-Math.cos(q*1.9))+L*.56*q,by-L*q];const n=L*4;");
+  h=P(h,"x.drawImage(bcCanvas(P.vb-1,i),2,-5);","x.drawImage(bcCanvas(P.vb-1,i),-4,-4);");
+  // a bigger icon, cropped to the blade
+  h=P(h,"if(it.veil)return '<img class=\"spr\" src=\"'+canvasURL('bci'+bcStage(it),bcCanvas(bcStage(it),0))+'\" width=\"'+Math.round(16*s*1.33)+'\" height=\"'+16*s+'\" style=\"image-rendering:pixelated;object-fit:contain\" alt=\"\">';","if(it.veil){const ic=bcIcon(bcStage(it)),hh=Math.round(16*s*1.2);return '<img class=\"spr\" src=\"'+ic.u+'\" width=\"'+Math.round(hh*ic.w/ic.h)+'\" height=\"'+hh+'\" style=\"image-rendering:pixelated\" alt=\"\">';}");
+  h=P(h,"const bcStage=it=>{","function bcIcon(st){const key='ic'+st;if(BC.cache[key])return BC.cache[key];const px=bcPixels(st,0);let a=99,b=99,c=0,d=0;for(const k of px.keys()){const [x,y]=k.split(',').map(Number);a=Math.min(a,x);b=Math.min(b,y);c=Math.max(c,x);d=Math.max(d,y);}const w=c-a+1,h=d-b+1,cv=document.createElement('canvas');cv.width=w;cv.height=h;const g=cv.getContext&&cv.getContext('2d');if(g)for(const [k,col] of px){const [x,y]=k.split(',').map(Number);g.fillStyle=col;g.fillRect(x-a,y-b,1,1);}return BC.cache[key]={u:cv.toDataURL?cv.toDataURL():'',w,h};}\nfunction bcBar(it){const st=bcStage(it),nx=BC.KILLS[st+1],k=it.vk||0,a=BC.KILLS[st],pct=nx?Math.min(100,(k-a)/(nx-a)*100):100;return '<div class=\"bcevo\"><div class=\"bcevol\"><b>Stage '+(st+1)+'/5</b><span class=\"num\">'+(nx?k+'/'+nx+' kills':'Fully awake')+'</span></div><div class=\"bcevob\"><i style=\"width:'+pct+'%\"></i>'+BC.KILLS.slice(1).map((_,i)=>'').join('')+'</div></div>';}\nconst bcStage=it=>{");
+  h=P(h,".doll{display:grid;",".bcevo{margin:6px 0}.bcevol{display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:2px}.bcevol b{font-weight:normal;color:#ff5a3c}.bcevob{height:10px;background:#100608;box-shadow:inset 0 0 0 2px #451a1a;overflow:hidden}.bcevob i{display:block;height:100%;background:repeating-linear-gradient(90deg,#c42828 0 4px,#7a1414 4px 8px);animation:malfull .6s steps(2) infinite}.mi.moon{background:#1a0608;box-shadow:inset 0 0 0 3px #7a1414;color:#ffc49a;position:relative;overflow:hidden}.mi.moon.ready{box-shadow:inset 0 0 0 3px #ff5a3c;animation:moonrim .8s steps(2) infinite}@keyframes moonrim{50%{box-shadow:inset 0 0 0 3px #ffc49a}}.mi.moon i{position:absolute;left:0;bottom:0;height:4px;background:#c42828}.mi.moon:disabled{color:#8a5a50;cursor:not-allowed}\n.doll{display:grid;");
+  h=P(h,"${W?`<div class=\"bigstat\">ATK <b class=\"num\">${effAtk(it)}</b></div>${grades}`:''}","${W?`<div class=\"bigstat\">ATK <b class=\"num\">${effAtk(it)}</b></div>${grades}`:''}${it.veil&&tip?bcBar(it):''}");
+  h=P(h,"function itemCard(it,actions,equipped){","function itemCard(it,actions,equipped,tip){");
+  h=P(h,"return it?itemCard(it,'',isWorn(it)):'';","return it?itemCard(it,'',isWorn(it),true):'';");
+  // the Contract tab shows the bar, the skill and the price
+  h=P(h,"<div><h3>Black Crescent · Stage '+(st+1)+'/5</h3><p class=\"small\">'+(it.vk||0)+' kills'+(nx?' · next eye at '+nx:' · fully awake')+'</p>","<div><h3>Black Crescent</h3><p class=\"small gold\">Black Moon: '+Math.round(moonMult(it)*100)+'% to every enemy, plus Bleed. Charges over 6 turns.</p><p class=\"small dim\">Her price: 15% less gold, XP and gear from every fight.</p>");
+  h=P(h,"<img src=\"'+canvasURL('bc'+st,bcCanvas(st,0))+'\" width=\"128\" height=\"96\"","<img data-tip=\"item:'+it.uid+'\" src=\"'+canvasURL('bc'+st,bcCanvas(st,0))+'\" width=\"128\" height=\"96\"");
+  // its own attack
+  h=P(h,"function basicFx(){if(wepTree()==='magic'){","function basicFx(){if(S.gear.weapon&&S.gear.weapon.veil)return {fxn:'bcslash',dur:320};if(wepTree()==='magic'){");
+  h=P(h,"  vsig:e=>{",FX+"  vsig:e=>{");
+  // Black Moon: its own slot, charged by acting
+  h=P(h,"const bcStage=it=>{","const moonMult=it=>3+.6*bcStage(it);\nconst bcStage=it=>{");
+  h=P(h,"c.tn=(c.tn||0)+1;fxAt=0;fn();afterPlayer();","c.tn=(c.tn||0)+1;if(S.gear.weapon&&S.gear.weapon.veil)c.bm=Math.min(100,(c.bm||0)+17);fxAt=0;fn();afterPlayer();");
+  h=P(h,"  attack:()=>{turn(()=>{","  blackmoon:()=>{const c0=C(),w=S.gear.weapon;if(!c0||!w||!w.veil||(c0.bm||0)<100||c0.ctx==='duel')return;turn(()=>{const c=C(),e=tgt(),m=moonMult(w);c.bm=0;log('You raise the blade. Every eye on it opens.','you');c.lastAct='Black Moon';perform({fxn:'bcmoon',dur:1500},e,()=>{alive().forEach(x=>{hit(x,m,{label:'Black Moon'});if(x.hp>0)bleed(x,2);});});});},\n  attack:()=>{turn(()=>{");
+  h=P(h,"else menu=`<button class=\"mi\" data-a=\"attack\"","else menu=`${S.gear.weapon&&S.gear.weapon.veil&&c.ctx!=='duel'?`<button class=\"mi moon ${(c.bm||0)>=100?'ready':''}\" data-a=\"blackmoon\" ${(c.bm||0)>=100?'':'disabled'} data-tip=\"txt:${Math.round(moonMult(S.gear.weapon)*100)}% to every enemy, plus Bleed. Charges a little every turn.\">Black Moon<small class=\"num\">${Math.min(100,c.bm||0)}%</small><i style=\"width:${Math.min(100,c.bm||0)}%\"></i></button>`:''}<button class=\"mi\" data-a=\"attack\"");
+  // her price
+  h=P(h,"S.gold+=loot.gold;for(const m in loot.mats)S.mats[m]=(S.mats[m]||0)+loot.mats[m];addToBag(loot.items);","if(S.gear.weapon&&S.gear.weapon.veil&&c.ctx!=='devil'){loot.gold=Math.round(loot.gold*.85);loot.xp=Math.round(loot.xp*.85);loot.items=loot.items.filter(()=>!chance(15));}S.gold+=loot.gold;for(const m in loot.mats)S.mats[m]=(S.mats[m]||0)+loot.mats[m];addToBag(loot.items);");
+  h=P(h,"<b>You give up</b> every other weapon, forever. Your weapon slot is hers now.<br><b>You gain</b> the Black Crescent. It grows with your level, drinks from every kill, opens new eyes, and takes the metal of every land you have walked.","<b>You give up</b> every other weapon, and 15% of the gold, XP and gear from every fight.<br><b>You gain</b> the Black Crescent. It grows with your level and your kills, takes the metal of every land you have walked, and gives you Black Moon.");
+  h=P(h,"txt:The Veiled: your weapon slot is hers. The Black Crescent grows with you. An Orb of Rebirth destroys it.","txt:The Veiled: your weapon slot is hers, and she takes 15% of your gold, XP and gear. The Black Crescent grows with you. An Orb of Rebirth destroys it.");
+  h=require('./mechunbound.js').unbound(h);
+  return h;}
+module.exports={crescent};

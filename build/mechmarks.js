@@ -1,0 +1,12 @@
+// Devil Marks: a row under the equipped panel showing what beating each devil earned.
+const {P}=require('./mech.js');
+function marks(h){
+  h=P(h,".doll{display:grid;",".dmarks{grid-column:1/-1;grid-row:5;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px}.dmarks>span{font-size:.62rem;color:var(--mute);letter-spacing:.06em;text-transform:uppercase;margin-right:4px}.dmark{width:44px;height:44px;display:grid;place-items:center;overflow:hidden;background:#0d0b14;box-shadow:inset 0 0 0 2px #2a2636;cursor:help}.dmark b{font-size:1.1rem;font-weight:normal;color:#3b3450}.dmark.on{background:#000;animation:dmrim 1.4s steps(2) infinite}@keyframes dmrim{0%{box-shadow:inset 0 0 0 2px #55505a}50%{box-shadow:inset 0 0 0 2px #9fd0d8}}\n.doll{display:grid;");
+  h=P(h,"<div class=\"dollhero\">${heroImg(innerWidth<440?4:6).replace('idle','')}</div></div></div>","<div class=\"dollhero\">${heroImg(innerWidth<440?4:6).replace('idle','')}</div>${vMarks()}</div></div>");
+  h=P(h,"function vInv(){","const DEVILMARKS=[['beat','Ghost Flame','You beat The Hollow. +5% damage, for good.'],['beatc',null,'Something very large has not noticed you yet.'],['beatv',null,'Something is waiting to be noticed.']];\nfunction vMarks(){const D=S.devils||{};return '<div class=\"dmarks\"><span>Devil Marks</span>'+DEVILMARKS.map(([k,n,d])=>D[k]?'<div class=\"dmark on\" data-tip=\"txt:'+n+': '+d+'\">'+DEVIL.markImg(k)+'</div>':'<div class=\"dmark\" data-tip=\"txt:'+(k==='beat'?'Something out there is still watching.':d)+'\"><b>?</b></div>').join('')+'</div>';}\nfunction vInv(){");
+  h=P(h,"function bossImg(e,up,ps){","function markImg(k){const src=frameSet('m'+k,6,(g,t)=>{g.save();g.scale(2,2);g.translate(-59,-34);ghostFlame(g,t*.6);g.restore();},44,44);if(!UIv.anim){UIv.anim=setInterval(()=>{document.querySelectorAll('img[data-hfr]').forEach(m=>{const set=FRAMES[m.dataset.hfr];if(set)m.src=set[Math.floor(performance.now()/170)%set.length];});},170);}return '<img data-hfr=\"m'+k+'\" src=\"'+src[0]+'\" width=\"44\" height=\"44\" style=\"image-rendering:pixelated;display:block\" alt=\"\">';}\nfunction bossImg(e,up,ps){");
+  h=P(h,"names:Object.keys(CAST),offer,contractImg,bossImg,","names:Object.keys(CAST),offer,contractImg,markImg,bossImg,");
+  // the mark now has its own home
+  h=P(h,"${S.devils&&S.devils.beat?'<p class=\"small gold\">Ghost Flame: you beat The Hollow. +5% damage, for good.</p>':''}<h3>Builds</h3>","<h3>Builds</h3>");
+  return h;}
+module.exports={marks};
